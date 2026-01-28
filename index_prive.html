@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Startpagina</title>
+  <link rel="icon" type="image/x-icon" href="favicon.png">
+  <link rel="stylesheet" href="style_prive.css" />
+  <meta name="color-scheme" content="dark light" />
+</head>
+
+<body data-mode="prive">
+  <header class="topbar">
+  <div class="topbar-inner">
+    <!-- Zoekbalk (links) -->
+    <form id="searchForm" autocomplete="off" role="search" aria-label="Zoeken">
+      <input id="searchInput" class="search" name="q" type="search"
+             placeholder="Typ om te filteren • druk Enter om Google te openen in een nieuw tabblad."
+             aria-label="Zoek in je links of druk Enter voor Google" />
+      <button class="clear" type="button" id="clearBtn" aria-label="Zoekveld wissen">×</button>
+    </form>
+
+    <!-- Toggle (rechts) -->
+    <div class="mode-toggle" aria-label="Kies type startpagina">
+      <span class="mode-label mode-label--zakelijk"></span>
+      <label class="switch">
+        <input type="checkbox" id="modeToggle" />
+        <span class="slider"></span>
+      </label>
+      <span class="mode-label mode-label--prive">Privé</span>
+    </div>
+  </div>
+</header>
+
+  <main id="blocks">
+
+    
+    <div class="grid">
+	    
+		<section class="card cat-slate">
+       <h2>Google</h2>
+        <ul>
+          <li><span class="ph"></span> <a href="https://mail.google.com"><b>Mail</b></a></li>
+          <li><span class="ph"></span> <a href="https://calendar.google.com">Calendar</a></li>
+		  <li><span class="ph"></span> <a href="https://drive.google.com">Drive</a></li>
+          <li><span class="ph"></span> <a href="https://photos.google.com">Foto's</a></li>
+		 
+                </ul>
+      </section>
+      	  
+	  <section class="card cat-rose">
+        <h2>Raspberry Pi</h2>
+        <ul>
+		
+          <li><span class="ph"></span> <a href="rpi.local:8989"><b>Sonarr (TV series)</b></a></li>
+		  <li><span class="ph"></span> <a href="rpi.local:7878">Radarr (films)</a></li>
+		  <li><span class="ph"></span> <a href="rpi.local:8686">Lidarr (muziek)</a></li>
+		  <li><span class="ph"></span> <a href="rpi.local:6767">Bazarr (ondertitels)</a></li>
+          <li><span class="ph"></span> <a href="rpi.local:9696">Prowlarr (indexer)</a></li>
+  
+        </ul>
+      </section>
+     
+	   <section class="card cat-blue">
+        <h2>Diversen</h2>
+        <ul>
+		  <li><span class="ph"></span> <a href="https://wetten.overheid.nl/">Rabobank</a></li>
+		  <li><span class="ph"></span> <a href="https://www.marktplaats.nl">Marktplaats</a></li>
+        
+          </ul>
+      </section>
+	  
+	   <section class="card cat-purple">
+        <h2>Diversen</h2>
+        <ul>
+          <li><span class="ph"></span> <a href="https://www.google.com/maps">Google Maps</a> | <a href="https://www.waze.com/nl/live-map/">Waze</a> | <a href="https://www.routexl.com/">RouteXL</a></li>
+          <li><span class="ph"></span> <a href="https://calendar.google.com/calendar/u/0/exporticalzip">Export GCal</a> | <a href="https://calendar.google.com/calendar/u/0/r/settings/export">Import GCal</a></li>
+          <li><span class="ph"></span> <a href="https://www.ns.nl/">NS.nl</a></li>
+		   <li><span class="ph"></span> <a href="https://chat.openai.com/">ChatGPT</a> | <a href="https://gemini.google.com/app">Gemini</a></li>
+        
+		<li><span class="ph"></span> <a href="https://notebooklm.google.com/">NotebookLM</a> 
+		</ul>
+      </section>
+ 
+     
+      <section class="card cat-yellow">
+	  
+		  
+	 
+	      </div>
+	
+	
+	
+	<div class="row">
+      <section class="card cat-pink">
+       
+<h2>Warenwetten <span style="float:right;"></span></h2>
+        <ul>
+          <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0001969/">Warenwet</a></li>
+          <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0011841/2025-05-09/0">WAW best. boeten</a></li>
+          <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0005577">Warenwetbesluit machines</a></li>
+          <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0040828/">Warenwetbesluit PBM 2018</a></li>
+          <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0037644">Warenwetbesluit expl. materieel</a></li>
+		  <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0037650">Warenwetbesluit liften 2016</a></li>
+          <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0038083/">Warenwetbesluit drukapp.</a></li>
+          <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0037646">Warenwetbesluit drukv. eenv.</a></li>
+        </ul>
+      </section>
+ 
+		 </div>
+		
+<div class="card_wide">
+
+   <div class="card wide cat-orange">
+  
+#hier kan een dropdownkaart gemaakt worden
+  
+    </div>
+  </div>
+
+ </div>
+		 
+  </main>
+
+<script>
+const wideCard = document.querySelector('.card.wide');
+if (wideCard) {
+  let hoverTimeout;
+
+  wideCard.addEventListener('mouseenter', () => {
+    clearTimeout(hoverTimeout);
+    wideCard.classList.add('open');
+  });
+
+  wideCard.addEventListener('mouseleave', () => {
+    // kleine vertraging voordat hij dichtklapt
+    hoverTimeout = setTimeout(() => {
+      wideCard.classList.remove('open');
+    }, 200);
+  });
+}
+</script>
+
+   <script>
+  (function () {
+    const input = document.getElementById('searchInput');
+    const blocks = document.getElementById('blocks');
+    const clearBtn = document.getElementById('clearBtn');
+    const form = document.getElementById('searchForm');
+
+    function filterLinks(q) {
+      const term = q.trim().toLowerCase();
+      const cards = blocks.querySelectorAll('.card');
+      let anyVisibleInPage = false;
+
+      cards.forEach(card => {
+        const items = card.querySelectorAll('li');
+        let visibleInCard = 0;
+
+        items.forEach(li => {
+          const text = li.textContent.toLowerCase();
+          const hrefs = Array.from(li.querySelectorAll('a')).map(a => a.href.toLowerCase()).join(' ');
+          const match = !term || text.includes(term) || hrefs.includes(term);
+          li.style.display = match ? '' : 'none';
+          if (match) visibleInCard++;
+        });
+
+        card.style.display = (visibleInCard > 0) ? '' : 'none';
+        if (visibleInCard > 0) anyVisibleInPage = true;
+      });
+
+      blocks.dataset.hasresults = anyVisibleInPage ? '1' : '0';
+    }
+
+    input.addEventListener('input', (e) => filterLinks(e.target.value));
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      filterLinks('');
+      input.focus();
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const term = input.value.trim();
+      if (!term) return;
+      const url = 'https://www.google.com/search?q=' + encodeURIComponent(term);
+      window.open(url, '_blank', 'noopener');
+    });
+
+    filterLinks('');
+  })();
+  </script>
+  
+ <script>
+/* 1️⃣ Toggle open/dicht bij klikken op de titel */
+document.querySelectorAll('.card.wide h2').forEach(header => {
+  header.addEventListener('click', () => {
+    header.parentElement.classList.toggle('open');
+  });
+});
+
+/* 2️⃣ Zorg dat dropdown openklapt zodra in de zoekbalk wordt getypt of gefocust */
+const searchInput = document.querySelector('.search');
+const wideCard = document.querySelector('.card.wide');
+
+if (searchInput && wideCard) {
+  const openDropdown = () => wideCard.classList.add('open');
+  const closeDropdown = () => wideCard.classList.remove('open');
+
+  // open bij typen of focus
+  searchInput.addEventListener('input', openDropdown);
+  searchInput.addEventListener('focus', openDropdown);
+
+  // optioneel: dichtklappen als zoekbalk leeg raakt en focus weg is
+  searchInput.addEventListener('blur', () => {
+    if (searchInput.value.trim() === '') closeDropdown();
+  });
+}
+</script>
+
+<script>
+  (function () {
+    const toggle = document.getElementById('modeToggle');
+    if (!toggle) return;
+
+    // Bepaal op basis van data-mode of de checkbox aan moet staan
+    const isPrivePage = document.body.dataset.mode === 'prive';
+    toggle.checked = isPrivePage;
+
+    toggle.addEventListener('change', () => {
+      const goPrive = toggle.checked;
+
+      if (goPrive) {
+        // naar de privé-startpagina
+        window.location.href = 'index_prive.html';
+      } else {
+        // terug naar de zakelijke startpagina
+        window.location.href = 'index.html';
+      }
+    });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Startpagina</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="style.css" />
+  <meta name="color-scheme" content="dark light" />
+  <!-- alle links standaard in nieuw tabblad -->
+  <base target="_blank">
+</head>
+
+<body>
+  <header class="topbar">
+    <form id="searchForm" autocomplete="off" role="search" aria-label="Zoeken">
+      <input id="searchInput" class="search" name="q" type="search"
+             placeholder="Typ om te filteren • druk Enter om Google te openen in een nieuw tabblad."
+             aria-label="Zoek in je links of druk Enter voor Google" />
+      <button class="clear" type="button" id="clearBtn" aria-label="Zoekveld wissen">×</button>
+    </form>
+  </header>
+
+  <main id="blocks">
+    <!-- kaarten worden hier door loader.js ingevuld op basis van data/links.xlsx -->
+  </main>
+
+  <!-- SheetJS voor Excel uitlezen -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- jouw loader -->
+  <script src="loader.js"></script>
+</body>
+</html>
