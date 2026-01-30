@@ -335,7 +335,24 @@ if (searchInput && wideCard) {
   });
 }
 </script>
+<script>
+  // onthoud gekozen modus
+  const MODE_KEY = 'startpagina-mode';
 
+  (function () {
+    const savedMode = localStorage.getItem(MODE_KEY);
+    const currentMode = document.body.dataset.mode;
+
+    // Als er een opgeslagen voorkeur is én we zitten op de verkeerde pagina → redirect
+    if (savedMode && savedMode !== currentMode) {
+      if (savedMode === 'prive') {
+        window.location.replace('index_prive.html');
+      } else {
+        window.location.replace('index.html');
+      }
+    }
+  })();
+</script>
 <script>
   (function () {
     const toggle = document.getElementById('modeToggle');
@@ -360,4 +377,5 @@ if (searchInput && wideCard) {
 </script>
 </body>
 </html>
+
 
