@@ -217,7 +217,24 @@ if (searchInput && wideCard) {
   });
 }
 </script>
+<script>
+  // onthoud gekozen modus
+  const MODE_KEY = 'startpagina-mode';
 
+  (function () {
+    const savedMode = localStorage.getItem(MODE_KEY);
+    const currentMode = document.body.dataset.mode;
+
+    // Als er een opgeslagen voorkeur is én we zitten op de verkeerde pagina → redirect
+    if (savedMode && savedMode !== currentMode) {
+      if (savedMode === 'prive') {
+        window.location.replace('index_prive.html');
+      } else {
+        window.location.replace('index.html');
+      }
+    }
+  })();
+</script>
 <script>
   (function () {
     const toggle = document.getElementById('modeToggle');
@@ -227,18 +244,23 @@ if (searchInput && wideCard) {
     const isPrivePage = document.body.dataset.mode === 'prive';
     toggle.checked = isPrivePage;
 
-    toggle.addEventListener('change', () => {
-      const goPrive = toggle.checked;
+   const MODE_KEY = 'startpagina-mode';
 
-      if (goPrive) {
-        // naar de privé-startpagina
-        window.location.href = 'index_prive.html';
-      } else {
-        // terug naar de zakelijke startpagina
-        window.location.href = 'index.html';
-      }
-    });
+toggle.addEventListener('change', () => {
+  const goPrive = toggle.checked;
+
+  // ✅ keuze onthouden
+  localStorage.setItem(MODE_KEY, goPrive ? 'prive' : 'zakelijk');
+
+  // 🔁 navigeren
+  if (goPrive) {
+    window.location.href = 'index_prive.html';
+  } else {
+    window.location.href = 'index.html';
+  }
+});
   })();
 </script>
 </body>
 </html>
+
