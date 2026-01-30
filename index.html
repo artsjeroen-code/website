@@ -362,20 +362,25 @@ if (searchInput && wideCard) {
     const isPrivePage = document.body.dataset.mode === 'prive';
     toggle.checked = isPrivePage;
 
-    toggle.addEventListener('change', () => {
-      const goPrive = toggle.checked;
+    const MODE_KEY = 'startpagina-mode';
 
-      if (goPrive) {
-        // naar de privé-startpagina
-        window.location.href = 'index_prive.html';
-      } else {
-        // terug naar de zakelijke startpagina
-        window.location.href = 'index.html';
-      }
-    });
+toggle.addEventListener('change', () => {
+  const goPrive = toggle.checked;
+
+  // ✅ keuze onthouden
+  localStorage.setItem(MODE_KEY, goPrive ? 'prive' : 'zakelijk');
+
+  // 🔁 navigeren
+  if (goPrive) {
+    window.location.href = 'index_prive.html';
+  } else {
+    window.location.href = 'index.html';
+  }
+});
   })();
 </script>
 </body>
 </html>
+
 
 
