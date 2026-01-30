@@ -1,0 +1,326 @@
+
+:root{
+  --bg: #1f1f1f;
+  --panel: #2c2c2c;
+  --text: #e6e6e6;
+  --muted: #bdbdbd;
+  --ring: #ffffff22;
+
+  --rose:   #ff5a8a;
+  --orange: #ff9a4d;
+  --yellow: #ffd166;
+  --green:  #7bd389;
+  --cyan:   #53d6e3;
+  --blue:   #6aa7ff;
+  --purple: #b38aff;
+  --pink:   #ff8ad1;
+  --slate:  #9aa5b1;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+html {
+  overflow-y: scroll;      /* scrollbarruimte is altijd aanwezig */
+  scrollbar-gutter: stable; /* moderne browsers: layout blijft stabiel */
+  scrollbar-width: thin;
+  scrollbar-color: #555 #1f1f1f;
+}
+body{
+  margin: 0;
+  background: radial-gradient(1200px 600px at 10% -10%, #262626, transparent),
+              radial-gradient(1200px 600px at 110% 0%, #232323, transparent),
+              var(--bg);
+  color: var(--text);
+  font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Zoekbalk bovenaan de pagina */
+.topbar {
+  position: sticky;                    /* blijft bovenaan bij scrollen */
+  top: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: center;             /* centreer de balk */
+  background: var(--bg);               /* zelfde achtergrondkleur als pagina */
+  padding: 6px 0 0px 0;                /* kleiner: minder witruimte onder */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* Formulier is even breed als de 4 kolommen (#blocks) */
+#searchForm {
+  position: relative;                  /* positioneringscontext voor .clear */
+  width: min(1300px, calc(100% - 24px)); /* exact zelfde breedte als grid */
+  display: flex;
+  justify-content: center;
+}
+
+/* Zoekveld zelf */
+.search {
+  width: 100%;
+  padding: 10px 40px 10px 12px;        /* rechts ruimte voor kruisje */
+  border-radius: 10px;
+  border: 1px szolid var(--orange);
+  border-color: var(--orange)
+  background: #2a2a2a;
+  color: var(--text);
+  font-family: "Courier New", Courier, monospace;
+  font-size: 11px;
+  transition: box-shadow .25s ease, border-color .25s ease, background .25s ease;
+}
+
+/* Hover glow */
+.search:hover {
+  border-color: var(--orange);
+  background: #2b2b2b;
+  box-shadow:
+    0 0 1px var(--orange),
+    0 0 3px var(--orange),
+    0 0 5px var(--orange),
+    0 0 10px rgba(255, 154, 77, 0.4);
+}
+
+/* Focus glow  */
+.search:focus {
+  border-color: var(--orange);
+  background: #2c2c2c;
+  ;
+}
+
+/* Placeholder-stijl */
+.search::placeholder {
+  color: #9a9a9a;
+  font-family: "Courier New", Courier, monospace;
+}
+/* de clear-knop blijft zo oké */
+/* Clear-knop (het kruisje) rechts in de balk */
+
+/* Verwijder standaard browser-kruisje uit search inputs */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: none;
+  background: #3b3b3b;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.clear:hover {
+  background: #454545;
+  color: #ddd;
+}
+
+/* Layout containers */
+#blocks {
+  flex: 1;
+  width: min(1300px, calc(100% - 24px));
+  margin: 5px auto 20px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.grid{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+.row{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+
+/* brede kaart met uitklapbare inhoud */
+.card.wide {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* binnenkant: 3 kolommen met links */
+.card.wide .cols {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;                  /* ruimte tussen kolommen */
+}
+/* optioneel: titel en lijsten netjes */
+.card.wide h2 { margin-bottom: 10px; }
+
+
+/* kopregel met klikbare trigger */
+.card.wide h2 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* <-- titel links uitgelijnd */
+  cursor: pointer;
+  margin: 0;
+}
+/* kleine pijlpijl naast de titel */
+.card.wide h2::after {
+  content: "▸";
+  font-size: 12px;
+  margin-left: auto; 
+  transition: transform 0.3s ease;
+}
+
+/* verborgen inhoud standaard */
+.card.wide .cols {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+}
+
+/* zichtbaar bij open kaart */
+.card.wide.open .cols {
+  max-height: 500px; /* voldoende ruimte voor je links */
+  opacity: 1;
+  margin-top: 10px;
+}
+
+/* uitgeklapt: pijl draait omlaag */
+.card.wide.open h2::after {
+  transform: rotate(90deg);
+  margin-left: auto; 
+}
+
+/* binnenstructuur van 3 kolommen */
+.card.wide .cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.card.wide ul { list-style: none; margin: 0; padding: 0; }
+
+@media (max-width: 1100px){ .row, .grid{ grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 760px){ .row, .grid{ grid-template-columns: 1fr; } }
+@media (max-width: 1100px){ .card.wide .cols { grid-template-columns: repeat(2, 1fr); }}
+@media (max-width: 760px){.card.wide .cols { grid-template-columns: 1fr; }}
+/* Cards */
+.card{
+  background: var(--panel);
+  border: 1px solid #ffffff12;
+  border-radius: 15px;
+  padding: 10px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  transition: transform 1s ease, border-color 1s ease, background 1s ease;
+}
+.card:hover{ transform: translateY(0px); box-shadow: 0 12px 28px rgba(0,0,0,.35); border-color: #ffffff22; }
+
+.card h2{
+  margin: 0 0 5px 0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  opacity: .96;
+  
+}
+.card h2::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 14px;
+  background: currentColor;
+  margin-right: 5px;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+
+/* Category color accents */
+.cat-rose   h2{ color: var(--rose); }   .cat-rose   h2::before{ background: var(--rose); }
+.cat-orange h2{ color: var(--orange); } .cat-orange h2::before{ background: var(--orange); }
+.cat-yellow h2{ color: var(--yellow); } .cat-yellow h2::before{ background: var(--yellow); }
+.cat-green  h2{ color: var(--green); }  .cat-green  h2::before{ background: var(--green); }
+.cat-cyan   h2{ color: var(--cyan); }   .cat-cyan   h2::before{ background: var(--cyan); }
+.cat-blue   h2{ color: var(--blue); }   .cat-blue   h2::before{ background: var(--blue); }
+.cat-purple h2{ color: var(--purple); } .cat-purple h2::before{ background: var(--purple); }
+.cat-pink   h2{ color: var(--pink); }   .cat-pink   h2::before{ background: var(--pink); }
+.cat-slate  h2{ color: var(--slate); }  .cat-slate  h2::before{ background: var(--slate); }
+
+/* Lists - compact spacing */
+.card ul{
+  list-style: none;
+  margin: 0;
+  padding-left: 0px;
+}
+.card li{
+  margin: 0;
+  padding: 1px 2px;
+  border-radius: 6px;
+  line-height: 1.2;
+}
+.card li:hover{  color: currentColor;
+  text-shadow:
+    0 0 6px currentColor,
+    0 0 12px currentColor,
+    0 0 24px currentColor;
+  border-color: currentColor;
+}
+
+.card a{
+  color: var(--text);
+  text-decoration: none;
+  outline: none;
+  border-bottom: 0px dashed transparent;
+  transition: color .15s ease, border-color .15s ease;
+  
+}
+.card a:hover{ color: #e8f3ff; border-color: #6aa7ff88; }
+
+.ph{
+  color: var(--slate);
+  margin-right: 6px;
+  white-space: nowrap;
+}
+
+/* Empty state */
+#blocks[data-hasresults="0"]::after{
+  content: "Geen resultaten — pas je zoekterm aan of druk Enter om Google te openen.";
+  display: block;
+  text-align: center;
+  padding: 12px;
+  color: var(--muted);
+  border: 1px dashed #ffffff22;
+  border-radius: 0px;
+  background: #2a2a2a;
+  margin-top: 4px;
+}
+
+/* Footer */
+.footnote{
+  width: min(980px, calc(100% - 24px));
+  margin: 0 auto 24px auto;
+  color: var(--muted);
+  text-align: center;
+ }
+
+.cat-rose:hover   { box-shadow: 0 0 7px var(--rose),   0 0 7px var(--rose); }
+.cat-orange:hover { box-shadow: 0 0 7px var(--orange), 0 0 7px var(--orange); }
+.cat-yellow:hover { box-shadow: 0 0 7px var(--yellow), 0 0 7px var(--yellow); }
+.cat-green:hover  { box-shadow: 0 0 7px var(--green),  0 0 7px var(--green); }
+.cat-cyan:hover   { box-shadow: 0 0 7px var(--cyan),   0 0 7px var(--cyan); }
+.cat-blue:hover   { box-shadow: 0 0 7px var(--blue),   0 0 7px var(--blue); }
+.cat-purple:hover { box-shadow: 0 0 7px var(--purple), 0 0 7px var(--purple); }
+.cat-pink:hover   { box-shadow: 0 0 7px var(--pink),   0 0 7px var(--pink); }
+.cat-slate:hover  { box-shadow: 0 0 7px var(--slate),  0 0 7px var(--slate); }
+.cat-rose a:hover   { text-shadow: 0 0 6px var(--rose),   0 0 20px var(--rose);   color: var(--rose); }
+.cat-orange a:hover { text-shadow: 0 0 6px var(--orange), 0 0 20px var(--orange); color: var(--orange); }
+.cat-yellow a:hover { text-shadow: 0 0 6px var(--yellow), 0 0 20px var(--yellow); color: var(--yellow); }
+.cat-green a:hover  { text-shadow: 0 0 6px var(--green),  0 0 20px var(--green);  color: var(--green); }
+.cat-cyan a:hover   { text-shadow: 0 0 6px var(--cyan),   0 0 20px var(--cyan);   color: var(--cyan); }
+.cat-blue a:hover   { text-shadow: 0 0 6px var(--blue),   0 0 20px var(--blue);   color: var(--blue); }
+.cat-purple a:hover { text-shadow: 0 0 6px var(--purple), 0 0 20px var(--purple); color: var(--purple); }
+.cat-pink a:hover   { text-shadow: 0 0 6px var(--pink),   0 0 20px var(--pink);   color: var(--pink); }
+.cat-slate a:hover  { text-shadow: 0 0 6px var(--slate),  0 0 20px var(--slate);  color: var(--slate); }
