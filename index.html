@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Startpagina</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('startpagina-theme') || 'dark';
+      document.documentElement.dataset.theme = savedTheme;
+    })();
+  </script>
   <link rel="stylesheet" href="style.css" />
   <meta name="color-scheme" content="dark light" />
 </head>
@@ -15,19 +21,30 @@
     <!-- Zoekbalk (links) -->
     <form id="searchForm" autocomplete="off" role="search" aria-label="Zoeken">
       <input id="searchInput" class="search" name="q" type="search"
-             placeholder="Typ om te filteren • druk Enter om Google te openen in een nieuw tabblad."
+             placeholder="Typ om te filteren â€¢ druk Enter om Google te openen in een nieuw tabblad."
              aria-label="Zoek in je links of druk Enter voor Google" />
-      <button class="clear" type="button" id="clearBtn" aria-label="Zoekveld wissen">×</button>
+      <button class="clear" type="button" id="clearBtn" aria-label="Zoekveld wissen">Ã—</button>
     </form>
 
-    <!-- Toggle (rechts) -->
-    <div class="mode-toggle" aria-label="Kies type startpagina">
-      <span class="mode-label mode-label--zakelijk"> </span>
-      <label class="switch">
-        <input type="checkbox" id="modeToggle" />
-        <span class="slider"></span>
-      </label>
-      <span class="mode-label mode-label--prive">Privé</span>
+    <!-- Toggles (rechts) -->
+    <div class="toggle-stack" aria-label="Pagina-instellingen">
+      <div class="theme-toggle" aria-label="Kies lichte of donkere modus">
+        <span class="theme-label theme-label--dark"></span>
+        <label class="switch">
+          <input type="checkbox" id="themeToggle" aria-label="Schakel lichte modus in of uit" />
+          <span class="slider"></span>
+        </label>
+        <span class="theme-label theme-label--light">Licht</span>
+      </div>
+
+      <div class="mode-toggle" aria-label="Kies type startpagina">
+        <span class="mode-label mode-label--zakelijk"></span>
+        <label class="switch">
+          <input type="checkbox" id="modeToggle" />
+          <span class="slider"></span>
+        </label>
+        <span class="mode-label mode-label--prive">PrivÃ©</span>
+      </div>
     </div>
   </div>
 </header>
@@ -247,6 +264,8 @@
 		 
   </main>
 
+  <a class="edit-button" href="https://github.com/artsjeroen-code/website/blob/main/index.html" target="_blank" rel="noopener" aria-label="Open GitHub om deze website te bewerken">âœŽ Bewerken</a>
+
 <script>
 const wideCard = document.querySelector('.card.wide');
 if (wideCard) {
@@ -317,14 +336,14 @@ if (wideCard) {
   </script>
   
  <script>
-/* 1️⃣ Toggle open/dicht bij klikken op de titel */
+/* 1ï¸âƒ£ Toggle open/dicht bij klikken op de titel */
 document.querySelectorAll('.card.wide h2').forEach(header => {
   header.addEventListener('click', () => {
     header.parentElement.classList.toggle('open');
   });
 });
 
-/* 2️⃣ Zorg dat dropdown openklapt zodra in de zoekbalk wordt getypt of gefocust */
+/* 2ï¸âƒ£ Zorg dat dropdown openklapt zodra in de zoekbalk wordt getypt of gefocust */
 const searchInput = document.querySelector('.search');
 const wideCard = document.querySelector('.card.wide');
 
@@ -350,7 +369,7 @@ if (searchInput && wideCard) {
     const savedMode = localStorage.getItem(MODE_KEY);
     const currentMode = document.body.dataset.mode;
 
-    // Als er een opgeslagen voorkeur is én we zitten op de verkeerde pagina → redirect
+    // Als er een opgeslagen voorkeur is Ã©n we zitten op de verkeerde pagina â†’ redirect
     if (savedMode && savedMode !== currentMode) {
       if (savedMode === 'prive') {
         window.location.replace('index_prive.html');
@@ -374,16 +393,37 @@ if (searchInput && wideCard) {
 toggle.addEventListener('change', () => {
   const goPrive = toggle.checked;
 
-  // ✅ keuze onthouden
+  // âœ… keuze onthouden
   localStorage.setItem(MODE_KEY, goPrive ? 'prive' : 'zakelijk');
 
-  // 🔁 navigeren
+  // ðŸ” navigeren
   if (goPrive) {
     window.location.href = 'index_prive.html';
   } else {
     window.location.href = 'index.html';
   }
 });
+  })();
+</script>
+
+<script>
+  (function () {
+    const THEME_KEY = 'startpagina-theme';
+    const toggle = document.getElementById('themeToggle');
+    if (!toggle) return;
+
+    function applyTheme(theme) {
+      const safeTheme = theme === 'light' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = safeTheme;
+      localStorage.setItem(THEME_KEY, safeTheme);
+      toggle.checked = safeTheme === 'light';
+    }
+
+    applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+
+    toggle.addEventListener('change', () => {
+      applyTheme(toggle.checked ? 'light' : 'dark');
+    });
   })();
 </script>
 </body>
