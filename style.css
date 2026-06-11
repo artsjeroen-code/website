@@ -61,8 +61,8 @@ body{
   width: 100%;
   padding: 10px 40px 10px 12px;        /* rechts ruimte voor kruisje */
   border-radius: 10px;
-  border: 1px szolid var(--orange);
-  border-color: var(--orange)
+  border: 1px solid var(--orange);
+  border-color: var(--orange);
   background: #2a2a2a;
   color: var(--text);
   font-family: "Courier New", Courier, monospace;
@@ -422,4 +422,155 @@ body[data-mode="prive"] .mode-label--prive {
 }
 body[data-mode="prive"] .mode-label--zakelijk {
   opacity: 0.5;
+}
+
+/* --- Licht / donker modus --- */
+:root[data-theme="light"] {
+  --bg: #f4f5f7;
+  --panel: #ffffff;
+  --text: #1f2933;
+  --muted: #5f6b7a;
+  --ring: #00000018;
+}
+
+:root[data-theme="light"] html,
+:root[data-theme="light"] body {
+  scrollbar-color: #c7ccd3 #f4f5f7;
+}
+
+:root[data-theme="light"] body {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #ffffff, transparent),
+    radial-gradient(1200px 600px at 110% 0%, #e9eef7, transparent),
+    var(--bg);
+}
+
+:root[data-theme="light"] .topbar {
+  box-shadow: 0 2px 8px rgba(31, 41, 51, 0.12);
+}
+
+:root[data-theme="light"] .search {
+  background: #ffffff;
+  color: var(--text);
+}
+
+:root[data-theme="light"] .search:hover,
+:root[data-theme="light"] .search:focus {
+  background: #ffffff;
+}
+
+:root[data-theme="light"] .clear {
+  background: #e6e9ee;
+  color: var(--muted);
+}
+
+:root[data-theme="light"] .clear:hover {
+  background: #d9dde4;
+  color: var(--text);
+}
+
+:root[data-theme="light"] .card {
+  border-color: #00000014;
+  box-shadow: 0 4px 10px rgba(31, 41, 51, 0.08);
+}
+
+:root[data-theme="light"] .card:hover {
+  border-color: #00000024;
+  box-shadow: 0 12px 28px rgba(31, 41, 51, 0.14);
+}
+
+:root[data-theme="light"] .card a:hover {
+  color: #172033;
+}
+
+:root[data-theme="light"] #blocks[data-hasresults="0"]::after {
+  border-color: #00000022;
+  background: #ffffff;
+}
+
+.toggle-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  flex: 0 0 auto;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  padding: 4px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel) 85%, var(--bg));
+  border: 1px solid var(--ring);
+  white-space: nowrap;
+}
+
+.theme-label {
+  opacity: 0.65;
+}
+
+:root[data-theme="dark"] .theme-label--dark,
+:root[data-theme="light"] .theme-label--light {
+  font-weight: 700;
+  opacity: 1;
+}
+
+#themeToggle:checked + .slider {
+  background: var(--orange);
+}
+
+#themeToggle:checked + .slider::before {
+  transform: translateX(14px);
+}
+
+/* GitHub edit-knop onderin */
+.edit-button {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--ring);
+  background: color-mix(in srgb, var(--panel) 88%, var(--bg));
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 11px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+  transition: color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.edit-button:hover {
+  color: var(--orange);
+  border-color: var(--orange);
+  box-shadow: 0 0 7px var(--orange), 0 0 18px rgba(255, 154, 77, 0.35);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 760px) {
+  .topbar-inner {
+    align-items: stretch;
+  }
+
+  .toggle-stack {
+    align-items: flex-end;
+  }
+
+  .theme-toggle,
+  .mode-toggle {
+    font-size: 10px;
+  }
+
+  .edit-button {
+    right: 10px;
+    bottom: 10px;
+  }
 }
