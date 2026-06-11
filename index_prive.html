@@ -23,7 +23,7 @@
       <input id="searchInput" class="search" name="q" type="search"
              placeholder="Typ om te filteren â€¢ druk Enter om Google te openen in een nieuw tabblad."
              aria-label="Zoek in je links of druk Enter voor Google" />
-      <button class="clear" type="button" id="clearBtn" aria-label="Zoekveld wissen">Ã—</button>
+      <button class="clear" type="button" id="clearBtn" aria-label="Zoekveld wissen">x</button>
     </form>
 
     <!-- Toggles (rechts) -->
@@ -43,7 +43,7 @@
           <input type="checkbox" id="modeToggle" />
           <span class="slider"></span>
         </label>
-        <span class="mode-label mode-label--prive">PrivÃ©</span>
+        <span class="mode-label mode-label--prive">Privé</span>
       </div>
     </div>
   </div>
@@ -136,7 +136,7 @@
 		 
   </main>
 
-  <a class="edit-button" href="https://github.com/artsjeroen-code/website/blob/main/index.html" target="_blank" rel="noopener" aria-label="Open GitHub om deze website te bewerken">âœŽ Bewerken</a>
+  <a class="edit-button" href="https://github.com/artsjeroen-code/website/blob/main/index.html" target="_blank" rel="noopener" aria-label="Open GitHub om deze website te bewerken">&#9998 Bewerken</a>
 
 <script>
 const wideCard = document.querySelector('.card.wide');
@@ -215,7 +215,7 @@ document.querySelectorAll('.card.wide h2').forEach(header => {
   });
 });
 
-/* 2ï¸âƒ£ Zorg dat dropdown openklapt zodra in de zoekbalk wordt getypt of gefocust */
+/*  Zorg dat dropdown openklapt zodra in de zoekbalk wordt getypt of gefocust */
 const searchInput = document.querySelector('.search');
 const wideCard = document.querySelector('.card.wide');
 
@@ -241,7 +241,7 @@ if (searchInput && wideCard) {
     const savedMode = localStorage.getItem(MODE_KEY);
     const currentMode = document.body.dataset.mode;
 
-    // Als er een opgeslagen voorkeur is Ã©n we zitten op de verkeerde pagina â†’ redirect
+    // Als er een opgeslagen voorkeur is dan we zitten op de verkeerde pagina!’ redirect
     if (savedMode && savedMode !== currentMode) {
       if (savedMode === 'prive') {
         window.location.replace('index_prive.html');
