@@ -441,8 +441,6 @@ body[data-mode="prive"] .mode-label--zakelijk {
 
 :root[data-theme="light"] body {
   background:
-    radial-gradient(1200px 600px at 10% -10%, #ffffff, transparent),
-    radial-gradient(1200px 600px at 110% 0%, #e9eef7, transparent),
     var(--bg);
 }
 
