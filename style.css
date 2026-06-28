@@ -447,7 +447,7 @@ body[data-mode="prive"] .mode-label--zakelijk {
 }
 
 :root[data-theme="light"] .topbar {
-  box-shadow: 0 2px 8px rgba(31, 41, 51, 0.12);
+  box-shadow: none;
 }
 
 :root[data-theme="light"] .search {
