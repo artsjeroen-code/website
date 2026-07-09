@@ -582,3 +582,65 @@ body[data-mode="prive"] .mode-label--zakelijk {
     bottom: 10px;
   }
 }
+
+/* --- Compactere weergave: vergelijkbaar met browserzoom 90% --- */
+body {
+  zoom: 0.9;
+}
+
+/* Compenseer dat zoom ook de pagina smaller maakt */
+.topbar-inner,
+#blocks,
+#searchForm {
+  width: min(1444px, calc(100% - 24px));
+}
+
+#searchForm {
+  max-width: 1444px;
+}
+
+/* --- Compactere toggles naast de zoekbalk --- */
+.theme-toggle,
+.mode-toggle {
+  gap: 3px;
+  font-size: 10px;
+  padding: 3px 5px;
+}
+
+/* Switch zelf kleiner */
+.switch {
+  width: 26px;
+  height: 13px;
+}
+
+/* Schuifbolletje kleiner */
+.slider::before {
+  width: 9px;
+  height: 9px;
+  left: 2px;
+  top: 2px;
+}
+
+/* Verplaatsing aangepast aan kleinere switch */
+.switch input:checked + .slider::before,
+#themeToggle:checked + .slider::before {
+  transform: translateX(13px);
+}
+
+/* Iets minder ruimte tussen de twee toggles */
+.toggle-stack {
+  gap: 3px;
+}
+
+/* Op kleine schermen niet nóg verder verkleinen */
+@media (max-width: 760px) {
+  body {
+    zoom: 1;
+  }
+
+  .theme-toggle,
+  .mode-toggle {
+    font-size: 10px;
+    padding: 3px 5px;
+  }
+}
