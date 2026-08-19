@@ -192,3 +192,188 @@ body[data-mode="prive"] .mode-label--prive::before {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.8 9.1 10 3.2l7.2 5.9v7.2h-4.7v-4.8h-5v4.8H2.8V9.1Z'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.8 9.1 10 3.2l7.2 5.9v7.2h-4.7v-4.8h-5v4.8H2.8V9.1Z'/%3E%3C/svg%3E");
 }
+
+/* -------------------------------------------------------------------------
+ * Concept 5 - linker utility-balk
+ *
+ * De zoekbalk blijft één slanke horizontale regel. De twee instellingen
+ * staan los daarvan in een verticale rail links. Daardoor hoeft de header
+ * niet hoger te worden om de schakelaars goed bedienbaar te houden.
+ * ------------------------------------------------------------------------- */
+
+:root {
+  --utility-rail-width: 62px;
+  --utility-gap: 7px;
+}
+
+.topbar {
+  padding-top: 6px;
+  padding-bottom: 0;
+  box-shadow: none;
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.topbar-inner {
+  position: relative;
+  width: min(1300px, calc(100% - 24px));
+  min-height: 34px;
+  padding-left: calc(var(--utility-rail-width) + var(--utility-gap));
+  display: block;
+}
+
+#searchForm {
+  width: 100%;
+  max-width: none;
+  min-height: 34px;
+}
+
+.search {
+  height: 34px;
+  min-height: 34px;
+  padding: 6px 38px 6px 12px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--panel) 76%, var(--bg));
+}
+
+.clear {
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+}
+
+.toggle-stack {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 7;
+  width: var(--utility-rail-width);
+  min-height: 92px;
+  padding: 7px 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  border: 1px solid var(--ring);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--panel) 88%, var(--bg));
+  box-shadow: 0 5px 16px rgba(0, 0, 0, .20);
+}
+
+.toggle-stack::after {
+  content: "";
+  width: 38px;
+  height: 1px;
+  position: absolute;
+  left: 11px;
+  top: 45px;
+  background: var(--ring);
+}
+
+.theme-toggle,
+.mode-toggle {
+  width: 52px !important;
+  min-width: 52px !important;
+  max-width: 52px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
+  flex: 0 0 34px !important;
+  padding: 4px !important;
+  gap: 4px !important;
+  justify-content: center !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+.theme-toggle:hover,
+.mode-toggle:hover {
+  background: color-mix(in srgb, var(--panel) 72%, var(--text) 4%) !important;
+}
+
+.theme-toggle .switch,
+.mode-toggle .switch {
+  width: 25px !important;
+  min-width: 25px !important;
+  max-width: 25px !important;
+  height: 13px !important;
+  min-height: 13px !important;
+  max-height: 13px !important;
+  flex: 0 0 25px !important;
+}
+
+#themeIcon,
+#modeIcon,
+.theme-label--light,
+.mode-label--prive {
+  width: 12px !important;
+  min-width: 12px !important;
+  max-width: 12px !important;
+  height: 12px !important;
+  min-height: 12px !important;
+  max-height: 12px !important;
+  flex: 0 0 12px !important;
+}
+
+/* Laat de kaarten visueel onder de zoekbalk beginnen, terwijl de rail links
+   nog een stukje doorloopt zoals in concept 5. */
+#blocks {
+  width: min(1300px, calc(100% - 24px));
+  padding-left: calc(var(--utility-rail-width) + var(--utility-gap));
+  margin-top: 5px;
+}
+
+/* Licht thema: rail en zoekveld blijven subtiel afgetekend. */
+:root[data-theme="light"] .toggle-stack {
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 5px 16px rgba(31, 41, 51, .08);
+}
+
+:root[data-theme="light"] .search {
+  background: #fff;
+}
+
+/* Op smallere schermen is een vaste linker rail minder praktisch. Daar
+   wordt dezelfde bediening teruggebracht naar een compacte horizontale rij. */
+@media (max-width: 760px) {
+  .topbar-inner {
+    padding-left: 0;
+    padding-bottom: 31px;
+  }
+
+  .toggle-stack {
+    top: 38px;
+    left: auto;
+    right: 0;
+    width: auto;
+    min-height: 26px;
+    padding: 2px 3px;
+    flex-direction: row;
+    gap: 2px;
+    border-radius: 10px;
+    box-shadow: none;
+  }
+
+  .toggle-stack::after {
+    display: none;
+  }
+
+  .theme-toggle,
+  .mode-toggle {
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+    height: 25px !important;
+    min-height: 25px !important;
+    max-height: 25px !important;
+    flex-basis: 25px !important;
+  }
+
+  #blocks {
+    padding-left: 0;
+  }
+}
