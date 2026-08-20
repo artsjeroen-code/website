@@ -1,0 +1,58 @@
+/* Google-geïnspireerd accentpalet. Alleen koppen, accenten, hoverdetails,
+   zoekveld en utility-rail krijgen deze kleuren; achtergronden en layout blijven gelijk. */
+:root {
+  --google-blue:   #4285f4;
+  --google-red:    #ea4335;
+  --google-yellow: #fbbc05;
+  --google-green:  #34a853;
+  --google-purple: #673ab7;
+
+  --rose:   var(--google-red);
+  --orange: var(--google-yellow);
+  --yellow: var(--google-yellow);
+  --green:  var(--google-green);
+  --cyan:   var(--google-blue);
+  --blue:   var(--google-blue);
+  --purple: var(--google-purple);
+  --pink:   var(--google-red);
+  --slate:  var(--google-blue);
+}
+
+/* Primaire UI-accenten in Google-blauw. */
+.search {
+  border-color: var(--google-blue) !important;
+}
+.search:hover {
+  border-color: var(--google-blue) !important;
+  box-shadow:
+    0 0 1px var(--google-blue),
+    0 0 3px var(--google-blue),
+    0 0 5px var(--google-blue),
+    0 0 10px rgba(66, 133, 244, .35) !important;
+}
+.search:focus {
+  border-color: var(--google-blue) !important;
+}
+
+.rail-button {
+  color: var(--google-blue) !important;
+}
+.rail-button:hover,
+.rail-button:focus-visible {
+  background: color-mix(in srgb, var(--google-blue) 12%, transparent) !important;
+}
+
+/* De bestaande merk-vormen blijven behouden, maar sluiten qua kleur aan op het palet. */
+.icon-chatgpt { background-image: url("https://cdn.simpleicons.org/openai/4285F4") !important; }
+.icon-mail { background-image: url("https://cdn.simpleicons.org/gmail/EA4335") !important; }
+.icon-calendar { background-image: url("https://cdn.simpleicons.org/googlecalendar/4285F4") !important; }
+.icon-drive { background-image: url("https://cdn.simpleicons.org/googledrive/34A853") !important; }
+.icon-photos { background-image: url("https://cdn.simpleicons.org/googlephotos/FBBC05") !important; }
+.icon-map { background-image: url("https://cdn.simpleicons.org/googlemaps/EA4335") !important; }
+
+/* Favicons zonder eenvoudig monochroom merklogo krijgen een Google-blauwe tint. */
+.icon-key,
+.icon-bank,
+.icon-market {
+  filter: brightness(0) saturate(100%) invert(48%) sepia(96%) saturate(3242%) hue-rotate(203deg) brightness(100%) contrast(92%) !important;
+}
