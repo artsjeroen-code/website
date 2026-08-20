@@ -51,7 +51,7 @@
   background: color-mix(in srgb, var(--google-yellow) 14%, transparent) !important;
 }
 
-/* De bestaande merk-vormen blijven behouden, maar sluiten qua kleur aan op het palet. */
+/* Herstelde eerdere zijbalkiconen. */
 .icon-chatgpt { background-image: url("https://cdn.simpleicons.org/openai/4285F4") !important; }
 .icon-mail { background-image: url("https://cdn.simpleicons.org/gmail/EA4335") !important; }
 .icon-calendar { background-image: url("https://cdn.simpleicons.org/googlecalendar/4285F4") !important; }
@@ -59,9 +59,25 @@
 .icon-photos { background-image: url("https://cdn.simpleicons.org/googlephotos/FBBC05") !important; }
 .icon-map { background-image: url("https://cdn.simpleicons.org/googlemaps/EA4335") !important; }
 
-/* Favicons zonder eenvoudig monochroom merklogo krijgen een Google-blauwe tint. */
 .icon-key,
 .icon-bank,
 .icon-market {
   filter: brightness(0) saturate(100%) invert(48%) sepia(96%) saturate(3242%) hue-rotate(203deg) brightness(100%) contrast(92%) !important;
+}
+
+/* Rabobank en Marktplaats blijven uit de zijbalk, zoals eerder gevraagd. */
+.utility-rail .rail-button:has(.icon-bank),
+.utility-rail .rail-button:has(.icon-market),
+.utility-rail > .rail-separator:last-of-type {
+  display: none !important;
+}
+
+/* De Normen-tegel blijft standaard uitgeklapt. */
+.norms-card .cols {
+  max-height: 900px !important;
+  opacity: 1 !important;
+  margin-top: 10px !important;
+}
+.norms-card h2::after {
+  transform: rotate(90deg) !important;
 }
