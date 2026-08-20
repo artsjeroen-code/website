@@ -1,11 +1,11 @@
 @import url("style_base.css");
 
-/* Concept 5: smalle, doorlopende utility-balk links */
 :root {
-  --utility-rail-width: 44px;
-  --utility-gap: 8px;
+  --utility-rail-width: 48px;
+  --utility-gap: 10px;
 }
 
+/* Zoekbalk blijft compact en de pagina-inhoud behoudt de bestaande opmaak. */
 .topbar {
   padding-top: 6px;
   padding-bottom: 0;
@@ -15,10 +15,10 @@
 }
 
 .topbar-inner {
-  position: relative;
-  width: min(1300px, calc(100% - 24px));
+  width: min(1300px, calc(100% - 24px - var(--utility-rail-width) - var(--utility-gap)));
   min-height: 34px;
-  padding-left: calc(var(--utility-rail-width) + var(--utility-gap));
+  margin-left: 12px;
+  margin-right: calc(12px + var(--utility-rail-width) + var(--utility-gap));
   display: block;
 }
 
@@ -43,143 +43,93 @@
   border-radius: 7px;
 }
 
-/* De rail loopt visueel over de volledige pagina-hoogte door. */
-.toggle-stack {
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 20;
+/* Hoofdinhoud blijft zoals hij was, maar krijgt rechts ruimte voor de rail. */
+#blocks {
+  width: min(1300px, calc(100% - 24px - var(--utility-rail-width) - var(--utility-gap)));
+  margin-left: 12px;
+  margin-right: calc(12px + var(--utility-rail-width) + var(--utility-gap));
+  margin-top: 5px;
+  padding-left: 0;
+}
+
+/* Oude controls en losse edit-knop zijn vervangen door de vaste rechter rail. */
+.toggle-stack,
+.edit-button {
+  display: none !important;
+}
+
+/* Vaste rechter zijbalk: begint ongeveer ter hoogte van de eerste kaarten en
+   blijft tijdens scrollen in beeld tot onderaan het venster. */
+.utility-rail {
+  position: fixed;
+  top: 55px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 100;
   width: var(--utility-rail-width);
-  height: calc(100vh - 12px);
-  min-height: 360px;
-  padding: 8px 3px;
+  box-sizing: border-box;
+  padding: 7px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 7px;
+  gap: 5px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
   border: 1px solid var(--ring);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--panel) 88%, var(--bg));
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--panel) 90%, var(--bg));
   box-shadow: 0 5px 16px rgba(0, 0, 0, .20);
+  backdrop-filter: blur(10px);
 }
 
-/* Ruimte voor toekomstige snelkoppelingen: de rail blijft leeg onder de bediening. */
-.toggle-stack::after {
-  content: "";
+.utility-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.rail-button {
+  position: relative;
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  min-height: 38px;
+  flex: 0 0 38px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--orange);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .15s ease, transform .15s ease;
+}
+
+.rail-button:hover,
+.rail-button:focus-visible {
+  background: color-mix(in srgb, var(--orange) 12%, transparent);
+  outline: none;
+}
+
+.rail-button:active {
+  transform: scale(.94);
+}
+
+.rail-separator {
   width: 28px;
   height: 1px;
-  margin-top: 1px;
+  min-height: 1px;
+  margin: 2px 0;
+  flex: 0 0 1px;
   background: var(--ring);
-  order: 3;
 }
 
-/* Eén klikbaar icoon per functie; de oude schuifjes blijven functioneel maar
-   liggen onzichtbaar als kliklaag over het hele icoon. */
-.theme-toggle,
-.mode-toggle {
-  position: relative;
-  box-sizing: border-box;
-  width: 36px !important;
-  min-width: 36px !important;
-  max-width: 36px !important;
-  height: 36px !important;
-  min-height: 36px !important;
-  max-height: 36px !important;
-  flex: 0 0 36px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border: 0 !important;
-  border-radius: 9px !important;
-  background: transparent !important;
-  overflow: visible !important;
-  cursor: pointer;
-}
-
-.theme-toggle:hover,
-.mode-toggle:hover {
-  background: color-mix(in srgb, var(--panel) 70%, var(--text) 6%) !important;
-}
-
-.theme-toggle .switch,
-.mode-toggle .switch {
-  position: absolute !important;
-  inset: 0 !important;
-  z-index: 5 !important;
-  width: 100% !important;
-  min-width: 100% !important;
-  max-width: none !important;
-  height: 100% !important;
-  min-height: 100% !important;
-  max-height: none !important;
-  margin: 0 !important;
-  cursor: pointer !important;
-}
-
-.theme-toggle .switch input,
-.mode-toggle .switch input {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  margin: 0 !important;
-  opacity: 0 !important;
-  cursor: pointer !important;
-}
-
-.theme-toggle .slider,
-.mode-toggle .slider {
-  display: none !important;
-}
-
-/* Oude lege labels op de werkpagina nemen geen ruimte in. */
-.theme-label--dark,
-.mode-label--zakelijk {
-  display: none !important;
-}
-
-/* Normaliseer de zichtbare iconen op beide pagina's. */
-#themeIcon,
-#modeIcon,
-.theme-label--light,
-.mode-label--prive {
-  box-sizing: border-box;
-  width: 22px !important;
-  min-width: 22px !important;
-  max-width: 22px !important;
-  height: 22px !important;
-  min-height: 22px !important;
-  max-height: 22px !important;
-  flex: 0 0 22px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  line-height: 1 !important;
-  pointer-events: none;
-}
-
-/* De HTML bevat op beide pagina's verschillende SVG-markup. We tekenen de
-   iconen daarom via één uniforme mask-laag. */
-#themeIcon svg,
-#modeIcon svg,
-.theme-label--light > svg,
-.mode-label--prive > svg {
-  display: none !important;
-}
-
-#themeIcon::before,
-#modeIcon::before,
-.theme-label--light::before,
-.mode-label--prive::before {
-  content: "";
+.rail-icon {
+  width: 21px;
+  height: 21px;
   display: block;
-  width: 20px;
-  height: 20px;
   background: currentColor;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
@@ -189,56 +139,68 @@
   mask-size: contain;
 }
 
-/* Thema: maan in donker, zon in licht. */
-#themeIcon,
-.theme-label--light {
-  color: var(--orange) !important;
-}
-
-:root[data-theme="dark"] #themeIcon::before,
-:root[data-theme="dark"] .theme-label--light::before {
+/* Thema */
+:root[data-theme="dark"] .icon-theme {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M20.4 15.2A8.2 8.2 0 0 1 8.8 3.6 9 9 0 1 0 20.4 15.2Z'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M20.4 15.2A8.2 8.2 0 0 1 8.8 3.6 9 9 0 1 0 20.4 15.2Z'/%3E%3C/svg%3E");
 }
 
-:root[data-theme="light"] #themeIcon::before,
-:root[data-theme="light"] .theme-label--light::before {
+:root[data-theme="light"] .icon-theme {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4' fill='black'/%3E%3Cpath fill='black' d='M11 1h2v4h-2zM11 19h2v4h-2zM1 11h4v2H1zM19 11h4v2h-4zM3.5 5l1.4-1.4 2.8 2.8-1.4 1.4zM16.3 17.7l1.4-1.4 2.8 2.8-1.4 1.4zM16.3 6.3l2.8-2.8L20.5 5l-2.8 2.8zM3.5 19l2.8-2.8 1.4 1.4-2.8 2.8z'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4' fill='black'/%3E%3Cpath fill='black' d='M11 1h2v4h-2zM11 19h2v4h-2zM1 11h4v2H1zM19 11h4v2h-4zM3.5 5l1.4-1.4 2.8 2.8-1.4 1.4zM16.3 17.7l1.4-1.4 2.8 2.8-1.4 1.4zM16.3 6.3l2.8-2.8L20.5 5l-2.8 2.8zM3.5 19l2.8-2.8 1.4 1.4-2.8 2.8z'/%3E%3C/svg%3E");
 }
 
-/* Werk: aktetas. */
-body[data-mode="zakelijk"] #modeIcon,
-body[data-mode="zakelijk"] .mode-label--prive {
-  color: var(--orange) !important;
+.icon-edit {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='m4 17.25-.75 3.5 3.5-.75L18.8 7.95l-2.75-2.75L4 17.25Zm14.3-14.3 2.75 2.75-1.45 1.45-2.75-2.75 1.45-1.45Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='m4 17.25-.75 3.5 3.5-.75L18.8 7.95l-2.75-2.75L4 17.25Zm14.3-14.3 2.75 2.75-1.45 1.45-2.75-2.75 1.45-1.45Z'/%3E%3C/svg%3E");
 }
 
-body[data-mode="zakelijk"] #modeIcon::before,
-body[data-mode="zakelijk"] .mode-label--prive::before {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M8 3h8a2 2 0 0 1 2 2v2h2a2 2 0 0 1 2 2v9a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V9a2 2 0 0 1 2-2h2V5a2 2 0 0 1 2-2Zm0 4h8V5H8v2Zm-4 4v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7h-6v2h-4v-2H4Z'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M8 3h8a2 2 0 0 1 2 2v2h2a2 2 0 0 1 2 2v9a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V9a2 2 0 0 1 2-2h2V5a2 2 0 0 1 2-2Zm0 4h8V5H8v2Zm-4 4v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7h-6v2h-4v-2H4Z'/%3E%3C/svg%3E");
+.icon-chatgpt {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2a5 5 0 0 1 4.6 3A5 5 0 0 1 21 10a5 5 0 0 1-2.4 4.3A5 5 0 0 1 14 21a5 5 0 0 1-4.6-3A5 5 0 0 1 3 14a5 5 0 0 1 2.4-4.3A5 5 0 0 1 10 3c.7-.65 1.2-1 2-1Zm0 2a3 3 0 0 0-2.6 1.5l-.4.7-.8-.1A3 3 0 0 0 5 9c0 .6.2 1.2.5 1.7l.5.7-.5.7A3 3 0 0 0 8 17h.8l.4.7a3 3 0 0 0 5.5-.8l.2-.8.8-.2a3 3 0 0 0 1.8-4.6l-.5-.7.5-.7A3 3 0 0 0 15 7h-.8l-.4-.7A3 3 0 0 0 12 4Zm0 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2a5 5 0 0 1 4.6 3A5 5 0 0 1 21 10a5 5 0 0 1-2.4 4.3A5 5 0 0 1 14 21a5 5 0 0 1-4.6-3A5 5 0 0 1 3 14a5 5 0 0 1 2.4-4.3A5 5 0 0 1 10 3c.7-.65 1.2-1 2-1Zm0 2a3 3 0 0 0-2.6 1.5l-.4.7-.8-.1A3 3 0 0 0 5 9c0 .6.2 1.2.5 1.7l.5.7-.5.7A3 3 0 0 0 8 17h.8l.4.7a3 3 0 0 0 5.5-.8l.2-.8.8-.2a3 3 0 0 0 1.8-4.6l-.5-.7.5-.7A3 3 0 0 0 15 7h-.8l-.4-.7A3 3 0 0 0 12 4Zm0 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z'/%3E%3C/svg%3E");
 }
 
-/* Privé: persoon/poppetje. */
-body[data-mode="prive"] #modeIcon,
-body[data-mode="prive"] .mode-label--prive {
-  color: var(--orange) !important;
+.icon-mail {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M3 5h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm0 3.2V17h18V8.2l-9 6-9-6Zm1.2-1.2 7.8 5.2L19.8 7H4.2Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M3 5h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm0 3.2V17h18V8.2l-9 6-9-6Zm1.2-1.2 7.8 5.2L19.8 7H4.2Z'/%3E%3C/svg%3E");
 }
 
-body[data-mode="prive"] #modeIcon::before,
-body[data-mode="prive"] .mode-label--prive::before {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM4 22v-2c0-4.4 3.6-8 8-8s8 3.6 8 8v2h-2v-2a6 6 0 0 0-12 0v2H4Z'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM4 22v-2c0-4.4 3.6-8 8-8s8 3.6 8 8v2h-2v-2a6 6 0 0 0-12 0v2H4Z'/%3E%3C/svg%3E");
+.icon-calendar {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M6 2h2v2h8V2h2v2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V2Zm14 8H4v10h16V10ZM4 8h16V6h-2v1h-2V6H8v1H6V6H4v2Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M6 2h2v2h8V2h2v2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V2Zm14 8H4v10h16V10ZM4 8h16V6h-2v1h-2V6H8v1H6V6H4v2Z'/%3E%3C/svg%3E");
 }
 
-/* Inhoud schuift naast de rail. */
-#blocks {
-  width: min(1300px, calc(100% - 24px));
-  padding-left: calc(var(--utility-rail-width) + var(--utility-gap));
-  margin-top: 5px;
+.icon-drive {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='m8 3 4 7-5 9H2l6-11-3-5h3Zm2.3 0h5.4L22 14h-5.3L10.3 3ZM8.2 21l3-5h10.2l-3 5H8.2Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='m8 3 4 7-5 9H2l6-11-3-5h3Zm2.3 0h5.4L22 14h-5.3L10.3 3ZM8.2 21l3-5h10.2l-3 5H8.2Z'/%3E%3C/svg%3E");
 }
 
-:root[data-theme="light"] .toggle-stack {
+.icon-photos {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M11 2h2v8l4.5-4.5L19 7l-5 5 5 5-1.5 1.5L13 14v8h-2v-8l-4.5 4.5L5 17l5-5-5-5 1.5-1.5L11 10V2Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M11 2h2v8l4.5-4.5L19 7l-5 5 5 5-1.5 1.5L13 14v8h-2v-8l-4.5 4.5L5 17l5-5-5-5 1.5-1.5L11 10V2Z'/%3E%3C/svg%3E");
+}
+
+.icon-key {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M8 14a6 6 0 1 1 5.7-8H23v5h-3v3h-3v3h-4.3A6 6 0 0 1 8 19a6 6 0 0 1 0-5Zm0 2a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6-8a6 6 0 0 1 .3 2H15v2h2v-3h4V8h-7Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M8 14a6 6 0 1 1 5.7-8H23v5h-3v3h-3v3h-4.3A6 6 0 0 1 8 19a6 6 0 0 1 0-5Zm0 2a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6-8a6 6 0 0 1 .3 2H15v2h2v-3h4V8h-7Z'/%3E%3C/svg%3E");
+}
+
+.icon-map {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2a8 8 0 0 1 8 8c0 5.5-8 12-8 12S4 15.5 4 10a8 8 0 0 1 8-8Zm0 2a6 6 0 0 0-6 6c0 3.6 4.5 8 6 9.4 1.5-1.4 6-5.8 6-9.4a6 6 0 0 0-6-6Zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2a8 8 0 0 1 8 8c0 5.5-8 12-8 12S4 15.5 4 10a8 8 0 0 1 8-8Zm0 2a6 6 0 0 0-6 6c0 3.6 4.5 8 6 9.4 1.5-1.4 6-5.8 6-9.4a6 6 0 0 0-6-6Zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z'/%3E%3C/svg%3E");
+}
+
+.icon-bank {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='m12 2 10 5v2H2V7l10-5ZM4 11h2v7h2v-7h2v7h4v-7h2v7h2v-7h2v7h2v2H2v-2h2v-7ZM6.5 7h11L12 4.3 6.5 7Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='m12 2 10 5v2H2V7l10-5ZM4 11h2v7h2v-7h2v7h4v-7h2v7h2v-7h2v7h2v2H2v-2h2v-7ZM6.5 7h11L12 4.3 6.5 7Z'/%3E%3C/svg%3E");
+}
+
+.icon-market {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M3 4h2l1 3h15l-2 8H8l.5 2H19v2H7a2 2 0 0 1-2-1.6L2.5 6H1V4h2Zm3.7 5 .9 4h9.8l1-4H6.7ZM9 20a2 2 0 1 1 0 4 2 2 0 0 1 0-4Zm8 0a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M3 4h2l1 3h15l-2 8H8l.5 2H19v2H7a2 2 0 0 1-2-1.6L2.5 6H1V4h2Zm3.7 5 .9 4h9.8l1-4H6.7ZM9 20a2 2 0 1 1 0 4 2 2 0 0 1 0-4Zm8 0a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z'/%3E%3C/svg%3E");
+}
+
+:root[data-theme="light"] .utility-rail {
   background: rgba(255, 255, 255, .94);
   box-shadow: 0 5px 16px rgba(31, 41, 51, .08);
 }
@@ -247,46 +209,46 @@ body[data-mode="prive"] .mode-label--prive::before {
   background: #fff;
 }
 
-/* Mobiel: rail wordt een compacte horizontale bediening. */
 @media (max-width: 760px) {
-  .topbar-inner {
-    padding-left: 0;
-    padding-bottom: 42px;
-  }
-
-  .toggle-stack {
-    top: 39px;
-    left: auto;
-    right: 0;
+  .utility-rail {
+    top: auto;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
     width: auto;
-    height: 38px;
-    min-height: 38px;
-    padding: 1px 3px;
+    height: 48px;
+    min-height: 48px;
+    padding: 4px 6px;
     flex-direction: row;
-    gap: 2px;
-    border-radius: 10px;
-    box-shadow: none;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
-  .toggle-stack::after {
+  .rail-button {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    flex-basis: 36px;
+  }
+
+  .rail-separator {
     width: 1px;
-    height: 24px;
+    height: 26px;
+    min-height: 26px;
     margin: 0 2px;
-    order: 0;
+    flex: 0 0 1px;
   }
 
-  .theme-toggle,
-  .mode-toggle {
-    width: 36px !important;
-    min-width: 36px !important;
-    max-width: 36px !important;
-    height: 34px !important;
-    min-height: 34px !important;
-    max-height: 34px !important;
-    flex-basis: 34px !important;
-  }
-
+  .topbar-inner,
   #blocks {
-    padding-left: 0;
+    width: calc(100% - 24px);
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+
+  body {
+    padding-bottom: 62px;
   }
 }
