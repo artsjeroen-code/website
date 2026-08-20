@@ -42,6 +42,15 @@
   background: color-mix(in srgb, var(--google-blue) 12%, transparent) !important;
 }
 
+/* Thema-icoon: zowel zon als maan altijd Google-geel. */
+.rail-button.rail-theme {
+  color: var(--google-yellow) !important;
+}
+.rail-button.rail-theme:hover,
+.rail-button.rail-theme:focus-visible {
+  background: color-mix(in srgb, var(--google-yellow) 14%, transparent) !important;
+}
+
 /* De bestaande merk-vormen blijven behouden, maar sluiten qua kleur aan op het palet. */
 .icon-chatgpt { background-image: url("https://cdn.simpleicons.org/openai/4285F4") !important; }
 .icon-mail { background-image: url("https://cdn.simpleicons.org/gmail/EA4335") !important; }
