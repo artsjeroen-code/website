@@ -9,6 +9,7 @@
     (function () {
       const savedTheme = localStorage.getItem('startpagina-theme') || 'dark';
       document.documentElement.dataset.theme = savedTheme;
+      localStorage.removeItem('startpagina-mode');
     })();
   </script>
   <link rel="stylesheet" href="style.css" />
@@ -16,319 +17,207 @@
 </head>
 
 <body data-mode="prive">
+  <aside class="utility-rail" aria-label="Snelkoppelingen">
+    <button class="rail-button rail-theme" id="railTheme" type="button" aria-label="Wissel licht/donker thema" title="Thema">
+      <span class="rail-icon icon-theme" aria-hidden="true"></span>
+    </button>
+
+    <a class="rail-button" href="https://github.com/artsjeroen-code/website/blob/main/index_prive.html" target="_blank" rel="noopener" aria-label="Website bewerken op GitHub" title="GitHub bewerken">
+      <span class="rail-icon icon-edit" aria-hidden="true"></span>
+    </a>
+
+    <div class="rail-separator" aria-hidden="true"></div>
+
+    <a class="rail-button" href="https://chatgpt.com/" target="_blank" rel="noopener" aria-label="ChatGPT" title="ChatGPT"><span class="rail-icon icon-chatgpt" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://mail.google.com/" target="_blank" rel="noopener" aria-label="Gmail" title="Gmail"><span class="rail-icon icon-mail" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://calendar.google.com/" target="_blank" rel="noopener" aria-label="Google Calendar" title="Google Calendar"><span class="rail-icon icon-calendar" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://drive.google.com/" target="_blank" rel="noopener" aria-label="Google Drive" title="Google Drive"><span class="rail-icon icon-drive" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://photos.google.com/" target="_blank" rel="noopener" aria-label="Google Foto's" title="Google Foto's"><span class="rail-icon icon-photos" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://passwords.google.com/" target="_blank" rel="noopener" aria-label="Google Passwords" title="Google Passwords"><span class="rail-icon icon-key" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://www.google.com/maps" target="_blank" rel="noopener" aria-label="Google Maps" title="Google Maps"><span class="rail-icon icon-map" aria-hidden="true"></span></a>
+
+    <div class="rail-separator" aria-hidden="true"></div>
+
+    <a class="rail-button" href="https://www.rabobank.nl/" target="_blank" rel="noopener" aria-label="Rabobank" title="Rabobank"><span class="rail-icon icon-bank" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://www.marktplaats.nl/" target="_blank" rel="noopener" aria-label="Marktplaats" title="Marktplaats"><span class="rail-icon icon-market" aria-hidden="true"></span></a>
+  </aside>
+
   <header class="topbar">
   <div class="topbar-inner">
-    <!-- Zoekbalk (links) -->
     <form id="searchForm" autocomplete="off" role="search" aria-label="Zoeken">
       <input id="searchInput" class="search" name="q" type="search"
              placeholder="Typ om te filteren / druk Enter om Google te openen in een nieuw tabblad."
              aria-label="Zoek in je links of druk Enter voor Google" />
       <button class="clear" type="button" id="clearBtn" aria-label="Zoekveld wissen">&times</button>
     </form>
-
-    <!-- Toggles (rechts) -->
-    <div class="toggle-stack" aria-label="Pagina-instellingen">
-      <div class="theme-toggle" aria-label="Kies lichte of donkere modus">
-        <label class="switch">
-          <input type="checkbox" id="themeToggle" aria-label="Schakel lichte modus in of uit" />
-          <span class="slider"></span>
-        </label>
-        <span id="themeIcon" title="Donkere modus" aria-hidden="true"
-              style="width:18px;height:16px;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);flex:0 0 18px;"></span>
-      </div>
-
-      <div class="mode-toggle" aria-label="Kies type startpagina">
-        <label class="switch">
-          <input type="checkbox" id="modeToggle" aria-label="Schakel tussen werk- en privéstartpagina" />
-          <span class="slider"></span>
-        </label>
-        <span id="modeIcon" title="Privé" aria-hidden="true"
-              style="width:18px;height:16px;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);flex:0 0 18px;"></span>
-      </div>
-    </div>
   </div>
 </header>
 
   <main id="blocks">
-
-    
     <div class="grid">
-	    
-		<section class="card cat-slate">
+      <section class="card cat-slate">
        <h2>Google</h2>
         <ul>
           <li><span class="ph"></span> <a href="https://mail.google.com"><b>Mail</b></a></li>
           <li><span class="ph"></span> <a href="https://calendar.google.com">Calendar</a></li>
-		  <li><span class="ph"></span> <a href="https://drive.google.com">Drive</a></li>
+          <li><span class="ph"></span> <a href="https://drive.google.com">Drive</a></li>
           <li><span class="ph"></span> <a href="https://photos.google.com">Foto's</a></li>
-		  <li><span class="ph"></span> <a href="https://passwords.google.com">Passwords</a></li>
-                </ul>
-      </section>
-      	  
-	  <section class="card cat-rose">
-        <h2>Raspberry Pi</h2>
-        <ul>
-			<li><span class="ph"></span> <a href="rpi.local:9091/transmission/web/"><b>Transmission</b></a></li>
-          <li><span class="ph"></span> <a href="rpi.local:8989"><b>Sonarr (TV series)</b></a></li>
-		  <li><span class="ph"></span> <a href="rpi.local:7878">Radarr (films)</a></li>
-		  <li><span class="ph"></span> <a href="rpi.local:8686">Lidarr (muziek)</a></li>
-		  <li><span class="ph"></span> <a href="rpi.local:6767">Bazarr (ondertitels)</a></li>
-          <li><span class="ph"></span> <a href="rpi.local:9696">Prowlarr (indexer)</a></li>
-<li><span class="ph"></span> <a href="https://github.com/artsjeroen-code/website/edit/main">Github Site aanpassen</a></li>
-			
-  
+          <li><span class="ph"></span> <a href="https://passwords.google.com">Passwords</a></li>
         </ul>
       </section>
-     
-	   <section class="card cat-blue">
+
+      <section class="card cat-rose">
+        <h2>Raspberry Pi</h2>
+        <ul>
+          <li><span class="ph"></span> <a href="rpi.local:9091/transmission/web/"><b>Transmission</b></a></li>
+          <li><span class="ph"></span> <a href="rpi.local:8989"><b>Sonarr (TV series)</b></a></li>
+          <li><span class="ph"></span> <a href="rpi.local:7878">Radarr (films)</a></li>
+          <li><span class="ph"></span> <a href="rpi.local:8686">Lidarr (muziek)</a></li>
+          <li><span class="ph"></span> <a href="rpi.local:6767">Bazarr (ondertitels)</a></li>
+          <li><span class="ph"></span> <a href="rpi.local:9696">Prowlarr (indexer)</a></li>
+          <li><span class="ph"></span> <a href="https://github.com/artsjeroen-code/website/edit/main">Github Site aanpassen</a></li>
+        </ul>
+      </section>
+
+      <section class="card cat-blue">
         <h2>AI tools</h2>
         <ul>
-		<li><span class="ph"></span> <a href="https://chatgpt.com/">ChatGPT</a></li>  
-			<li><span class="ph"></span><a href=https://gemini.google.com">Gemini</a></li>
-			
-          </ul>
+          <li><span class="ph"></span> <a href="https://chatgpt.com/">ChatGPT</a></li>
+          <li><span class="ph"></span><a href="https://gemini.google.com">Gemini</a></li>
+        </ul>
       </section>
-	  
-	   <section class="card cat-purple">
+
+      <section class="card cat-purple">
         <h2>Diversen</h2>
         <ul>
           <li><span class="ph"></span> <a href="https://www.google.com/maps">Google Maps</a> | <a href="https://www.waze.com/nl/live-map/">Waze</a> | <a href="https://www.routexl.com/">RouteXL</a></li>
           <li><span class="ph"></span> <a href="https://calendar.google.com/calendar/u/0/exporticalzip">Export GCal</a> | <a href="https://calendar.google.com/calendar/u/0/r/settings/export">Import GCal</a></li>
           <li><span class="ph"></span> <a href="https://www.ns.nl/">NS.nl</a></li>
-		   <li><span class="ph"></span> <a href="https://chat.openai.com/">ChatGPT</a> | <a href="https://gemini.google.com/app">Gemini</a></li>
-        <li><span class="ph"></span> <a href="https://github.com/artsjeroen-code/website/">GitHub</a>
-			
-		<li><span class="ph"></span> <a href="https://notebooklm.google.com/">NotebookLM</a> 
-		<li><span class="ph"></span> <a href="https://www.rabobank.nl/">Rabobank</a></li>
-		  <li><span class="ph"></span> <a href="https://www.marktplaats.nl">Marktplaats</a></li>
-        
-		
-		</ul>
-      </section>
- 
-     
-      <section class="card cat-yellow">
-	  
-		  
-	 
-	      </div>
-	
-	
-	
-	<div class="row">
-      <section class="card cat-pink">
-       
-<h2>Kickboksen <span style="float:right;"></span></h2>
-        <ul>
-      <li><span class="ph"></span> <a href="https://www.djoep-khosok.com/">Djoep Khosok</a> 
-		  <li><span class="ph"></span> <a href="https://djoep-khosok.virtuagym.com/">Virtua Gym</a>
-			  <li><span class="ph"></span> <a href="https://www.djoep-khosok.nl/calendar/">Calendar</a>
+          <li><span class="ph"></span> <a href="https://chat.openai.com/">ChatGPT</a> | <a href="https://gemini.google.com/app">Gemini</a></li>
+          <li><span class="ph"></span> <a href="https://github.com/artsjeroen-code/website/">GitHub</a></li>
+          <li><span class="ph"></span> <a href="https://notebooklm.google.com/">NotebookLM</a></li>
+          <li><span class="ph"></span> <a href="https://www.rabobank.nl/">Rabobank</a></li>
+          <li><span class="ph"></span> <a href="https://www.marktplaats.nl">Marktplaats</a></li>
         </ul>
       </section>
- 
-		 </div>
-		
-<div class="card_wide">
 
-   <div class="card wide cat-orange">
-  
-#hier kan een dropdownkaart gemaakt worden
-  
+      <section class="card cat-yellow">
+        <h2>&nbsp;</h2>
+        <ul></ul>
+      </section>
     </div>
-  </div>
 
- </div>
-		 
+    <div class="row">
+      <section class="card cat-pink">
+        <h2>Kickboksen <span style="float:right;"></span></h2>
+        <ul>
+          <li><span class="ph"></span> <a href="https://www.djoep-khosok.com/">Djoep Khosok</a></li>
+          <li><span class="ph"></span> <a href="https://djoep-khosok.virtuagym.com/">Virtua Gym</a></li>
+          <li><span class="ph"></span> <a href="https://www.djoep-khosok.nl/calendar/">Calendar</a></li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="card_wide">
+      <div class="card wide cat-orange">
+        #hier kan een dropdownkaart gemaakt worden
+      </div>
+    </div>
   </main>
-
-  <a class="edit-button" href="https://github.com/artsjeroen-code/website/blob/main/index.html" target="_blank" rel="noopener" aria-label="Open GitHub om deze website te bewerken">&#9998 Bewerken</a>
 
 <script>
 const wideCard = document.querySelector('.card.wide');
 if (wideCard) {
   let hoverTimeout;
-
   wideCard.addEventListener('mouseenter', () => {
     clearTimeout(hoverTimeout);
     wideCard.classList.add('open');
   });
-
   wideCard.addEventListener('mouseleave', () => {
-    // kleine vertraging voordat hij dichtklapt
-    hoverTimeout = setTimeout(() => {
-      wideCard.classList.remove('open');
-    }, 200);
+    hoverTimeout = setTimeout(() => wideCard.classList.remove('open'), 200);
   });
 }
 </script>
 
-   <script>
-  (function () {
-    const input = document.getElementById('searchInput');
-    const blocks = document.getElementById('blocks');
-    const clearBtn = document.getElementById('clearBtn');
-    const form = document.getElementById('searchForm');
+<script>
+(function () {
+  const input = document.getElementById('searchInput');
+  const blocks = document.getElementById('blocks');
+  const clearBtn = document.getElementById('clearBtn');
+  const form = document.getElementById('searchForm');
 
-    function filterLinks(q) {
-      const term = q.trim().toLowerCase();
-      const cards = blocks.querySelectorAll('.card');
-      let anyVisibleInPage = false;
-
-      cards.forEach(card => {
-        const items = card.querySelectorAll('li');
-        let visibleInCard = 0;
-
-        items.forEach(li => {
-          const text = li.textContent.toLowerCase();
-          const hrefs = Array.from(li.querySelectorAll('a')).map(a => a.href.toLowerCase()).join(' ');
-          const match = !term || text.includes(term) || hrefs.includes(term);
-          li.style.display = match ? '' : 'none';
-          if (match) visibleInCard++;
-        });
-
-        card.style.display = (visibleInCard > 0) ? '' : 'none';
-        if (visibleInCard > 0) anyVisibleInPage = true;
+  function filterLinks(q) {
+    const term = q.trim().toLowerCase();
+    const cards = blocks.querySelectorAll('.card');
+    let anyVisibleInPage = false;
+    cards.forEach(card => {
+      const items = card.querySelectorAll('li');
+      let visibleInCard = 0;
+      items.forEach(li => {
+        const text = li.textContent.toLowerCase();
+        const hrefs = Array.from(li.querySelectorAll('a')).map(a => a.href.toLowerCase()).join(' ');
+        const match = !term || text.includes(term) || hrefs.includes(term);
+        li.style.display = match ? '' : 'none';
+        if (match) visibleInCard++;
       });
-
-      blocks.dataset.hasresults = anyVisibleInPage ? '1' : '0';
-    }
-
-    input.addEventListener('input', (e) => filterLinks(e.target.value));
-    clearBtn.addEventListener('click', () => {
-      input.value = '';
-      filterLinks('');
-      input.focus();
+      card.style.display = visibleInCard > 0 ? '' : 'none';
+      if (visibleInCard > 0) anyVisibleInPage = true;
     });
+    blocks.dataset.hasresults = anyVisibleInPage ? '1' : '0';
+  }
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const term = input.value.trim();
-      if (!term) return;
-      const url = 'https://www.google.com/search?q=' + encodeURIComponent(term);
-      window.open(url, '_blank', 'noopener');
-    });
-
+  input.addEventListener('input', e => filterLinks(e.target.value));
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
     filterLinks('');
-  })();
-  </script>
-  
- <script>
-/* 1ï¸âƒ£ Toggle open/dicht bij klikken op de titel */
-document.querySelectorAll('.card.wide h2').forEach(header => {
-  header.addEventListener('click', () => {
-    header.parentElement.classList.toggle('open');
+    input.focus();
   });
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const term = input.value.trim();
+    if (!term) return;
+    window.open('https://www.google.com/search?q=' + encodeURIComponent(term), '_blank', 'noopener');
+  });
+  filterLinks('');
+})();
+</script>
+
+<script>
+document.querySelectorAll('.card.wide h2').forEach(header => {
+  header.addEventListener('click', () => header.parentElement.classList.toggle('open'));
 });
 
-/*  Zorg dat dropdown openklapt zodra in de zoekbalk wordt getypt of gefocust */
 const searchInput = document.querySelector('.search');
-const wideCard = document.querySelector('.card.wide');
-
-if (searchInput && wideCard) {
-  const openDropdown = () => wideCard.classList.add('open');
-  const closeDropdown = () => wideCard.classList.remove('open');
-
-  // open bij typen of focus
+const wideCardSearch = document.querySelector('.card.wide');
+if (searchInput && wideCardSearch) {
+  const openDropdown = () => wideCardSearch.classList.add('open');
+  const closeDropdown = () => wideCardSearch.classList.remove('open');
   searchInput.addEventListener('input', openDropdown);
   searchInput.addEventListener('focus', openDropdown);
-
-  // optioneel: dichtklappen als zoekbalk leeg raakt en focus weg is
   searchInput.addEventListener('blur', () => {
     if (searchInput.value.trim() === '') closeDropdown();
   });
 }
 </script>
+
 <script>
-  // onthoud gekozen modus
-  const MODE_KEY = 'startpagina-mode';
+(function () {
+  const THEME_KEY = 'startpagina-theme';
+  const button = document.getElementById('railTheme');
+  if (!button) return;
 
-  (function () {
-    const savedMode = localStorage.getItem(MODE_KEY);
-    const currentMode = document.body.dataset.mode;
-
-    // Als er een opgeslagen voorkeur is dan we zitten op de verkeerde pagina!’ redirect
-    if (savedMode && savedMode !== currentMode) {
-      if (savedMode === 'prive') {
-        window.location.replace('index_prive.html');
-      } else {
-        window.location.replace('index.html');
-      }
-    }
-  })();
-</script>
-<script>
-  (function () {
-    const toggle = document.getElementById('modeToggle');
-    const icon = document.getElementById('modeIcon');
-    if (!toggle) return;
-
-    const briefcaseIcon = '<svg viewBox="0 0 20 20" width="10" height="10" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="15" height="10.5" rx="2"/><path d="M6.5 6V4.7c0-1 .8-1.7 1.8-1.7h3.4c1 0 1.8.7 1.8 1.7V6M2.5 10h15M8.6 9.2h2.8v1.7H8.6z"/></svg>';
-    const homeIcon = '<svg viewBox="0 0 20 20" width="10" height="10" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 9.1 10 3.2l7.2 5.9v7.2h-4.7v-4.8h-5v4.8H2.8V9.1Z"/></svg>';
-
-    function updateModeIcon(isPrive) {
-      if (!icon) return;
-      icon.innerHTML = isPrive ? homeIcon : briefcaseIcon;
-      icon.title = isPrive ? 'Privé' : 'Werk';
-    }
-
-    // Bepaal op basis van data-mode of de checkbox aan moet staan
-    const isPrivePage = document.body.dataset.mode === 'prive';
-    toggle.checked = isPrivePage;
-    updateModeIcon(isPrivePage);
-
-   const MODE_KEY = 'startpagina-mode';
-
-toggle.addEventListener('change', () => {
-  const goPrive = toggle.checked;
-  updateModeIcon(goPrive);
-
-  // keuze onthouden
-  localStorage.setItem(MODE_KEY, goPrive ? 'prive' : 'zakelijk');
-
-  // navigeren
-  if (goPrive) {
-    window.location.href = 'index_prive.html';
-  } else {
-    window.location.href = 'index.html';
+  function applyTheme(theme) {
+    const safeTheme = theme === 'light' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = safeTheme;
+    localStorage.setItem(THEME_KEY, safeTheme);
+    button.setAttribute('aria-label', safeTheme === 'dark' ? 'Schakel naar licht thema' : 'Schakel naar donker thema');
   }
-});
-  })();
-</script>
 
-<script>
-  (function () {
-    const THEME_KEY = 'startpagina-theme';
-    const toggle = document.getElementById('themeToggle');
-    const icon = document.getElementById('themeIcon');
-    if (!toggle) return;
-
-    const sunIcon = '<svg viewBox="0 0 20 20" width="10" height="10" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="3.6"/><path d="M10 1.8v2M10 16.2v2M1.8 10h2M16.2 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M15.8 4.2l-1.4 1.4M5.6 14.4l-1.4 1.4"/></svg>';
-    const moonIcon = '<svg viewBox="0 0 20 20" width="10" height="10" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.8 13.9A6.8 6.8 0 0 1 6.1 5.2 7.1 7.1 0 1 0 14.8 13.9Z"/></svg>';
-
-    function updateThemeIcon(isLight) {
-      if (!icon) return;
-      icon.innerHTML = isLight ? sunIcon : moonIcon;
-      icon.title = isLight ? 'Lichte modus' : 'Donkere modus';
-    }
-
-    function applyTheme(theme) {
-      const safeTheme = theme === 'light' ? 'light' : 'dark';
-      document.documentElement.dataset.theme = safeTheme;
-      localStorage.setItem(THEME_KEY, safeTheme);
-      toggle.checked = safeTheme === 'light';
-      updateThemeIcon(safeTheme === 'light');
-    }
-
-    applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
-
-    toggle.addEventListener('change', () => {
-      applyTheme(toggle.checked ? 'light' : 'dark');
-    });
-  })();
+  applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+  button.addEventListener('click', () => {
+    applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  });
+})();
 </script>
 </body>
 </html>
-
-
-
-
