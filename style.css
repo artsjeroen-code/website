@@ -4,11 +4,15 @@
   --utility-rail-width: 42px;
   --utility-gap: 10px;
   --page-edge: 12px;
+  --rail-top: 58px;
+  --rail-bottom: 50px;
 }
 
-/* Site-inhoud blijft verder ongewijzigd. Zoekbalk en tegels gebruiken exact
-   dezelfde linker- en rechterlijn. */
+/* De bestaande site blijft intact. Alleen de zoekbalk en utility-rail worden
+   bovenop de basisstijl geplaatst. */
 .topbar {
+  display: block !important;
+  width: 100% !important;
   padding-top: 6px;
   padding-bottom: 0;
   box-shadow: none;
@@ -16,31 +20,38 @@
   backdrop-filter: blur(8px);
 }
 
+/* Zoekbalk en tegelgebied delen exact dezelfde linker- en rechterlijn. */
 .topbar-inner,
 #blocks {
-  width: auto;
-  max-width: none;
-  margin-left: calc(var(--page-edge) + var(--utility-rail-width) + var(--utility-gap));
-  margin-right: var(--page-edge);
-  padding-left: 0;
-  padding-right: 0;
+  width: auto !important;
+  max-width: none !important;
+  margin-left: calc(var(--page-edge) + var(--utility-rail-width) + var(--utility-gap)) !important;
+  margin-right: var(--page-edge) !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
   box-sizing: border-box;
 }
 
 .topbar-inner {
+  display: block !important;
   min-height: 34px;
-  display: block;
 }
 
 #searchForm {
-  width: 100%;
-  max-width: none;
+  display: flex !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
   min-height: 34px;
-  margin: 0;
+  margin: 0 !important;
+  justify-content: stretch !important;
 }
 
 .search {
-  width: 100%;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
   height: 34px;
   min-height: 34px;
   box-sizing: border-box;
@@ -57,22 +68,21 @@
 }
 
 #blocks {
-  margin-top: 5px;
+  margin-top: 5px !important;
 }
 
-/* Oude controls en losse edit-knop zijn vervangen door de vaste utility-rail. */
 .toggle-stack,
 .edit-button {
   display: none !important;
 }
 
-/* Smalle vaste zijbalk links. Hij begint gelijk met de eerste rij tegels en
-   blijft tijdens scrollen op dezelfde plek staan. */
+/* Vaste linker rail. Bij de huidige één-pagina-layout valt de bovenrand samen
+   met de eerste tegel en de onderrand met de laatste tegel. */
 .utility-rail {
   position: fixed;
-  top: 61px;
+  top: var(--rail-top);
   left: var(--page-edge);
-  bottom: 8px;
+  bottom: var(--rail-bottom);
   z-index: 100;
   width: var(--utility-rail-width);
   box-sizing: border-box;
@@ -134,11 +144,24 @@
   background: var(--ring);
 }
 
+/* Basismaten van alle iconen. Voor merkiconen gebruiken we echte SVG/logo-
+   afbeeldingen als background-image; dat voorkomt de ontbrekende iconen die
+   bij cross-origin CSS masks konden ontstaan. */
 .rail-icon {
   width: 18px;
   height: 18px;
   display: block;
-  background: currentColor;
+  flex: 0 0 18px;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+/* Lokale functie-iconen: thema en bewerken. */
+.icon-theme,
+.icon-edit {
+  background-color: currentColor;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-position: center;
@@ -147,7 +170,6 @@
   mask-size: contain;
 }
 
-/* Thema */
 :root[data-theme="dark"] .icon-theme {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M20.4 15.2A8.2 8.2 0 0 1 8.8 3.6 9 9 0 1 0 20.4 15.2Z'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M20.4 15.2A8.2 8.2 0 0 1 8.8 3.6 9 9 0 1 0 20.4 15.2Z'/%3E%3C/svg%3E");
@@ -163,52 +185,25 @@
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='m4 17.25-.75 3.5 3.5-.75L18.8 7.95l-2.75-2.75L4 17.25Zm14.3-14.3 2.75 2.75-1.45 1.45-2.75-2.75 1.45-1.45Z'/%3E%3C/svg%3E");
 }
 
-/* Merkiconen. De vorm komt rechtstreeks uit de app/site-branding; de rail
-   kleurt ze via CSS uniform oranje. */
-.icon-chatgpt {
-  -webkit-mask-image: url("https://cdn.simpleicons.org/openai");
-  mask-image: url("https://cdn.simpleicons.org/openai");
-}
+/* Originele/herkenbare merklogo's, direct als afbeelding en in dezelfde
+   oranje kleur als de rest van de rail. */
+.icon-chatgpt { background-image: url("https://cdn.simpleicons.org/openai/FF9A4D"); }
+.icon-mail { background-image: url("https://cdn.simpleicons.org/gmail/FF9A4D"); }
+.icon-calendar { background-image: url("https://cdn.simpleicons.org/googlecalendar/FF9A4D"); }
+.icon-drive { background-image: url("https://cdn.simpleicons.org/googledrive/FF9A4D"); }
+.icon-photos { background-image: url("https://cdn.simpleicons.org/googlephotos/FF9A4D"); }
+.icon-map { background-image: url("https://cdn.simpleicons.org/googlemaps/FF9A4D"); }
 
-.icon-mail {
-  -webkit-mask-image: url("https://cdn.simpleicons.org/gmail");
-  mask-image: url("https://cdn.simpleicons.org/gmail");
-}
-
-.icon-calendar {
-  -webkit-mask-image: url("https://cdn.simpleicons.org/googlecalendar");
-  mask-image: url("https://cdn.simpleicons.org/googlecalendar");
-}
-
-.icon-drive {
-  -webkit-mask-image: url("https://cdn.simpleicons.org/googledrive");
-  mask-image: url("https://cdn.simpleicons.org/googledrive");
-}
-
-.icon-photos {
-  -webkit-mask-image: url("https://cdn.simpleicons.org/googlephotos");
-  mask-image: url("https://cdn.simpleicons.org/googlephotos");
-}
-
-.icon-key {
-  -webkit-mask-image: url("https://www.google.com/s2/favicons?domain=passwords.google.com&sz=64");
-  mask-image: url("https://www.google.com/s2/favicons?domain=passwords.google.com&sz=64");
-}
-
-.icon-map {
-  -webkit-mask-image: url("https://cdn.simpleicons.org/googlemaps");
-  mask-image: url("https://cdn.simpleicons.org/googlemaps");
-}
-
-.icon-bank {
-  -webkit-mask-image: url("https://www.google.com/s2/favicons?domain=rabobank.nl&sz=64");
-  mask-image: url("https://www.google.com/s2/favicons?domain=rabobank.nl&sz=64");
-}
-
+/* Voor diensten zonder Simple Icons-merklogo gebruiken we het echte favicon
+   van de site en kleuren we dat monochroom oranje. */
+.icon-key,
+.icon-bank,
 .icon-market {
-  -webkit-mask-image: url("https://www.google.com/s2/favicons?domain=marktplaats.nl&sz=64");
-  mask-image: url("https://www.google.com/s2/favicons?domain=marktplaats.nl&sz=64");
+  filter: brightness(0) saturate(100%) invert(65%) sepia(83%) saturate(1577%) hue-rotate(326deg) brightness(103%) contrast(101%);
 }
+.icon-key { background-image: url("https://www.google.com/s2/favicons?domain=passwords.google.com&sz=64"); }
+.icon-bank { background-image: url("https://www.google.com/s2/favicons?domain=rabobank.nl&sz=64"); }
+.icon-market { background-image: url("https://www.google.com/s2/favicons?domain=marktplaats.nl&sz=64"); }
 
 :root[data-theme="light"] .utility-rail {
   background: rgba(255, 255, 255, .94);
@@ -217,39 +212,6 @@
 
 :root[data-theme="light"] .search {
   background: #fff;
-}
-
-/* Fijnuitlijning desktop: zoekbalk vult exact dezelfde breedte als de vier
-   bovenste tegels. De rail sluit visueel aan op eerste en laatste tegel. */
-@media (min-width: 761px) {
-  .topbar-inner,
-  #blocks {
-    width: calc(100% - 24px - var(--utility-rail-width) - var(--utility-gap)) !important;
-    max-width: none !important;
-    margin-left: calc(var(--page-edge) + var(--utility-rail-width) + var(--utility-gap)) !important;
-    margin-right: var(--page-edge) !important;
-  }
-
-  .topbar-inner {
-    flex: 0 0 calc(100% - 24px - var(--utility-rail-width) - var(--utility-gap));
-  }
-
-  #searchForm {
-    width: 100% !important;
-    max-width: none !important;
-    justify-content: stretch !important;
-  }
-
-  .search {
-    width: 100% !important;
-    max-width: none !important;
-    flex: 1 1 auto;
-  }
-
-  .utility-rail {
-    top: 58px;
-    bottom: 54px;
-  }
 }
 
 @media (max-width: 760px) {
@@ -286,9 +248,9 @@
 
   .topbar-inner,
   #blocks {
-    width: auto;
-    margin-left: 12px;
-    margin-right: 12px;
+    width: auto !important;
+    margin-left: 12px !important;
+    margin-right: 12px !important;
   }
 
   body {
