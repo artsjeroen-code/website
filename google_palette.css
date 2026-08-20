@@ -79,12 +79,12 @@
   display: none !important;
 }
 
-/* Zijbalk duidelijk transparanter, met behoud van de blur erachter. */
+/* Zijbalk op 55% dekking, met behoud van de blur erachter. */
 .utility-rail {
-  background: color-mix(in srgb, var(--panel) 70%, transparent) !important;
+  background: color-mix(in srgb, var(--panel) 55%, transparent) !important;
 }
 :root[data-theme="light"] .utility-rail {
-  background: rgba(255, 255, 255, .70) !important;
+  background: rgba(255, 255, 255, .55) !important;
 }
 
 /* De Normen-tegel blijft standaard uitgeklapt. */
