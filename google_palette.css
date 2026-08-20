@@ -79,6 +79,14 @@
   display: none !important;
 }
 
+/* Zijbalk een tikje transparant, met behoud van de blur erachter. */
+.utility-rail {
+  background: color-mix(in srgb, var(--panel) 86%, transparent) !important;
+}
+:root[data-theme="light"] .utility-rail {
+  background: rgba(255, 255, 255, .86) !important;
+}
+
 /* De Normen-tegel blijft standaard uitgeklapt. */
 .norms-card .cols {
   max-height: 900px !important;
