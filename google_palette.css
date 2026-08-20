@@ -81,3 +81,35 @@
 .norms-card h2::after {
   transform: rotate(90deg) !important;
 }
+
+/* Rustigere Normen-tegel: geen subkoppen of omlijnde blokken. */
+.norms-card .norm-group h4 {
+  display: none !important;
+}
+
+.norms-card .norm-group {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 4px 0 !important;
+}
+
+.norms-card .norm-quicklinks a {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 3px 0 !important;
+}
+
+.norms-card .norm-link {
+  border-radius: 0 !important;
+  padding: 3px 0 !important;
+}
+
+.norms-card .norm-link:hover {
+  background: transparent !important;
+}
+
+.norms-card .norm-c-grid {
+  margin-top: 3px !important;
+}
