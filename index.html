@@ -9,6 +9,7 @@
     (function () {
       const savedTheme = localStorage.getItem('startpagina-theme') || 'dark';
       document.documentElement.dataset.theme = savedTheme;
+      localStorage.removeItem('startpagina-mode');
     })();
   </script>
   <link rel="stylesheet" href="style.css" />
@@ -16,117 +17,96 @@
 </head>
 
 <body data-mode="zakelijk">
+  <aside class="utility-rail" aria-label="Snelkoppelingen">
+    <button class="rail-button rail-theme" id="railTheme" type="button" aria-label="Wissel licht/donker thema" title="Thema">
+      <span class="rail-icon icon-theme" aria-hidden="true"></span>
+    </button>
+
+    <a class="rail-button" href="https://github.com/artsjeroen-code/website/blob/main/index.html" target="_blank" rel="noopener" aria-label="Website bewerken op GitHub" title="GitHub bewerken">
+      <span class="rail-icon icon-edit" aria-hidden="true"></span>
+    </a>
+
+    <div class="rail-separator" aria-hidden="true"></div>
+
+    <a class="rail-button" href="https://chatgpt.com/" target="_blank" rel="noopener" aria-label="ChatGPT" title="ChatGPT"><span class="rail-icon icon-chatgpt" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://mail.google.com/" target="_blank" rel="noopener" aria-label="Gmail" title="Gmail"><span class="rail-icon icon-mail" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://calendar.google.com/" target="_blank" rel="noopener" aria-label="Google Calendar" title="Google Calendar"><span class="rail-icon icon-calendar" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://drive.google.com/" target="_blank" rel="noopener" aria-label="Google Drive" title="Google Drive"><span class="rail-icon icon-drive" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://photos.google.com/" target="_blank" rel="noopener" aria-label="Google Foto's" title="Google Foto's"><span class="rail-icon icon-photos" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://passwords.google.com/" target="_blank" rel="noopener" aria-label="Google Passwords" title="Google Passwords"><span class="rail-icon icon-key" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://www.google.com/maps" target="_blank" rel="noopener" aria-label="Google Maps" title="Google Maps"><span class="rail-icon icon-map" aria-hidden="true"></span></a>
+
+    <div class="rail-separator" aria-hidden="true"></div>
+
+    <a class="rail-button" href="https://www.rabobank.nl/" target="_blank" rel="noopener" aria-label="Rabobank" title="Rabobank"><span class="rail-icon icon-bank" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://www.marktplaats.nl/" target="_blank" rel="noopener" aria-label="Marktplaats" title="Marktplaats"><span class="rail-icon icon-market" aria-hidden="true"></span></a>
+  </aside>
+
   <header class="topbar">
   <div class="topbar-inner">
-    <!-- Zoekbalk (links) -->
     <form id="searchForm" autocomplete="off" role="search" aria-label="Zoeken">
       <input id="searchInput" class="search" name="q" type="search"
              placeholder="Typ om te filteren / druk Enter om Google te openen in een nieuw tabblad."
              aria-label="Zoek in je links of druk Enter voor Google" />
       <button class="clear" type="button" id="clearBtn" aria-label="Zoekveld wissen">&times</button>
     </form>
-
-    <!-- Toggles (rechts) -->
-    <div class="toggle-stack" aria-label="Pagina-instellingen">
-      <div class="theme-toggle" aria-label="Kies lichte of donkere modus">
-        <span class="theme-label theme-label--dark"></span>
-        <label class="switch">
-          <input type="checkbox" id="themeToggle" aria-label="Schakel lichte modus in of uit" />
-          <span class="slider"></span>
-        </label>
-        <span class="theme-label theme-label--light" title="Licht / donker" aria-hidden="true">
-          <svg viewBox="0 0 34 18" width="29" height="16" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
-            <g stroke="#ff9a4d" stroke-width="1.5" stroke-linecap="round">
-              <circle cx="8" cy="9" r="3.4" />
-              <path d="M8 1.7v2M8 14.3v2M0.7 9h2M13.3 9h2M2.8 3.8l1.4 1.4M11.8 12.8l1.4 1.4M13.2 3.8l-1.4 1.4M4.2 12.8l-1.4 1.4" />
-            </g>
-            <path d="M26.8 3.1a6 6 0 1 0 3.4 10.6 5.4 5.4 0 0 1-3.4-10.6Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </span>
-      </div>
-
-      <div class="mode-toggle" aria-label="Kies type startpagina">
-        <span class="mode-label mode-label--zakelijk"></span>
-        <label class="switch">
-          <input type="checkbox" id="modeToggle" aria-label="Schakel tussen werk- en privéstartpagina" />
-          <span class="slider"></span>
-        </label>
-        <span class="mode-label mode-label--prive" title="Werk / privé" aria-hidden="true">
-          <svg viewBox="0 0 36 18" width="31" height="16" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="1.5" y="5.2" width="16" height="10.2" rx="2" />
-            <path d="M5.7 5.2V3.8c0-1 .8-1.8 1.8-1.8h4c1 0 1.8.8 1.8 1.8v1.4M1.5 9.1h16M8.2 8.3h2.6v1.6H8.2z" />
-            <path d="M15.2 9.1 24.9 2l9.6 7.1v6.3h-6.2v-4.7h-6.7v4.7h-6.4V9.1Z" />
-          </svg>
-        </span>
-      </div>
-    </div>
   </div>
 </header>
 
   <main id="blocks">
-
-    
     <div class="grid">
-	    
-		<section class="card cat-slate">
+      <section class="card cat-slate">
        <h2>Algemeen</h2>
         <ul>
-          	<li><span class="ph"></span> <a href="https://inet.intra.minszw.nl/"><b>iNet</b></a></li>
-          	<li><span class="ph"></span> <a href="https://vapp.intra.minszw.nl/">VerklaringenApp</a></li>
-		  	<li><span class="ph"></span> <a href="https://serviceloketieni.minszw.nl/">Serviceloket</a></li>
-          	<li><span class="ph"></span> <a href="https://topdesk-sscict.rijksweb.nl/tas/public/login/saml">SSC-IT</a></li>
-          	<li><span class="ph"></span> <a href="https://www.lyreco.com/webshop/NLNL/index.html">Lyreco (kantoorartikelen)</a></li>
-          	<li><span class="ph"></span> <a href="https://neonvolt.nl/login">Lausalec (kleding/PBM)</a></li>
-          	<li><span class="ph"></span> <a href="https://rijksoverheid.worldmeetings.com/Login">Worldmeetings (overnachtingen)</a></li>
-          	<li><span class="ph"></span> <a href="https://my.ayvens.nl/mlp-app/nl/auth/login">Mijn Ayvens</a> | <a href="https://ayvens.powerd.nl/auth/sign-in?redirect=%2Fd%2Fhome">Ayvens PowerD</a></li>
-    
-	
-			</ul>
+          <li><span class="ph"></span> <a href="https://inet.intra.minszw.nl/"><b>iNet</b></a></li>
+          <li><span class="ph"></span> <a href="https://vapp.intra.minszw.nl/">VerklaringenApp</a></li>
+          <li><span class="ph"></span> <a href="https://serviceloketieni.minszw.nl/">Serviceloket</a></li>
+          <li><span class="ph"></span> <a href="https://topdesk-sscict.rijksweb.nl/tas/public/login/saml">SSC-IT</a></li>
+          <li><span class="ph"></span> <a href="https://www.lyreco.com/webshop/NLNL/index.html">Lyreco (kantoorartikelen)</a></li>
+          <li><span class="ph"></span> <a href="https://neonvolt.nl/login">Lausalec (kleding/PBM)</a></li>
+          <li><span class="ph"></span> <a href="https://rijksoverheid.worldmeetings.com/Login">Worldmeetings (overnachtingen)</a></li>
+          <li><span class="ph"></span> <a href="https://my.ayvens.nl/mlp-app/nl/auth/login">Mijn Ayvens</a> | <a href="https://ayvens.powerd.nl/auth/sign-in?redirect=%2Fd%2Fhome">Ayvens PowerD</a></li>
+        </ul>
       </section>
-      	  
-	  <section class="card cat-rose">
+
+      <section class="card cat-rose">
         <h2>Personeel</h2>
         <ul>
-		
-        <li><span class="ph"></span> <a href="https://sap-portal.p-direkt.rijksweb.nl/pdirekt.nl~saml2web/RedirectorServlet"><b>P-Direkt</b></a></li>
-        <li><span class="ph"></span> <a href="https://rijksportaal.overheid-i.nl/">Rijksportaal</a></li>
-        <li><span class="ph"></span> <a href="https://rijksadresgids.rijksweb.nl/">Rijksadresgids</a></li>
-        <li><span class="ph"></span> <a href="https://www.caorijk.nl/download-de-cao-rijk-en-meer">CAO Rijk</a> | <a href="https://www.caorijk.nl/documenten/publicaties/2021/02/16/personeelsreglement-ministerie-van-sociale-zaken-en-werkgelegenheid">Personeelsreglement SZW</a></li>
-        <li><span class="ph"></span> <a href="https://welkom.leerenontwikkelplein.nl/login">LO-plein</a></li>
-        <li><span class="ph"></span> <a href="https://fmis.belastingdienst.nl/">Ruimte reserveren (GVR)</a></li>
-		<br>
-			<li><span class="ph"></span> <a href="https://docs.google.com/spreadsheets/d/1-6f-88y-ClVqy7FfuRYgroMrvh_YMyottjs-eALLwB0/edit?usp=drivesdk"><b>Rittenregistratie</b></a></li>
-		</ul>
+          <li><span class="ph"></span> <a href="https://sap-portal.p-direkt.rijksweb.nl/pdirekt.nl~saml2web/RedirectorServlet"><b>P-Direkt</b></a></li>
+          <li><span class="ph"></span> <a href="https://rijksportaal.overheid-i.nl/">Rijksportaal</a></li>
+          <li><span class="ph"></span> <a href="https://rijksadresgids.rijksweb.nl/">Rijksadresgids</a></li>
+          <li><span class="ph"></span> <a href="https://www.caorijk.nl/download-de-cao-rijk-en-meer">CAO Rijk</a> | <a href="https://www.caorijk.nl/documenten/publicaties/2021/02/16/personeelsreglement-ministerie-van-sociale-zaken-en-werkgelegenheid">Personeelsreglement SZW</a></li>
+          <li><span class="ph"></span> <a href="https://welkom.leerenontwikkelplein.nl/login">LO-plein</a></li>
+          <li><span class="ph"></span> <a href="https://fmis.belastingdienst.nl/">Ruimte reserveren (GVR)</a></li>
+          <br>
+          <li><span class="ph"></span> <a href="https://docs.google.com/spreadsheets/d/1-6f-88y-ClVqy7FfuRYgroMrvh_YMyottjs-eALLwB0/edit?usp=drivesdk"><b>Rittenregistratie</b></a></li>
+        </ul>
       </section>
-     
-	   <section class="card cat-blue">
+
+      <section class="card cat-blue">
         <h2>Wetgeving / Beleid</h2>
         <ul>
-		  <li><span class="ph"></span> <a href="https://wetten.overheid.nl/">Wetten.overheid.nl</a></li>
-        
+          <li><span class="ph"></span> <a href="https://wetten.overheid.nl/">Wetten.overheid.nl</a></li>
           <li><span class="ph"></span> <a href="https://kennisbank.rijksweb.nl/literatuur/literatuur/Markttoezicht/NLA%20(2022)%20-%20Handhavingsbeleid%20Markttoezicht%20Warenwet.pdf">Handhavingsbeleid WaW</a></li>
           <li><span class="ph"></span> <a href="https://ec.europa.eu/consumers/archive/cons_safe/action_guide_nl.pdf">Gids voor corrigerende acties</a></li>
-        <li><span class="ph"></span> <a href="https://ec.europa.eu/rag/#/screen/home">RAG (Risk Assessment Guideline)</a></li>
-		</ul>
+          <li><span class="ph"></span> <a href="https://ec.europa.eu/rag/#/screen/home">RAG (Risk Assessment Guideline)</a></li>
+        </ul>
       </section>
-	  
-	   <section class="card cat-purple">
+
+      <section class="card cat-purple">
         <h2>Diversen</h2>
         <ul>
           <li><span class="ph"></span> <a href="https://www.google.com/maps">Google Maps</a> | <a href="https://www.waze.com/nl/live-map/">Waze</a> | <a href="https://www.routexl.com/">RouteXL</a></li>
           <li><span class="ph"></span> <a href="https://github.com/artsjeroen-code/agenda/upload/main">Upload calendar to GitHub GCal</a></li>
           <li><span class="ph"></span> <a href="https://www.ns.nl/">NS.nl</a></li>
-		   <li><span class="ph"></span> <a href="https://chat.openai.com/">ChatGPT</a> | <a href="https://gemini.google.com/app">Gemini</a></li>
-           <li><span class="ph"></span> <a href="https://www.mentimeter.com/app/home">MentiMeter</a></li>
-		<li><span class="ph"></span> <a href="https://securetransfer.rijkscloud.nl/medewerker">SecureTransfer</a></li>
-			
-		</ul>
+          <li><span class="ph"></span> <a href="https://chat.openai.com/">ChatGPT</a> | <a href="https://gemini.google.com/app">Gemini</a></li>
+          <li><span class="ph"></span> <a href="https://www.mentimeter.com/app/home">MentiMeter</a></li>
+          <li><span class="ph"></span> <a href="https://securetransfer.rijkscloud.nl/medewerker">SecureTransfer</a></li>
+        </ul>
       </section>
- 
-     
+
       <section class="card cat-yellow">
-	  
-	   <h2>DIWI</h2>
+        <h2>DIWI</h2>
         <ul>
           <li><span class="ph"></span> <a href="https://diwi.rijksweb.nl/SitePages/Introductiepagina.aspx"><b>DIWI startpagina</b></a></li>
           <li><span class="ph"></span> <a href="https://diwi.rijksweb.nl/dossiers/4907/SitePages/Introductiepagina.aspx">Markttoezicht (4907)</a></li>
@@ -137,21 +117,20 @@
           <li><span class="ph"></span> <a href="https://diwi.rijksweb.nl/dossiers/5398/SitePages/Introductiepagina.aspx">Praktijkbegeleiding (5398)</a></li>
         </ul>
       </section>
-      
-     <section class="card cat-green">
+
+      <section class="card cat-green">
         <h2>Bronnen</h2>
         <ul>
           <li><span class="ph"></span> <a href="https://connect.nen.nl/Home/Detail"><b>NEN-connect</b></a></li>
-          <li><span class="ph"></span> <a href="https://webgate.ec.europa.eu/smcs/icsms/#/home">ICSMS</a> | <a href="https://webgate.ec.europa.eu/icsms-kibana/login?next=%2Ficsms-kibana%2F">KIBANA</a> 
-		  <li><span class="ph"></span> <a href="https://market-surveillance-tool.ec.europa.eu/">Market Surveillance Tools</a>
-		  <li><span class="ph"></span> <a href="https://www.kvk.nl/">KVK</a> | <a href="https://e-justice.europa.eu/topics/registers-business-insolvency-land/business-registers-search-company-eu_nl?language=en">EU Ondernemingsregister</a></li>
+          <li><span class="ph"></span> <a href="https://webgate.ec.europa.eu/smcs/icsms/#/home">ICSMS</a> | <a href="https://webgate.ec.europa.eu/icsms-kibana/login?next=%2Ficsms-kibana%2F">KIBANA</a></li>
+          <li><span class="ph"></span> <a href="https://market-surveillance-tool.ec.europa.eu/">Market Surveillance Tools</a></li>
+          <li><span class="ph"></span> <a href="https://www.kvk.nl/">KVK</a> | <a href="https://e-justice.europa.eu/topics/registers-business-insolvency-land/business-registers-search-company-eu_nl?language=en">EU Ondernemingsregister</a></li>
           <li><span class="ph"></span> <a href="https://webgate.ec.europa.eu/single-market-compliance-space/#/notified-bodies/free-search">NANDO</a></li>
           <li><span class="ph"></span> <a href="https://kennisbank.rijksweb.nl/Paginas/default.aspx">Kennisbank</a></li>
-          
-		  <li><span class="ph"></span> <a href="https://www.boip.int/nl/merkenregister?app=%2F">EUIPO(Trademarkregister)</a></li>
+          <li><span class="ph"></span> <a href="https://www.boip.int/nl/merkenregister?app=%2F">EUIPO(Trademarkregister)</a></li>
         </ul>
       </section>
-	  
+
       <section class="card cat-cyan">
         <h2>Arbo Wetgeving</h2>
         <ul>
@@ -161,288 +140,198 @@
           <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0032326">Beleidsregel boeteoplegging</a></li>
         </ul>
       </section>
-      
-	     <section class="card cat-orange">
+
+      <section class="card cat-orange">
         <h2>JACOP 2025</h2>
         <ul>
           <li><span class="ph"></span> <a href="https://webgate.ec.europa.eu/fpfis/wikis/spaces/JACOP2025/pages/2028240981/1.2.+Cycle+2">WIKI</a></li>
           <li><span class="ph"></span> <a href="https://webgate.ec.europa.eu/fpfis/wikis/download/attachments/2028241382/JACOP2025_PSA%2011_Final%20Testing%20Plan_v.1.0_NL_AP_SE_AP.docx?api=v2">Testing Plan</a></li>
           <li><span class="ph"></span> <a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=3664453&search=&Native=0&token=9c9cac90-80ff-4801-9dda-389f3fa244d9">ISO 20345:2022 - Veiligheidsschoeisel</a></li>
           <li><span class="ph"></span> <a href="https://webgate.ec.europa.eu/fpfis/wikis/x/-AUtfQ">Sampling and Testing File</a></li>
-		  <li><span class="ph"></span> <a href="https://diwi.rijksweb.nl/dossiers/4907/_layouts/15/guestaccess.aspx?guestaccesstoken=Tbo1vv53Ilof2FaVGjJ6%2bckDDH9X92uC9fStQPQjaB4%3d&folderid=2_169fb8b14f0a6408cb13dcb068d58d4a4&rev=1">JACOP 2025 DIWI</a></li>
-		  
+          <li><span class="ph"></span> <a href="https://diwi.rijksweb.nl/dossiers/4907/_layouts/15/guestaccess.aspx?guestaccesstoken=Tbo1vv53Ilof2FaVGjJ6%2bckDDH9X92uC9fStQPQjaB4%3d&folderid=2_169fb8b14f0a6408cb13dcb068d58d4a4&rev=1">JACOP 2025 DIWI</a></li>
         </ul>
       </section>
-	  
-	 
-	      </div>
-	
-	
-	
-	<div class="row">
+    </div>
+
+    <div class="row">
       <section class="card cat-pink">
-       
-<h2>Warenwetten <span style="float:right;">&xrarr;</span></h2>
+        <h2>Warenwetten <span style="float:right;">&xrarr;</span></h2>
         <ul>
           <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0001969/">Warenwet</a></li>
           <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0011841/2026-01-01/0">WAW best. boeten</a></li>
           <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0005577">Warenwetbesluit machines</a> | <a href="https://wetten.overheid.nl/BWBR0006022">regeling</a></li>
           <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0040828/">Warenwetbesluit PBM 2018</a></li>
           <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0037644">Warenwetbesluit expl. materieel</a></li>
-		  <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0037650">Warenwetbesluit liften 2016</a></li>
+          <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0037650">Warenwetbesluit liften 2016</a></li>
           <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0038083/">Warenwetbesluit drukapp.</a></li>
           <li><span class="ph"></span> <a href="https://wetten.overheid.nl/BWBR0037646">Warenwetbesluit drukv. eenv.</a></li>
         </ul>
       </section>
-   <section class="card cat-slate">
-        
 
-<h2>EU regelgeving <span style="float:right;">&xrarr;</span></h2>
+      <section class="card cat-slate">
+        <h2>EU regelgeving <span style="float:right;">&xrarr;</span></h2>
         <ul>
-		<li><span class="ph"></span> <a href="https://eur-lex.europa.eu/homepage.html?locale=nl">EUR-lex</a></li>
-		<li><span class="ph"></span>
+          <li><span class="ph"></span> <a href="https://eur-lex.europa.eu/homepage.html?locale=nl">EUR-lex</a></li>
           <li><span class="ph"></span> <a href="https://eur-lex.europa.eu/legal-content/NL/TXT/?uri=celex%3A32006L0042">MRL (2006/42/EG)</a> | <a href="https://eur-lex.europa.eu/legal-content/NL/TXT/?uri=CELEX%3A32023R1230">MV (2023/1230)</a></li>
           <li><span class="ph"></span> <a href="https://eur-lex.europa.eu/eli/reg/2016/425/oj">Verordening PBM (EU 2016/425)</a></li>
-<li><span class="ph"></span> <a href="https://eur-lex.europa.eu/eli/dir/2014/34/oj">Richtlijn ATEX (2014/34/EU)</a></li>
+          <li><span class="ph"></span> <a href="https://eur-lex.europa.eu/eli/dir/2014/34/oj">Richtlijn ATEX (2014/34/EU)</a></li>
           <li><span class="ph"></span> <a href="http://data.europa.eu/eli/dir/2014/33/oj">Richtlijn liften(2014/33/EU)</a></li>
-          
           <li><span class="ph"></span> <a href="https://eur-lex.europa.eu/eli/dir/2014/68/oj">Richtlijn drukapp.(2014/68/EU)</a></li>
           <li><span class="ph"></span> <a href="https://eur-lex.europa.eu/eli/dir/2014/29/oj">Richtlijn drukv. eenv.(2014/29/EU)</a></li>
-       <br>
-	 <br>
-			<li><span class="ph"></span> <a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=CELEX:32019R1020">Markttoezichtverordening (EU 2019/1020)</a></li>
-		
-		</ul>
+          <br><br>
+          <li><span class="ph"></span> <a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=CELEX:32019R1020">Markttoezichtverordening (EU 2019/1020)</a></li>
+        </ul>
       </section>
-      	  
-	  <section class="card cat-rose">
-	  
 
-	  
-    <h2>EU Guides</h2>
+      <section class="card cat-rose">
+        <h2>EU Guides</h2>
         <ul>
-          
-<li><span class="ph"></span> <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=oj:JOC_2022_247_R_0001">Blue guide 2022</a></li>
-<li><span class="ph"></span> </li>
-
+          <li><span class="ph"></span> <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=oj:JOC_2022_247_R_0001">Blue guide 2022</a></li>
+          <li><span class="ph"></span> </li>
           <li><span class="ph"></span> <a href="bronnen/Edition%202.3%20of%20the%20MD%20Guide%20v1.01%20.pdf">Gids toepassing MRL (EN)</a> | <a href="bronnen/gids-machinerichtlijn-nl.pdf">(NL)</a></li>
           <li><span class="ph"></span> <a href="https://ec.europa.eu/docsroom/documents/62554">PPE guideline</a></li>
-		  <li><span class="ph"></span> <a href="https://ec.europa.eu/docsroom/documents/59156/attachments/1/translations/en/renditions/native">ATEX directive guideline</a></li>
+          <li><span class="ph"></span> <a href="https://ec.europa.eu/docsroom/documents/59156/attachments/1/translations/en/renditions/native">ATEX directive guideline</a></li>
           <li><span class="ph"></span> <a href="https://ec.europa.eu/docsroom/documents/29961/attachments/1/translations/en/renditions/native">Lift directive guideline</a></li>
           <li><span class="ph"></span> <a href="https://ec.europa.eu/docsroom/documents/41641/attachments/1/translations/en/renditions/native">Press. equip . directive guideline</a></li>
-	      <li><span class="ph"></span> <a href="https://ec.europa.eu/docsroom/documents/32027/attachments/1/translations/en/renditions/native">Guidelines SPV directive</a></li>
+          <li><span class="ph"></span> <a href="https://ec.europa.eu/docsroom/documents/32027/attachments/1/translations/en/renditions/native">Guidelines SPV directive</a></li>
           <br><br>
-		  <li><span class="ph"></span> <a href="bronnen/20191020.pdf">2019/1020 Guideline</a></li></ul>
-	  
-	  </section>
-      </div>
-		
-<div class="card_wide">
-
-   <div class="card wide cat-orange">
-  
-
-  <h2>Normen</h2>
-    <div class="cols">
-      <ul>
-	  <li><a href="https://single-market-economy.ec.europa.eu/single-market/goods/european-standards/harmonised-standards_en"><b>Geharmoniseerde normen per richtlijn</b></a></li>
-	  <li><a href="https://ec.europa.eu/docsroom/documents/61614/attachments/1/translations/en/renditions/native">Geharmoniseerde normen Machrinerichtlijn</a></li>
-        <br>
-		<li><b><u>type A-normen</u></b></li>
-			<li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=169895&search=&Native=0&token=2888110f-956c-4272-8bb5-2b4597d7d18c">ISO 12100 (NL): Risicobeoordeling en risicoreductie</a></li>
-        <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=173086&search=&Native=0&token=1ba8c6e5-13d4-412a-8244-55c7df73b736">ISO/TR 14121-2: Risk assessment:Practical guidance...</a></li>
-        
-		</ul>
-			
-		
-		<ul><br><br><br>
-<li><b><u>type B-normen</u></b></li>		              
-       <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=213242&search=&Native=0&token=e4b5f4c4-5722-4737-9a30-ea5406e214ca">ISO 13850 - Noodstopfunctie</a></li>
-		   <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=3620806&search=&Native=0&token=d0cacb10-8e55-426b-8589-1ea1330bf4a0">ISO 13854 - Minimale afstanden</a></li>
-	 </ul>
-		  
-	   
-	   <ul>
-  <li><strong><u>Type C-normen</u></strong></li>
-  <li><a href="https://connect.nen.nl/Family/Detail/32490?compId=14507&collectionId=0">EN 81-42: Liften voor hijskranen</a></li>
-  <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=3662113&search=&Native=0&token=12836d9e-fa5f-4e16-a74b-e47180b3c1a2">EN 280-1: Hoogwerkers - veiligheid</a></li>
-  <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=3646945&search=&Native=0&token=5bd5096a-43ee-4876-851f-f4aa08842324">EN 1501-5: Hefinrichting afvalinzamelwagens</a></li>
-  <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=205940&search=&Native=0&token=04c17e85-e472-47ca-b605-dd4285b0bf23">EN 1808: Veiligheidseisen voor hangsteigers</a></li>
-  <li><a href="https://connect.nen.nl/Family/Detail/20002?compId=14507&collectionId=0">EN 12159: Bouwliften voor personen- en goederenvervoer</a></li>
-  <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=198247&search=&Native=0&token=3b5df7fd-f94d-4eca-a694-656e76c99a1b">IEC 60825-1: Safety of laser products - requirements</a></li>
-  <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=119815&search=&Native=0&token=ac8e5fe6-3760-496b-bac6-66f5329a867d">ISO 3449: Grondverzetmachines FOPS</a></li>
-  <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=109061&search=&Native=0&token=f4d562f2-9d1d-4db8-9fdc-74a9e3abc351">ISO 3471: Grondverzetmachines ROPS</a></li>
-  <li><a href="https://connect.nen.nl/standard/openpdf/?artfile=3630778&RNR=3630778&token=c357c245-25e6-4825-b357-114d5185a5c0&type=pdf#pagemode=bookmarks">ISO 11553-1: Laser safety requirements</a></li>
-  <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=131672&search=&Native=0&token=24f8791d-d03c-456a-af2a-ef2e58ed8944">ISO 11553-2: Safety of hand-held laser processing devices</a></li>
-</ul>
+          <li><span class="ph"></span> <a href="bronnen/20191020.pdf">2019/1020 Guideline</a></li>
+        </ul>
+      </section>
     </div>
-  </div>
 
- </div>
-		 
+    <div class="card_wide">
+      <div class="card wide cat-orange">
+        <h2>Normen</h2>
+        <div class="cols">
+          <ul>
+            <li><a href="https://single-market-economy.ec.europa.eu/single-market/goods/european-standards/harmonised-standards_en"><b>Geharmoniseerde normen per richtlijn</b></a></li>
+            <li><a href="https://ec.europa.eu/docsroom/documents/61614/attachments/1/translations/en/renditions/native">Geharmoniseerde normen Machrinerichtlijn</a></li>
+            <br>
+            <li><b><u>type A-normen</u></b></li>
+            <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=169895&search=&Native=0&token=2888110f-956c-4272-8bb5-2b4597d7d18c">ISO 12100 (NL): Risicobeoordeling en risicoreductie</a></li>
+            <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=173086&search=&Native=0&token=1ba8c6e5-13d4-412a-8244-55c7df73b736">ISO/TR 14121-2: Risk assessment:Practical guidance...</a></li>
+          </ul>
+
+          <ul><br><br><br>
+            <li><b><u>type B-normen</u></b></li>
+            <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=213242&search=&Native=0&token=e4b5f4c4-5722-4737-9a30-ea5406e214ca">ISO 13850 - Noodstopfunctie</a></li>
+            <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=3620806&search=&Native=0&token=d0cacb10-8e55-426b-8589-1ea1330bf4a0">ISO 13854 - Minimale afstanden</a></li>
+          </ul>
+
+          <ul>
+            <li><strong><u>Type C-normen</u></strong></li>
+            <li><a href="https://connect.nen.nl/Family/Detail/32490?compId=14507&collectionId=0">EN 81-42: Liften voor hijskranen</a></li>
+            <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=3662113&search=&Native=0&token=12836d9e-fa5f-4e16-a74b-e47180b3c1a2">EN 280-1: Hoogwerkers - veiligheid</a></li>
+            <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=3646945&search=&Native=0&token=5bd5096a-43ee-4876-851f-f4aa08842324">EN 1501-5: Hefinrichting afvalinzamelwagens</a></li>
+            <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=205940&search=&Native=0&token=04c17e85-e472-47ca-b605-dd4285b0bf23">EN 1808: Veiligheidseisen voor hangsteigers</a></li>
+            <li><a href="https://connect.nen.nl/Family/Detail/20002?compId=14507&collectionId=0">EN 12159: Bouwliften voor personen- en goederenvervoer</a></li>
+            <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=198247&search=&Native=0&token=3b5df7fd-f94d-4eca-a694-656e76c99a1b">IEC 60825-1: Safety of laser products - requirements</a></li>
+            <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=119815&search=&Native=0&token=ac8e5fe6-3760-496b-bac6-66f5329a867d">ISO 3449: Grondverzetmachines FOPS</a></li>
+            <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=109061&search=&Native=0&token=f4d562f2-9d1d-4db8-9fdc-74a9e3abc351">ISO 3471: Grondverzetmachines ROPS</a></li>
+            <li><a href="https://connect.nen.nl/standard/openpdf/?artfile=3630778&RNR=3630778&token=c357c245-25e6-4825-b357-114d5185a5c0&type=pdf#pagemode=bookmarks">ISO 11553-1: Laser safety requirements</a></li>
+            <li><a href="https://connect.nen.nl/Standard/PopUpStandard?RNR=131672&search=&Native=0&token=24f8791d-d03c-456a-af2e58ed8944">ISO 11553-2: Safety of hand-held laser processing devices</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </main>
-
-  <a class="edit-button" href="https://github.com/artsjeroen-code/website/blob/main/index.html" target="_blank" rel="noopener" aria-label="Open GitHub om deze website te bewerken">&#9998</a>
 
 <script>
 const wideCard = document.querySelector('.card.wide');
 if (wideCard) {
   let hoverTimeout;
-
   wideCard.addEventListener('mouseenter', () => {
     clearTimeout(hoverTimeout);
     wideCard.classList.add('open');
   });
-
   wideCard.addEventListener('mouseleave', () => {
-    // kleine vertraging voordat hij dichtklapt
-    hoverTimeout = setTimeout(() => {
-      wideCard.classList.remove('open');
-    }, 200);
+    hoverTimeout = setTimeout(() => wideCard.classList.remove('open'), 200);
   });
 }
 </script>
 
-   <script>
-  (function () {
-    const input = document.getElementById('searchInput');
-    const blocks = document.getElementById('blocks');
-    const clearBtn = document.getElementById('clearBtn');
-    const form = document.getElementById('searchForm');
+<script>
+(function () {
+  const input = document.getElementById('searchInput');
+  const blocks = document.getElementById('blocks');
+  const clearBtn = document.getElementById('clearBtn');
+  const form = document.getElementById('searchForm');
 
-    function filterLinks(q) {
-      const term = q.trim().toLowerCase();
-      const cards = blocks.querySelectorAll('.card');
-      let anyVisibleInPage = false;
+  function filterLinks(q) {
+    const term = q.trim().toLowerCase();
+    const cards = blocks.querySelectorAll('.card');
+    let anyVisibleInPage = false;
 
-      cards.forEach(card => {
-        const items = card.querySelectorAll('li');
-        let visibleInCard = 0;
-
-        items.forEach(li => {
-          const text = li.textContent.toLowerCase();
-          const hrefs = Array.from(li.querySelectorAll('a')).map(a => a.href.toLowerCase()).join(' ');
-          const match = !term || text.includes(term) || hrefs.includes(term);
-          li.style.display = match ? '' : 'none';
-          if (match) visibleInCard++;
-        });
-
-        card.style.display = (visibleInCard > 0) ? '' : 'none';
-        if (visibleInCard > 0) anyVisibleInPage = true;
+    cards.forEach(card => {
+      const items = card.querySelectorAll('li');
+      let visibleInCard = 0;
+      items.forEach(li => {
+        const text = li.textContent.toLowerCase();
+        const hrefs = Array.from(li.querySelectorAll('a')).map(a => a.href.toLowerCase()).join(' ');
+        const match = !term || text.includes(term) || hrefs.includes(term);
+        li.style.display = match ? '' : 'none';
+        if (match) visibleInCard++;
       });
-
-      blocks.dataset.hasresults = anyVisibleInPage ? '1' : '0';
-    }
-
-    input.addEventListener('input', (e) => filterLinks(e.target.value));
-    clearBtn.addEventListener('click', () => {
-      input.value = '';
-      filterLinks('');
-      input.focus();
+      card.style.display = visibleInCard > 0 ? '' : 'none';
+      if (visibleInCard > 0) anyVisibleInPage = true;
     });
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const term = input.value.trim();
-      if (!term) return;
-      const url = 'https://www.google.com/search?q=' + encodeURIComponent(term);
-      window.open(url, '_blank', 'noopener');
-    });
+    blocks.dataset.hasresults = anyVisibleInPage ? '1' : '0';
+  }
 
+  input.addEventListener('input', e => filterLinks(e.target.value));
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
     filterLinks('');
-  })();
-  </script>
-  
- <script>
-/* 1ï¸âƒ£ Toggle open/dicht bij klikken op de titel */
-document.querySelectorAll('.card.wide h2').forEach(header => {
-  header.addEventListener('click', () => {
-    header.parentElement.classList.toggle('open');
+    input.focus();
   });
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const term = input.value.trim();
+    if (!term) return;
+    window.open('https://www.google.com/search?q=' + encodeURIComponent(term), '_blank', 'noopener');
+  });
+  filterLinks('');
+})();
+</script>
+
+<script>
+document.querySelectorAll('.card.wide h2').forEach(header => {
+  header.addEventListener('click', () => header.parentElement.classList.toggle('open'));
 });
 
-/* 2ï¸âƒ£ Zorg dat dropdown openklapt zodra in de zoekbalk wordt getypt of gefocust */
 const searchInput = document.querySelector('.search');
-const wideCard = document.querySelector('.card.wide');
-
-if (searchInput && wideCard) {
-  const openDropdown = () => wideCard.classList.add('open');
-  const closeDropdown = () => wideCard.classList.remove('open');
-
-  // open bij typen of focus
+const wideCardSearch = document.querySelector('.card.wide');
+if (searchInput && wideCardSearch) {
+  const openDropdown = () => wideCardSearch.classList.add('open');
+  const closeDropdown = () => wideCardSearch.classList.remove('open');
   searchInput.addEventListener('input', openDropdown);
   searchInput.addEventListener('focus', openDropdown);
-
-  // optioneel: dichtklappen als zoekbalk leeg raakt en focus weg is
   searchInput.addEventListener('blur', () => {
     if (searchInput.value.trim() === '') closeDropdown();
   });
 }
 </script>
+
 <script>
-  // onthoud gekozen modus
-  const MODE_KEY = 'startpagina-mode';
+(function () {
+  const THEME_KEY = 'startpagina-theme';
+  const button = document.getElementById('railTheme');
+  if (!button) return;
 
-  (function () {
-    const savedMode = localStorage.getItem(MODE_KEY);
-    const currentMode = document.body.dataset.mode;
-
-    // Als er een opgeslagen voorkeur is Ã©n we zitten op de verkeerde pagina â†’ redirect
-    if (savedMode && savedMode !== currentMode) {
-      if (savedMode === 'prive') {
-        window.location.replace('index_prive.html');
-      } else {
-        window.location.replace('index.html');
-      }
-    }
-  })();
-</script>
-<script>
-  (function () {
-    const toggle = document.getElementById('modeToggle');
-    if (!toggle) return;
-
-    // Bepaal op basis van data-mode of de checkbox aan moet staan
-    const isPrivePage = document.body.dataset.mode === 'prive';
-    toggle.checked = isPrivePage;
-
-    const MODE_KEY = 'startpagina-mode';
-
-toggle.addEventListener('change', () => {
-  const goPrive = toggle.checked;
-
-  // âœ… keuze onthouden
-  localStorage.setItem(MODE_KEY, goPrive ? 'prive' : 'zakelijk');
-
-  // ðŸ” navigeren
-  if (goPrive) {
-    window.location.href = 'index_prive.html';
-  } else {
-    window.location.href = 'index.html';
+  function applyTheme(theme) {
+    const safeTheme = theme === 'light' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = safeTheme;
+    localStorage.setItem(THEME_KEY, safeTheme);
+    button.setAttribute('aria-label', safeTheme === 'dark' ? 'Schakel naar licht thema' : 'Schakel naar donker thema');
   }
-});
-  })();
-</script>
 
-<script>
-  (function () {
-    const THEME_KEY = 'startpagina-theme';
-    const toggle = document.getElementById('themeToggle');
-    if (!toggle) return;
-
-    function applyTheme(theme) {
-      const safeTheme = theme === 'light' ? 'light' : 'dark';
-      document.documentElement.dataset.theme = safeTheme;
-      localStorage.setItem(THEME_KEY, safeTheme);
-      toggle.checked = safeTheme === 'light';
-    }
-
-    applyTheme	(localStorage.getItem(THEME_KEY) || 'dark');
-
-    toggle.addEventListener('change', () => {
-      applyTheme(toggle.checked ? 'light' : 'dark');
-    });
-  })();
+  applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+  button.addEventListener('click', () => {
+    applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  });
+})();
 </script>
 </body>
 </html>
