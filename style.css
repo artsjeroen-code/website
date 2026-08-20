@@ -214,6 +214,120 @@
   background: #fff;
 }
 
+/* Normen: compacte, scanbare indeling binnen de bestaande uitklapkaart. */
+.norms-card.open .cols {
+  max-height: 900px;
+}
+
+.norms-card .cols.norms-layout {
+  display: block;
+}
+
+.norm-quicklinks {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px !important;
+  margin: 0 0 7px 0 !important;
+}
+
+.norm-quicklinks li,
+.norm-group li {
+  padding: 0 !important;
+}
+
+.norm-quicklinks a {
+  display: block;
+  padding: 7px 9px;
+  border: 1px solid var(--ring);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--panel) 80%, var(--bg));
+  font-weight: 700;
+}
+
+.norm-top-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-bottom: 7px;
+}
+
+.norm-group {
+  padding: 8px 9px;
+  border: 1px solid var(--ring);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 86%, var(--bg));
+}
+
+.norm-group h3,
+.norm-group h4 {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.norm-group h3 {
+  font-size: 11px;
+}
+
+.norm-group h4 {
+  margin-bottom: 5px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.norm-a h3 { color: var(--blue); }
+.norm-b h3 { color: var(--green); }
+.norm-c h3 { color: var(--purple); }
+
+.norm-subtitle {
+  margin: 1px 0 7px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.norm-group ul {
+  display: grid;
+  gap: 3px;
+}
+
+.norm-link {
+  display: grid !important;
+  grid-template-columns: minmax(92px, 118px) minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+  padding: 4px 6px !important;
+  border-radius: 7px;
+}
+
+.norm-link:hover {
+  background: color-mix(in srgb, currentColor 7%, transparent);
+}
+
+.norm-code {
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.norm-desc {
+  color: var(--muted);
+}
+
+.norm-c-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 7px;
+}
+
+@media (max-width: 900px) {
+  .norm-quicklinks,
+  .norm-top-grid,
+  .norm-c-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 @media (max-width: 760px) {
   .utility-rail {
     top: auto;
@@ -251,6 +365,11 @@
     width: auto !important;
     margin-left: 12px !important;
     margin-right: 12px !important;
+  }
+
+  .norm-link {
+    grid-template-columns: 1fr;
+    gap: 1px;
   }
 
   body {
