@@ -1,11 +1,13 @@
 @import url("style_base.css");
 
 :root {
-  --utility-rail-width: 48px;
+  --utility-rail-width: 42px;
   --utility-gap: 10px;
+  --page-edge: 12px;
 }
 
-/* Zoekbalk blijft compact en de pagina-inhoud behoudt de bestaande opmaak. */
+/* Site-inhoud blijft verder ongewijzigd. Zoekbalk en tegels gebruiken exact
+   dezelfde linker- en rechterlijn. */
 .topbar {
   padding-top: 6px;
   padding-bottom: 0;
@@ -14,11 +16,19 @@
   backdrop-filter: blur(8px);
 }
 
+.topbar-inner,
+#blocks {
+  width: auto;
+  max-width: none;
+  margin-left: calc(var(--page-edge) + var(--utility-rail-width) + var(--utility-gap));
+  margin-right: var(--page-edge);
+  padding-left: 0;
+  padding-right: 0;
+  box-sizing: border-box;
+}
+
 .topbar-inner {
-  width: min(1300px, calc(100% - 24px - var(--utility-rail-width) - var(--utility-gap)));
   min-height: 34px;
-  margin-left: 12px;
-  margin-right: calc(12px + var(--utility-rail-width) + var(--utility-gap));
   display: block;
 }
 
@@ -26,11 +36,14 @@
   width: 100%;
   max-width: none;
   min-height: 34px;
+  margin: 0;
 }
 
 .search {
+  width: 100%;
   height: 34px;
   min-height: 34px;
+  box-sizing: border-box;
   padding: 6px 38px 6px 12px;
   border-radius: 9px;
   background: color-mix(in srgb, var(--panel) 76%, var(--bg));
@@ -43,43 +56,38 @@
   border-radius: 7px;
 }
 
-/* Hoofdinhoud blijft zoals hij was, maar krijgt rechts ruimte voor de rail. */
 #blocks {
-  width: min(1300px, calc(100% - 24px - var(--utility-rail-width) - var(--utility-gap)));
-  margin-left: 12px;
-  margin-right: calc(12px + var(--utility-rail-width) + var(--utility-gap));
   margin-top: 5px;
-  padding-left: 0;
 }
 
-/* Oude controls en losse edit-knop zijn vervangen door de vaste rechter rail. */
+/* Oude controls en losse edit-knop zijn vervangen door de vaste utility-rail. */
 .toggle-stack,
 .edit-button {
   display: none !important;
 }
 
-/* Vaste rechter zijbalk: begint ongeveer ter hoogte van de eerste kaarten en
-   blijft tijdens scrollen in beeld tot onderaan het venster. */
+/* Smalle vaste zijbalk links. Hij begint gelijk met de eerste rij tegels en
+   blijft tijdens scrollen op dezelfde plek staan. */
 .utility-rail {
   position: fixed;
-  top: 55px;
-  right: 8px;
+  top: 61px;
+  left: var(--page-edge);
   bottom: 8px;
   z-index: 100;
   width: var(--utility-rail-width);
   box-sizing: border-box;
-  padding: 7px 4px;
+  padding: 6px 3px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;
   border: 1px solid var(--ring);
-  border-radius: 13px;
+  border-radius: 12px;
   background: color-mix(in srgb, var(--panel) 90%, var(--bg));
-  box-shadow: 0 5px 16px rgba(0, 0, 0, .20);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, .18);
   backdrop-filter: blur(10px);
 }
 
@@ -89,17 +97,17 @@
 
 .rail-button {
   position: relative;
-  width: 38px;
-  min-width: 38px;
-  height: 38px;
-  min-height: 38px;
-  flex: 0 0 38px;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  flex: 0 0 34px;
   padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: 0;
-  border-radius: 9px;
+  border-radius: 8px;
   background: transparent;
   color: var(--orange);
   text-decoration: none;
@@ -118,7 +126,7 @@
 }
 
 .rail-separator {
-  width: 28px;
+  width: 24px;
   height: 1px;
   min-height: 1px;
   margin: 2px 0;
@@ -127,8 +135,8 @@
 }
 
 .rail-icon {
-  width: 21px;
-  height: 21px;
+  width: 18px;
+  height: 18px;
   display: block;
   background: currentColor;
   -webkit-mask-repeat: no-repeat;
@@ -216,8 +224,8 @@
     right: 8px;
     bottom: 8px;
     width: auto;
-    height: 48px;
-    min-height: 48px;
+    height: 46px;
+    min-height: 46px;
     padding: 4px 6px;
     flex-direction: row;
     justify-content: flex-start;
@@ -226,29 +234,29 @@
   }
 
   .rail-button {
-    width: 36px;
-    min-width: 36px;
-    height: 36px;
-    min-height: 36px;
-    flex-basis: 36px;
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    flex-basis: 34px;
   }
 
   .rail-separator {
     width: 1px;
-    height: 26px;
-    min-height: 26px;
+    height: 24px;
+    min-height: 24px;
     margin: 0 2px;
     flex: 0 0 1px;
   }
 
   .topbar-inner,
   #blocks {
-    width: calc(100% - 24px);
+    width: auto;
     margin-left: 12px;
     margin-right: 12px;
   }
 
   body {
-    padding-bottom: 62px;
+    padding-bottom: 60px;
   }
 }
