@@ -1,209 +1,9 @@
 @import url("style_base.css");
 
-/*
- * Vaste toggle-layout voor alle vier combinaties:
- * - donker + werk
- * - donker + privé
- * - licht + werk
- * - licht + privé
- *
- * Belangrijk: de buitenmaat van beide pills blijft altijd exact gelijk,
- * zodat de zoekbalk bij omschakelen niet meer kan verschuiven.
- */
-.theme-toggle,
-.mode-toggle {
-  box-sizing: border-box;
-  width: 56px !important;
-  min-width: 56px !important;
-  max-width: 56px !important;
-  height: 21px !important;
-  min-height: 21px !important;
-  max-height: 21px !important;
-  flex: 0 0 56px !important;
-
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 4px !important;
-  padding: 3px 5px !important;
-
-  border: 1px solid var(--ring) !important;
-  border-radius: 999px !important;
-  background: color-mix(in srgb, var(--panel) 85%, var(--bg)) !important;
-  white-space: nowrap !important;
-  overflow: hidden;
-}
-
-/* De switch zelf heeft in iedere toestand exact dezelfde geometrie. */
-.theme-toggle .switch,
-.mode-toggle .switch {
-  width: 26px !important;
-  min-width: 26px !important;
-  max-width: 26px !important;
-  height: 13px !important;
-  min-height: 13px !important;
-  max-height: 13px !important;
-  flex: 0 0 26px !important;
-  margin: 0 !important;
-}
-
-.theme-toggle .slider,
-.mode-toggle .slider {
-  inset: 0 !important;
-  border-radius: 999px !important;
-}
-
-.theme-toggle .slider::before,
-.mode-toggle .slider::before {
-  width: 9px !important;
-  height: 9px !important;
-  left: 2px !important;
-  top: 2px !important;
-}
-
-.theme-toggle .switch input:checked + .slider::before,
-.mode-toggle .switch input:checked + .slider::before,
-#themeToggle:checked + .slider::before,
-#modeToggle:checked + .slider::before {
-  transform: translateX(13px) !important;
-}
-
-/* Aan = oranje, uit = dezelfde grijze basis als voorheen. */
-#themeToggle:checked + .slider,
-#modeToggle:checked + .slider {
-  background: var(--orange) !important;
-}
-
-/*
- * Beide pagina's hebben historisch iets andere HTML voor de iconen.
- * Deze regels normaliseren beide varianten naar exact hetzelfde vak van 12x12px.
- */
-#themeIcon,
-#modeIcon,
-.theme-label--light,
-.mode-label--prive {
-  box-sizing: border-box;
-  width: 12px !important;
-  min-width: 12px !important;
-  max-width: 12px !important;
-  height: 12px !important;
-  min-height: 12px !important;
-  max-height: 12px !important;
-  flex: 0 0 12px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  line-height: 1 !important;
-  opacity: 1 !important;
-}
-
-/* Lege oude labels links van de switch mogen geen ruimte innemen. */
-.theme-label--dark,
-.mode-label--zakelijk {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  min-width: 0 !important;
-  flex: 0 0 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Nieuwe losse SVG-iconen: alle vier exact dezelfde afmeting. */
-#themeIcon svg,
-#modeIcon svg {
-  width: 11px !important;
-  height: 11px !important;
-  min-width: 11px !important;
-  min-height: 11px !important;
-  display: block !important;
-}
-
-/* Thema-icoon blijft altijd oranje: maan in donker, zon in licht. */
-#themeIcon {
-  color: var(--orange) !important;
-}
-
-/* Werk/privé-icoon blijft neutraal grijs. */
-#modeIcon {
-  color: var(--muted) !important;
-}
-
-/*
- * Werkpagina gebruikt nog de oudere gecombineerde SVG-markup.
- * Verberg die SVG en teken één enkel icoon op exact dezelfde 11x11px maat.
- */
-.theme-label--light > svg,
-.mode-label--prive > svg {
-  display: none !important;
-}
-
-.theme-label--light::before,
-.mode-label--prive::before {
-  content: "";
-  display: block;
-  width: 11px;
-  height: 11px;
-  min-width: 11px;
-  min-height: 11px;
-  background: currentColor;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  mask-size: contain;
-}
-
-/* Donker = alleen maan; altijd dezelfde oranje kleur. */
-:root[data-theme="dark"] .theme-label--light {
-  color: var(--orange) !important;
-}
-:root[data-theme="dark"] .theme-label--light::before {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.8 13.9A6.8 6.8 0 0 1 6.1 5.2 7.1 7.1 0 1 0 14.8 13.9Z'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.8 13.9A6.8 6.8 0 0 1 6.1 5.2 7.1 7.1 0 1 0 14.8 13.9Z'/%3E%3C/svg%3E");
-}
-
-/* Licht = alleen zon; exact dezelfde oranje kleur. */
-:root[data-theme="light"] .theme-label--light {
-  color: var(--orange) !important;
-}
-:root[data-theme="light"] .theme-label--light::before {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='3.6'/%3E%3Cpath d='M10 1.8v2M10 16.2v2M1.8 10h2M16.2 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M15.8 4.2l-1.4 1.4M5.6 14.4l-1.4 1.4'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='3.6'/%3E%3Cpath d='M10 1.8v2M10 16.2v2M1.8 10h2M16.2 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M15.8 4.2l-1.4 1.4M5.6 14.4l-1.4 1.4'/%3E%3C/svg%3E");
-}
-
-/* Werk = aktetas, neutraal grijs. */
-body[data-mode="zakelijk"] .mode-label--prive {
-  color: var(--muted) !important;
-}
-body[data-mode="zakelijk"] .mode-label--prive::before {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='6' width='15' height='10.5' rx='2'/%3E%3Cpath d='M6.5 6V4.7c0-1 .8-1.7 1.8-1.7h3.4c1 0 1.8.7 1.8 1.7V6M2.5 10h15M8.6 9.2h2.8v1.7H8.6z'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='6' width='15' height='10.5' rx='2'/%3E%3Cpath d='M6.5 6V4.7c0-1 .8-1.7 1.8-1.7h3.4c1 0 1.8.7 1.8 1.7V6M2.5 10h15M8.6 9.2h2.8v1.7H8.6z'/%3E%3C/svg%3E");
-}
-
-/* Robuustheid voor eventuele oude markup op privé: privé = huis. */
-body[data-mode="prive"] .mode-label--prive {
-  color: var(--muted) !important;
-}
-body[data-mode="prive"] .mode-label--prive::before {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.8 9.1 10 3.2l7.2 5.9v7.2h-4.7v-4.8h-5v4.8H2.8V9.1Z'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.8 9.1 10 3.2l7.2 5.9v7.2h-4.7v-4.8h-5v4.8H2.8V9.1Z'/%3E%3C/svg%3E");
-}
-
-/* -------------------------------------------------------------------------
- * Concept 5 - linker utility-balk
- *
- * De zoekbalk blijft één slanke horizontale regel. De twee instellingen
- * staan los daarvan in een verticale rail links. Daardoor hoeft de header
- * niet hoger te worden om de schakelaars goed bedienbaar te houden.
- * ------------------------------------------------------------------------- */
-
+/* Concept 5: smalle, doorlopende utility-balk links */
 :root {
-  --utility-rail-width: 62px;
-  --utility-gap: 7px;
+  --utility-rail-width: 44px;
+  --utility-gap: 8px;
 }
 
 .topbar {
@@ -243,91 +43,201 @@ body[data-mode="prive"] .mode-label--prive::before {
   border-radius: 7px;
 }
 
+/* De rail loopt visueel over de volledige pagina-hoogte door. */
 .toggle-stack {
   position: absolute;
   left: 0;
   top: 0;
-  z-index: 7;
+  z-index: 20;
   width: var(--utility-rail-width);
-  min-height: 92px;
-  padding: 7px 3px;
+  height: calc(100vh - 12px);
+  min-height: 360px;
+  padding: 8px 3px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   gap: 7px;
   border: 1px solid var(--ring);
-  border-radius: 13px;
+  border-radius: 12px;
   background: color-mix(in srgb, var(--panel) 88%, var(--bg));
   box-shadow: 0 5px 16px rgba(0, 0, 0, .20);
 }
 
+/* Ruimte voor toekomstige snelkoppelingen: de rail blijft leeg onder de bediening. */
 .toggle-stack::after {
   content: "";
-  width: 38px;
+  width: 28px;
   height: 1px;
-  position: absolute;
-  left: 11px;
-  top: 45px;
+  margin-top: 1px;
   background: var(--ring);
+  order: 3;
 }
 
+/* Eén klikbaar icoon per functie; de oude schuifjes blijven functioneel maar
+   liggen onzichtbaar als kliklaag over het hele icoon. */
 .theme-toggle,
 .mode-toggle {
-  width: 52px !important;
-  min-width: 52px !important;
-  max-width: 52px !important;
-  height: 34px !important;
-  min-height: 34px !important;
-  max-height: 34px !important;
-  flex: 0 0 34px !important;
-  padding: 4px !important;
-  gap: 4px !important;
+  position: relative;
+  box-sizing: border-box;
+  width: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+  flex: 0 0 36px !important;
+  display: flex !important;
+  align-items: center !important;
   justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
   border: 0 !important;
   border-radius: 9px !important;
   background: transparent !important;
   overflow: visible !important;
+  cursor: pointer;
 }
 
 .theme-toggle:hover,
 .mode-toggle:hover {
-  background: color-mix(in srgb, var(--panel) 72%, var(--text) 4%) !important;
+  background: color-mix(in srgb, var(--panel) 70%, var(--text) 6%) !important;
 }
 
 .theme-toggle .switch,
 .mode-toggle .switch {
-  width: 25px !important;
-  min-width: 25px !important;
-  max-width: 25px !important;
-  height: 13px !important;
-  min-height: 13px !important;
-  max-height: 13px !important;
-  flex: 0 0 25px !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 5 !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  max-height: none !important;
+  margin: 0 !important;
+  cursor: pointer !important;
 }
 
+.theme-toggle .switch input,
+.mode-toggle .switch input {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+}
+
+.theme-toggle .slider,
+.mode-toggle .slider {
+  display: none !important;
+}
+
+/* Oude lege labels op de werkpagina nemen geen ruimte in. */
+.theme-label--dark,
+.mode-label--zakelijk {
+  display: none !important;
+}
+
+/* Normaliseer de zichtbare iconen op beide pagina's. */
 #themeIcon,
 #modeIcon,
 .theme-label--light,
 .mode-label--prive {
-  width: 12px !important;
-  min-width: 12px !important;
-  max-width: 12px !important;
-  height: 12px !important;
-  min-height: 12px !important;
-  max-height: 12px !important;
-  flex: 0 0 12px !important;
+  box-sizing: border-box;
+  width: 22px !important;
+  min-width: 22px !important;
+  max-width: 22px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  max-height: 22px !important;
+  flex: 0 0 22px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  pointer-events: none;
 }
 
-/* Laat de kaarten visueel onder de zoekbalk beginnen, terwijl de rail links
-   nog een stukje doorloopt zoals in concept 5. */
+/* De HTML bevat op beide pagina's verschillende SVG-markup. We tekenen de
+   iconen daarom via één uniforme mask-laag. */
+#themeIcon svg,
+#modeIcon svg,
+.theme-label--light > svg,
+.mode-label--prive > svg {
+  display: none !important;
+}
+
+#themeIcon::before,
+#modeIcon::before,
+.theme-label--light::before,
+.mode-label--prive::before {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 20px;
+  background: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* Thema: maan in donker, zon in licht. */
+#themeIcon,
+.theme-label--light {
+  color: var(--orange) !important;
+}
+
+:root[data-theme="dark"] #themeIcon::before,
+:root[data-theme="dark"] .theme-label--light::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M20.4 15.2A8.2 8.2 0 0 1 8.8 3.6 9 9 0 1 0 20.4 15.2Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M20.4 15.2A8.2 8.2 0 0 1 8.8 3.6 9 9 0 1 0 20.4 15.2Z'/%3E%3C/svg%3E");
+}
+
+:root[data-theme="light"] #themeIcon::before,
+:root[data-theme="light"] .theme-label--light::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4' fill='black'/%3E%3Cpath fill='black' d='M11 1h2v4h-2zM11 19h2v4h-2zM1 11h4v2H1zM19 11h4v2h-4zM3.5 5l1.4-1.4 2.8 2.8-1.4 1.4zM16.3 17.7l1.4-1.4 2.8 2.8-1.4 1.4zM16.3 6.3l2.8-2.8L20.5 5l-2.8 2.8zM3.5 19l2.8-2.8 1.4 1.4-2.8 2.8z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4' fill='black'/%3E%3Cpath fill='black' d='M11 1h2v4h-2zM11 19h2v4h-2zM1 11h4v2H1zM19 11h4v2h-4zM3.5 5l1.4-1.4 2.8 2.8-1.4 1.4zM16.3 17.7l1.4-1.4 2.8 2.8-1.4 1.4zM16.3 6.3l2.8-2.8L20.5 5l-2.8 2.8zM3.5 19l2.8-2.8 1.4 1.4-2.8 2.8z'/%3E%3C/svg%3E");
+}
+
+/* Werk: aktetas. */
+body[data-mode="zakelijk"] #modeIcon,
+body[data-mode="zakelijk"] .mode-label--prive {
+  color: var(--orange) !important;
+}
+
+body[data-mode="zakelijk"] #modeIcon::before,
+body[data-mode="zakelijk"] .mode-label--prive::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M8 3h8a2 2 0 0 1 2 2v2h2a2 2 0 0 1 2 2v9a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V9a2 2 0 0 1 2-2h2V5a2 2 0 0 1 2-2Zm0 4h8V5H8v2Zm-4 4v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7h-6v2h-4v-2H4Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M8 3h8a2 2 0 0 1 2 2v2h2a2 2 0 0 1 2 2v9a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V9a2 2 0 0 1 2-2h2V5a2 2 0 0 1 2-2Zm0 4h8V5H8v2Zm-4 4v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7h-6v2h-4v-2H4Z'/%3E%3C/svg%3E");
+}
+
+/* Privé: persoon/poppetje. */
+body[data-mode="prive"] #modeIcon,
+body[data-mode="prive"] .mode-label--prive {
+  color: var(--orange) !important;
+}
+
+body[data-mode="prive"] #modeIcon::before,
+body[data-mode="prive"] .mode-label--prive::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM4 22v-2c0-4.4 3.6-8 8-8s8 3.6 8 8v2h-2v-2a6 6 0 0 0-12 0v2H4Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM4 22v-2c0-4.4 3.6-8 8-8s8 3.6 8 8v2h-2v-2a6 6 0 0 0-12 0v2H4Z'/%3E%3C/svg%3E");
+}
+
+/* Inhoud schuift naast de rail. */
 #blocks {
   width: min(1300px, calc(100% - 24px));
   padding-left: calc(var(--utility-rail-width) + var(--utility-gap));
   margin-top: 5px;
 }
 
-/* Licht thema: rail en zoekveld blijven subtiel afgetekend. */
 :root[data-theme="light"] .toggle-stack {
   background: rgba(255, 255, 255, .94);
   box-shadow: 0 5px 16px rgba(31, 41, 51, .08);
@@ -337,21 +247,21 @@ body[data-mode="prive"] .mode-label--prive::before {
   background: #fff;
 }
 
-/* Op smallere schermen is een vaste linker rail minder praktisch. Daar
-   wordt dezelfde bediening teruggebracht naar een compacte horizontale rij. */
+/* Mobiel: rail wordt een compacte horizontale bediening. */
 @media (max-width: 760px) {
   .topbar-inner {
     padding-left: 0;
-    padding-bottom: 31px;
+    padding-bottom: 42px;
   }
 
   .toggle-stack {
-    top: 38px;
+    top: 39px;
     left: auto;
     right: 0;
     width: auto;
-    min-height: 26px;
-    padding: 2px 3px;
+    height: 38px;
+    min-height: 38px;
+    padding: 1px 3px;
     flex-direction: row;
     gap: 2px;
     border-radius: 10px;
@@ -359,18 +269,21 @@ body[data-mode="prive"] .mode-label--prive::before {
   }
 
   .toggle-stack::after {
-    display: none;
+    width: 1px;
+    height: 24px;
+    margin: 0 2px;
+    order: 0;
   }
 
   .theme-toggle,
   .mode-toggle {
-    width: 50px !important;
-    min-width: 50px !important;
-    max-width: 50px !important;
-    height: 25px !important;
-    min-height: 25px !important;
-    max-height: 25px !important;
-    flex-basis: 25px !important;
+    width: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    flex-basis: 34px !important;
   }
 
   #blocks {
