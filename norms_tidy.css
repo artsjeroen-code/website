@@ -1,0 +1,40 @@
+/* Normen-tegel: typografie en regelafstand gelijk aan de overige tegels. */
+.norms-card .norm-quicklinks {
+  grid-template-columns: 1fr !important;
+  gap: 0 !important;
+  margin-bottom: 7px !important;
+}
+
+.norms-card .norm-quicklinks li,
+.norms-card .norm-group li {
+  padding: 1px 2px !important;
+  line-height: 1.2 !important;
+}
+
+.norms-card .norm-group ul {
+  gap: 0 !important;
+}
+
+.norms-card .norm-quicklinks a,
+.norms-card .norm-link,
+.norms-card .norm-code,
+.norms-card .norm-desc,
+.norms-card .norm-subtitle,
+.norms-card .norm-group h3 {
+  font-family: inherit !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  line-height: 1.2 !important;
+}
+
+.norms-card .norm-quicklinks a {
+  padding: 0 !important;
+}
+
+.norms-card .norm-link {
+  padding: 0 !important;
+}
+
+.norms-card .norm-subtitle {
+  margin: 1px 0 5px !important;
+}
