@@ -12,7 +12,6 @@
     })();
   </script>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="visual.css">
   <link rel="stylesheet" href="../google_palette.css">
   <link rel="stylesheet" href="../utility-rail.css">
   <style>
@@ -26,9 +25,16 @@
 </head>
 <body>
   <aside class="utility-rail" aria-label="Snelkoppelingen">
-    <button class="rail-button rail-theme" id="railTheme" type="button" aria-label="Wissel licht/donker thema" title="Thema"><span class="rail-icon icon-theme" aria-hidden="true"></span></button>
-    <a class="rail-button" href="../" aria-label="Terug naar startpagina" title="Startpagina"><span class="rail-icon icon-home" aria-hidden="true"></span></a>
+    <button class="rail-button rail-theme" id="railTheme" type="button" aria-label="Wissel licht/donker thema" title="Thema">
+      <span class="rail-icon icon-theme" aria-hidden="true"></span>
+    </button>
+
+    <a class="rail-button" href="../" aria-label="Terug naar startpagina" title="Startpagina">
+      <span class="rail-icon icon-home" aria-hidden="true"></span>
+    </a>
+
     <div class="rail-separator" aria-hidden="true"></div>
+
     <a class="rail-button" href="https://chatgpt.com/" target="_blank" rel="noopener" aria-label="ChatGPT" title="ChatGPT"><span class="rail-icon icon-chatgpt" aria-hidden="true"></span></a>
     <a class="rail-button" href="https://web.whatsapp.com/" target="_blank" rel="noopener" aria-label="WhatsApp Web" title="WhatsApp Web"><span class="rail-icon icon-whatsapp" aria-hidden="true"></span></a>
     <a class="rail-button" href="https://mail.google.com/" target="_blank" rel="noopener" aria-label="Gmail" title="Gmail"><span class="rail-icon icon-mail" aria-hidden="true"></span></a>
@@ -37,67 +43,87 @@
     <a class="rail-button" href="https://photos.google.com/" target="_blank" rel="noopener" aria-label="Google Foto's" title="Google Foto's"><span class="rail-icon icon-photos" aria-hidden="true"></span></a>
     <a class="rail-button" href="https://passwords.google.com/" target="_blank" rel="noopener" aria-label="Google Passwords" title="Google Passwords"><span class="rail-icon icon-key" aria-hidden="true"></span></a>
     <a class="rail-button" href="https://www.google.com/maps" target="_blank" rel="noopener" aria-label="Google Maps" title="Google Maps"><span class="rail-icon icon-map" aria-hidden="true"></span></a>
+
     <div class="rail-separator" aria-hidden="true"></div>
+
     <a class="rail-button" href="https://www.rabobank.nl/" target="_blank" rel="noopener" aria-label="Rabobank" title="Rabobank"><span class="rail-icon icon-bank" aria-hidden="true"></span></a>
     <a class="rail-button" href="https://www.marktplaats.nl/" target="_blank" rel="noopener" aria-label="Marktplaats" title="Marktplaats"><span class="rail-icon icon-market" aria-hidden="true"></span></a>
   </aside>
 
-  <a class="floating-edit" href="https://github.com/artsjeroen-code/website/blob/main/ademhaling/index.html" target="_blank" rel="noopener" aria-label="Ademhalingstool bewerken op GitHub" title="GitHub bewerken"><span class="rail-icon icon-edit" aria-hidden="true"></span></a>
+  <a class="floating-edit" href="https://github.com/artsjeroen-code/website/blob/main/ademhaling/index.html" target="_blank" rel="noopener" aria-label="Ademhalingstool bewerken op GitHub" title="GitHub bewerken">
+    <span class="rail-icon icon-edit" aria-hidden="true"></span>
+  </a>
 
   <main class="app-shell">
     <section class="tool-card" aria-labelledby="pageTitle">
       <header class="tool-header">
-        <h1 id="pageTitle">Ademhalingstool</h1>
-        <div class="header-controls">
-          <label class="visual-toggle"><span>Weergave</span><select id="visualMode" aria-label="Kies grafiek of bal"><option value="graph" selected>Grafiek</option><option value="ball">Bal</option></select></label>
-          <label class="sound-toggle"><input id="soundEnabled" type="checkbox" checked><span>Geluid</span></label>
+        <div>
+          <h1 id="pageTitle">Ademhalingstool</h1>
         </div>
+        <label class="sound-toggle">
+          <input id="soundEnabled" type="checkbox" checked>
+          <span>Geluid</span>
+        </label>
       </header>
 
       <section class="breathing-stage" aria-live="polite">
-        <div class="phase-copy"><p class="phase-label" id="phaseLabel">Klaar</p><p class="phase-time" id="phaseTime">0</p></div>
-        <div class="breathing-graph" id="breathingGraph" aria-hidden="true">
-          <svg viewBox="0 0 1000 260" preserveAspectRatio="none" role="presentation">
-            <line class="graph-midline" x1="0" y1="130" x2="1000" y2="130"></line>
-            <path class="graph-path" id="breathingPath" d=""></path>
-            <circle class="graph-marker" id="breathingMarker" cx="0" cy="205" r="14"></circle>
-          </svg>
+        <div class="phase-copy">
+          <p class="phase-label" id="phaseLabel">Klaar</p>
+          <p class="phase-time" id="phaseTime">0</p>
         </div>
-        <div class="ball-space is-hidden" id="ballSpace" aria-hidden="true"><div class="breathing-ball" id="breathingBall"></div></div>
+        <div class="ball-space" aria-hidden="true">
+          <div class="breathing-ball" id="breathingBall"></div>
+        </div>
       </section>
 
       <form id="settingsForm" class="settings" novalidate>
         <div class="preset-row">
-          <label class="preset-field"><span>Snelkeuze</span><select id="breathingPreset">
-            <option value="custom">Eigen ritme</option>
-            <option value="4-7-8-0">Diepe ontspanning · 4-7-8-0</option>
-            <option value="4-4-4-4">Focus & kalmte · 4-4-4-4</option>
-            <option value="4-0-8-0">Ontstressen · 4-0-8-0</option>
-            <option value="5-0-5-0">Rustig ritme · 5-0-5-0</option>
-            <option value="7-0-11-0">Diepe rust · 7-0-11-0</option>
-            <option value="4-4-4-0">Driehoek-focus · 4-4-4-0</option>
-          </select></label>
+          <label class="preset-field">
+            <span>Snelkeuze</span>
+            <select id="breathingPreset">
+              <option value="custom">Eigen ritme</option>
+              <option value="4-7-8-0">Diepe ontspanning · 4-7-8-0</option>
+              <option value="4-4-4-4">Focus & kalmte · 4-4-4-4</option>
+              <option value="4-0-8-0">Ontstressen · 4-0-8-0</option>
+              <option value="5-0-5-0">Rustig ritme · 5-0-5-0</option>
+              <option value="7-0-11-0">Diepe rust · 7-0-11-0</option>
+              <option value="4-4-4-0">Driehoek-focus · 4-4-4-0</option>
+            </select>
+          </label>
           <p class="preset-note" id="presetNote">Kies een vast patroon of stel hieronder je eigen ritme in.</p>
         </div>
 
         <div class="settings-row">
-          <fieldset><legend>Ademritme in seconden</legend><div class="phase-inputs">
-            <label><span>In</span><input id="inhale" type="number" min="0" max="20" step="1" inputmode="numeric" value="4"></label>
-            <label><span>Vasth.</span><input id="holdFull" type="number" min="0" max="20" step="1" inputmode="numeric" value="0"></label>
-            <label><span>Uit</span><input id="exhale" type="number" min="0" max="20" step="1" inputmode="numeric" value="8"></label>
-            <label><span>Vasth.</span><input id="holdEmpty" type="number" min="0" max="20" step="1" inputmode="numeric" value="0"></label>
-          </div></fieldset>
-          <label class="repetitions-field"><span>Herhalingen</span><input id="repetitions" type="number" min="1" max="99" step="1" inputmode="numeric" value="10"></label>
+          <fieldset>
+            <legend>Ademritme in seconden</legend>
+            <div class="phase-inputs">
+              <label><span>In</span><input id="inhale" type="number" min="0" max="20" step="1" inputmode="numeric" value="4"></label>
+              <label><span>Vasth.</span><input id="holdFull" type="number" min="0" max="20" step="1" inputmode="numeric" value="0"></label>
+              <label><span>Uit</span><input id="exhale" type="number" min="0" max="20" step="1" inputmode="numeric" value="8"></label>
+              <label><span>Vasth.</span><input id="holdEmpty" type="number" min="0" max="20" step="1" inputmode="numeric" value="0"></label>
+            </div>
+          </fieldset>
+
+          <label class="repetitions-field">
+            <span>Herhalingen</span>
+            <input id="repetitions" type="number" min="1" max="99" step="1" inputmode="numeric" value="5">
+          </label>
         </div>
 
         <p class="validation" id="validationMessage" role="alert"></p>
+
         <div class="summary-grid">
           <div><span>Per cyclus</span><strong id="cycleDuration">00:12</strong></div>
-          <div><span>Totale tijd</span><strong id="totalDuration">02:00</strong></div>
-          <div><span>Resterend</span><strong id="remainingDuration">02:00</strong></div>
-          <div><span>Herhaling</span><strong id="repetitionStatus">0 / 10</strong></div>
+          <div><span>Totale tijd</span><strong id="totalDuration">01:00</strong></div>
+          <div><span>Resterend</span><strong id="remainingDuration">01:00</strong></div>
+          <div><span>Herhaling</span><strong id="repetitionStatus">0 / 5</strong></div>
         </div>
-        <div class="actions"><button id="startButton" class="primary" type="submit">Start</button><button id="pauseButton" type="button" disabled>Pauze</button><button id="resetButton" type="button">Reset</button></div>
+
+        <div class="actions">
+          <button id="startButton" class="primary" type="submit">Start</button>
+          <button id="pauseButton" type="button" disabled>Pauze</button>
+          <button id="resetButton" type="button">Reset</button>
+        </div>
       </form>
     </section>
   </main>
@@ -105,17 +131,39 @@
   <script src="app.js"></script>
   <script>
   (function () {
+    const phaseTime = document.getElementById('phaseTime');
+    if (!phaseTime) return;
+
+    const normalizeTimer = () => {
+      const match = phaseTime.textContent.match(/\d+(?:[.,]\d+)?/);
+      if (!match) return;
+      const seconds = Math.max(0, Math.ceil(Number.parseFloat(match[0].replace(',', '.'))));
+      const next = String(seconds);
+      if (phaseTime.textContent !== next) phaseTime.textContent = next;
+    };
+
+    const observer = new MutationObserver(normalizeTimer);
+    observer.observe(phaseTime, { childList: true, characterData: true, subtree: true });
+    normalizeTimer();
+  })();
+  </script>
+  <script>
+  (function () {
     const THEME_KEY = 'startpagina-theme';
     const button = document.getElementById('railTheme');
     if (!button) return;
+
     function applyTheme(theme) {
       const safeTheme = theme === 'light' ? 'light' : 'dark';
       document.documentElement.dataset.theme = safeTheme;
       localStorage.setItem(THEME_KEY, safeTheme);
       button.setAttribute('aria-label', safeTheme === 'dark' ? 'Schakel naar licht thema' : 'Schakel naar donker thema');
     }
+
     applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
-    button.addEventListener('click', () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+    button.addEventListener('click', () => {
+      applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+    });
   })();
   </script>
 </body>
