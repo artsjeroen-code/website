@@ -15,19 +15,25 @@
   --shared-rail-ring: #00000018;
 }
 
+/* Enige bron van waarheid voor de utility-rail op alle pagina's. */
 .utility-rail {
-  position: fixed;
-  top: var(--rail-top);
-  left: var(--page-edge);
-  bottom: var(--rail-bottom);
+  position: fixed !important;
+  top: 58px !important;
+  right: auto !important;
+  bottom: 50px !important;
+  left: 12px !important;
   z-index: 100;
-  width: var(--utility-rail-width);
+  width: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  height: auto !important;
+  margin: 0 !important;
   box-sizing: border-box;
-  padding: 6px 3px;
+  padding: 6px 3px !important;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 4px !important;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;
@@ -36,18 +42,24 @@
   background: color-mix(in srgb, var(--shared-rail-panel) 90%, var(--shared-rail-bg));
   box-shadow: 0 5px 16px rgba(0, 0, 0, .18);
   backdrop-filter: blur(10px);
+  transform: none !important;
+  scale: 1 !important;
+  zoom: 1 !important;
 }
 
 .utility-rail::-webkit-scrollbar { display: none; }
 
 .rail-button {
   position: relative;
-  width: 34px;
-  min-width: 34px;
-  height: 34px;
-  min-height: 34px;
-  flex: 0 0 34px;
-  padding: 0;
+  width: 34px !important;
+  min-width: 34px !important;
+  max-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
+  flex: 0 0 34px !important;
+  margin: 0 !important;
+  padding: 0 !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -57,6 +69,8 @@
   color: #4285f4;
   text-decoration: none;
   cursor: pointer;
+  line-height: 1;
+  transform-origin: center;
   transition: background .15s ease, transform .15s ease;
 }
 
@@ -72,23 +86,28 @@
 .rail-button.rail-theme:focus-visible { background: color-mix(in srgb, #fbbc05 14%, transparent); }
 
 .rail-separator {
-  width: 24px;
-  height: 1px;
-  min-height: 1px;
-  margin: 2px 0;
-  flex: 0 0 1px;
+  width: 24px !important;
+  height: 1px !important;
+  min-height: 1px !important;
+  margin: 2px 0 !important;
+  flex: 0 0 1px !important;
   background: var(--shared-rail-ring);
 }
 
 .rail-icon {
-  width: 18px;
-  height: 18px;
+  width: 18px !important;
+  min-width: 18px !important;
+  max-width: 18px !important;
+  height: 18px !important;
+  min-height: 18px !important;
+  max-height: 18px !important;
   display: block;
-  flex: 0 0 18px;
+  flex: 0 0 18px !important;
   background-color: transparent;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
+  transform: none !important;
 }
 
 .icon-theme,
@@ -151,42 +170,49 @@
 
 @media (max-width: 760px) {
   .utility-rail {
-    top: auto;
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
-    width: auto;
-    height: 40px;
-    min-height: 40px;
-    padding: 3px 4px;
+    top: auto !important;
+    right: 8px !important;
+    bottom: 8px !important;
+    left: 8px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 3px 4px !important;
     flex-direction: row;
     justify-content: space-between;
-    gap: 0;
+    gap: 0 !important;
     overflow-x: hidden;
     overflow-y: hidden;
   }
 
   .rail-button {
-    width: 30px;
-    min-width: 0;
-    max-width: 34px;
-    height: 30px;
-    min-height: 30px;
-    flex: 1 1 30px;
+    width: 30px !important;
+    min-width: 0 !important;
+    max-width: 34px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
+    flex: 1 1 30px !important;
     border-radius: 7px;
   }
 
   .rail-icon {
-    width: 16px;
-    height: 16px;
-    flex-basis: 16px;
+    width: 16px !important;
+    min-width: 16px !important;
+    max-width: 16px !important;
+    height: 16px !important;
+    min-height: 16px !important;
+    max-height: 16px !important;
+    flex-basis: 16px !important;
   }
 
   .rail-separator {
-    width: 1px;
-    height: 22px;
-    min-height: 22px;
-    margin: 0 1px;
-    flex: 0 0 1px;
+    width: 1px !important;
+    height: 22px !important;
+    min-height: 22px !important;
+    margin: 0 1px !important;
+    flex: 0 0 1px !important;
   }
 }
