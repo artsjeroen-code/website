@@ -45,104 +45,8 @@ body {
 }
 button, input, select { font: inherit; }
 
-.utility-rail {
-  position: fixed;
-  top: 58px;
-  left: var(--page-edge);
-  bottom: 50px;
-  z-index: 100;
-  width: var(--utility-rail-width);
-  padding: 6px 3px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: none;
-  border: 1px solid var(--ring);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--panel) 90%, var(--bg));
-  box-shadow: 0 5px 16px rgba(0, 0, 0, .18);
-  backdrop-filter: blur(10px);
-}
-.utility-rail::-webkit-scrollbar { display: none; }
-:root[data-theme="light"] .utility-rail { box-shadow: 0 5px 16px rgba(31, 41, 51, .08); }
-
-.rail-button {
-  position: relative;
-  width: 34px;
-  min-width: 34px;
-  height: 34px;
-  min-height: 34px;
-  flex: 0 0 34px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--accent);
-  text-decoration: none;
-  cursor: pointer;
-  transition: background .15s ease, transform .15s ease;
-}
-.rail-button:hover,
-.rail-button:focus-visible,
-.rail-current { background: color-mix(in srgb, var(--accent) 12%, transparent); outline: none; }
-.rail-button:active { transform: scale(.94); }
-.rail-theme { color: #fbbc05; }
-.rail-separator { width: 24px; height: 1px; min-height: 1px; margin: 2px 0; flex: 0 0 1px; background: var(--ring); }
-
-.rail-icon {
-  width: 18px;
-  height: 18px;
-  display: block;
-  flex: 0 0 18px;
-  background-color: transparent;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-}
-.icon-theme,
-.icon-edit {
-  background-color: currentColor;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  mask-size: contain;
-}
-:root[data-theme="dark"] .icon-theme {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M20.4 15.2A8.2 8.2 0 0 1 8.8 3.6 9 9 0 1 0 20.4 15.2Z'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M20.4 15.2A8.2 8.2 0 0 1 8.8 3.6 9 9 0 1 0 20.4 15.2Z'/%3E%3C/svg%3E");
-}
-:root[data-theme="light"] .icon-theme {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4' fill='black'/%3E%3Cpath fill='black' d='M11 1h2v4h-2zM11 19h2v4h-2zM1 11h4v2H1zM19 11h4v2h-4zM3.5 5l1.4-1.4 2.8 2.8-1.4 1.4zM16.3 17.7l1.4-1.4 2.8 2.8-1.4 1.4zM16.3 6.3l2.8-2.8L20.5 5l-2.8 2.8zM3.5 19l2.8-2.8 1.4 1.4-2.8 2.8z'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4' fill='black'/%3E%3Cpath fill='black' d='M11 1h2v4h-2zM11 19h2v4h-2zM1 11h4v2H1zM19 11h4v2h-4zM3.5 5l1.4-1.4 2.8 2.8-1.4 1.4zM16.3 17.7l1.4-1.4 2.8 2.8-1.4 1.4zM16.3 6.3l2.8-2.8L20.5 5l-2.8 2.8zM3.5 19l2.8-2.8 1.4 1.4-2.8 2.8z'/%3E%3C/svg%3E");
-}
-.icon-edit {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='m4 17.25-.75 3.5 3.5-.75L18.8 7.95l-2.75-2.75L4 17.25Zm14.3-14.3 2.75 2.75-1.45 1.45-2.75-2.75 1.45-1.45Z'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='m4 17.25-.75 3.5 3.5-.75L18.8 7.95l-2.75-2.75L4 17.25Zm14.3-14.3 2.75 2.75-1.45 1.45-2.75-2.75 1.45-1.45Z'/%3E%3C/svg%3E");
-}
-.icon-lotus {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%234285F4' d='M12 3c-2.2 2.5-3.3 4.8-3.3 6.8 0 1.8 1.1 3.3 3.3 4.6 2.2-1.3 3.3-2.8 3.3-4.6C15.3 7.8 14.2 5.5 12 3Z'/%3E%3Cpath fill='%23EA4335' d='M5.2 7.1c-.1 3.9 1.4 6.6 4.5 8.2-3.4.7-5.9-.7-7.4-4.1.3-1.9 1.3-3.3 2.9-4.1Z'/%3E%3Cpath fill='%2334A853' d='M18.8 7.1c.1 3.9-1.4 6.6-4.5 8.2 3.4.7 5.9-.7 7.4-4.1-.3-1.9-1.3-3.3-2.9-4.1Z'/%3E%3Cpath fill='%23FBBC05' d='M7 14.6c1.5 1.5 3.1 2.3 5 2.3s3.5-.8 5-2.3c-.8 3.6-2.5 5.4-5 5.4s-4.2-1.8-5-5.4Z'/%3E%3C/svg%3E");
-}
-.icon-chatgpt { background-image: url("https://cdn.simpleicons.org/openai/4285F4"); }
-.icon-whatsapp { background-image: url("https://cdn.simpleicons.org/whatsapp/34A853"); }
-.icon-mail { background-image: url("https://cdn.simpleicons.org/gmail/4285F4"); }
-.icon-calendar { background-image: url("https://cdn.simpleicons.org/googlecalendar/4285F4"); }
-.icon-drive { background-image: url("https://cdn.simpleicons.org/googledrive/4285F4"); }
-.icon-photos { background-image: url("https://cdn.simpleicons.org/googlephotos/4285F4"); }
-.icon-map { background-image: url("https://cdn.simpleicons.org/googlemaps/4285F4"); }
-.icon-key,
-.icon-bank,
-.icon-market { filter: brightness(0) saturate(100%) invert(48%) sepia(91%) saturate(1890%) hue-rotate(202deg) brightness(99%) contrast(93%); }
-.icon-key { background-image: url("https://www.google.com/s2/favicons?domain=passwords.google.com&sz=64"); }
-.icon-bank { background-image: url("https://www.google.com/s2/favicons?domain=rabobank.nl&sz=64"); }
-.icon-market { background-image: url("https://www.google.com/s2/favicons?domain=marktplaats.nl&sz=64"); }
+/* De zijbalk zelf komt uitsluitend uit ../utility-rail.css.
+   Zo gebruikt /ademhaling/ exact dezelfde rail als de startpagina. */
 
 .floating-edit {
   position: fixed;
@@ -245,10 +149,6 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 
 @media (max-width: 760px) {
   body { overflow: auto; padding-bottom: 54px; }
-  .utility-rail { top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; height: 40px; min-height: 40px; padding: 3px 4px; flex-direction: row; justify-content: space-between; gap: 0; overflow: hidden; }
-  .rail-button { width: 30px; min-width: 0; max-width: 34px; height: 30px; min-height: 30px; flex: 1 1 30px; border-radius: 7px; }
-  .rail-icon { width: 16px; height: 16px; flex-basis: 16px; }
-  .rail-separator { width: 1px; height: 22px; min-height: 22px; margin: 0 1px; flex: 0 0 1px; }
   .floating-edit { bottom: 58px; right: 12px; }
   .app-shell { width: min(100% - 16px, 980px); height: auto; min-height: 100vh; margin: 0 auto; padding: 8px 0; }
   .tool-card { max-height: none; }
