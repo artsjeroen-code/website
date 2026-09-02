@@ -121,35 +121,48 @@
     return audioContext;
   };
 
-  const playTone = (frequency = 440, duration = 0.12, volume = 0.035) => {
+  const playTone = (frequency = 440, duration = 0.34, volume = 0.014) => {
     if (!soundEnabled.checked) return;
     const ctx = ensureAudio();
     if (!ctx) return;
 
     const oscillator = ctx.createOscillator();
     const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
     const now = ctx.currentTime;
+    const attack = Math.min(0.09, duration * 0.28);
+    const releaseStart = now + Math.max(attack + 0.02, duration * 0.48);
+    const stopAt = now + duration + 0.08;
 
     oscillator.type = 'sine';
     oscillator.frequency.setValueAtTime(frequency, now);
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(volume, now + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.985, now + duration);
 
-    oscillator.connect(gain);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1500, now);
+    filter.Q.setValueAtTime(0.35, now);
+
+    gain.gain.cancelScheduledValues(now);
+    gain.gain.setValueAtTime(0.00001, now);
+    gain.gain.linearRampToValueAtTime(volume, now + attack);
+    gain.gain.setValueAtTime(volume, releaseStart);
+    gain.gain.exponentialRampToValueAtTime(0.00001, now + duration);
+
+    oscillator.connect(filter);
+    filter.connect(gain);
     gain.connect(ctx.destination);
     oscillator.start(now);
-    oscillator.stop(now + duration + 0.02);
+    oscillator.stop(stopAt);
   };
 
   const phaseTone = (key) => {
     const tones = {
-      inhale: 523.25,
-      holdFull: 659.25,
-      exhale: 392.0,
-      holdEmpty: 329.63
+      inhale: 440.0,
+      holdFull: 493.88,
+      exhale: 349.23,
+      holdEmpty: 293.66
     };
-    playTone(tones[key] || 440, 0.11, 0.03);
+    playTone(tones[key] || 392.0, 0.34, 0.014);
   };
 
   const readSettings = () => {
@@ -341,7 +354,7 @@
   const finishSession = () => {
     cancelAnimationFrame(animationFrame);
     state = 'finished';
-    playTone(783.99, 0.2, 0.04);
+    playTone(587.33, 0.52, 0.016);
     setBallScale(1);
     phaseLabel.textContent = 'Klaar';
     phaseTime.textContent = '0,0 s';
