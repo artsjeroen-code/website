@@ -5,6 +5,8 @@
   const exhaleInput = document.getElementById('exhale');
   const holdEmptyInput = document.getElementById('holdEmpty');
   const repetitionsInput = document.getElementById('repetitions');
+  const breathingPreset = document.getElementById('breathingPreset');
+  const presetNote = document.getElementById('presetNote');
   const soundEnabled = document.getElementById('soundEnabled');
 
   const phaseLabel = document.getElementById('phaseLabel');
@@ -21,6 +23,34 @@
   const resetButton = document.getElementById('resetButton');
 
   const inputs = [inhaleInput, holdFullInput, exhaleInput, holdEmptyInput, repetitionsInput];
+  const phaseInputs = [inhaleInput, holdFullInput, exhaleInput, holdEmptyInput];
+
+  const presets = {
+    '4-7-8-0': {
+      values: [4, 7, 8, 0],
+      note: 'Diepe ontspanning — rustig patroon met lange uitademing; vaak gebruikt om tot rust te komen.'
+    },
+    '4-4-4-4': {
+      values: [4, 4, 4, 4],
+      note: 'Focus & kalmte — box breathing met vier gelijke fasen voor een strak, aandachtig ritme.'
+    },
+    '4-0-8-0': {
+      values: [4, 0, 8, 0],
+      note: 'Ontstressen — eenvoudige langzame ademhaling met extra nadruk op de uitademing.'
+    },
+    '5-0-5-0': {
+      values: [5, 0, 5, 0],
+      note: 'Rustig ritme — zes ademhalingen per minuut; gelijkmatig en geschikt voor rustige dagelijkse oefening.'
+    },
+    '7-0-11-0': {
+      values: [7, 0, 11, 0],
+      note: 'Diepe rust — zeer langzaam ritme met lange uitademing; kies dit alleen als het comfortabel voelt.'
+    },
+    '4-4-4-0': {
+      values: [4, 4, 4, 0],
+      note: 'Driehoek-focus — inademen, vasthouden en uitademen in drie gelijke delen, zonder slotpauze.'
+    }
+  };
 
   let state = 'idle';
   let animationFrame = null;
@@ -88,10 +118,10 @@
 
   const readSettings = () => {
     const settings = {
-      inhale: clampInt(inhaleInput.value, 0, 9),
-      holdFull: clampInt(holdFullInput.value, 0, 9),
-      exhale: clampInt(exhaleInput.value, 0, 9),
-      holdEmpty: clampInt(holdEmptyInput.value, 0, 9),
+      inhale: clampInt(inhaleInput.value, 0, 20),
+      holdFull: clampInt(holdFullInput.value, 0, 20),
+      exhale: clampInt(exhaleInput.value, 0, 20),
+      holdEmpty: clampInt(holdEmptyInput.value, 0, 20),
       repetitions: clampInt(repetitionsInput.value, 1, 99)
     };
 
@@ -104,6 +134,31 @@
   };
 
   const getCycleSeconds = (settings) => settings.inhale + settings.holdFull + settings.exhale + settings.holdEmpty;
+
+  const syncPresetFromInputs = () => {
+    const key = phaseInputs.map((input) => clampInt(input.value, 0, 20)).join('-');
+    if (presets[key]) {
+      breathingPreset.value = key;
+      presetNote.textContent = presets[key].note;
+    } else {
+      breathingPreset.value = 'custom';
+      presetNote.textContent = 'Eigen ritme — pas de vier fasen vrij aan tussen 0 en 20 seconden.';
+    }
+  };
+
+  const applyPreset = () => {
+    const preset = presets[breathingPreset.value];
+    if (!preset) {
+      presetNote.textContent = 'Eigen ritme — pas de vier fasen vrij aan tussen 0 en 20 seconden.';
+      return;
+    }
+
+    preset.values.forEach((value, index) => {
+      phaseInputs[index].value = value;
+    });
+    presetNote.textContent = preset.note;
+    updateSummary();
+  };
 
   const updateSummary = () => {
     const settings = readSettings();
@@ -133,7 +188,10 @@
     return { settings, phases, cycleSeconds, totalSeconds: cycleSeconds * settings.repetitions };
   };
 
-  const setInputsDisabled = (disabled) => inputs.forEach((input) => { input.disabled = disabled; });
+  const setInputsDisabled = (disabled) => {
+    inputs.forEach((input) => { input.disabled = disabled; });
+    breathingPreset.disabled = disabled;
+  };
   const setBallScale = (scale) => { ball.style.transform = `scale(${scale})`; };
 
   const locatePhase = (elapsedInCycle) => {
@@ -274,6 +332,7 @@
     startButton.textContent = 'Start';
     pauseButton.disabled = true;
     pauseButton.textContent = 'Pauze';
+    syncPresetFromInputs();
     updateSummary();
   };
 
@@ -282,11 +341,16 @@
     startSession();
   });
 
+  breathingPreset.addEventListener('change', applyPreset);
   pauseButton.addEventListener('click', pauseSession);
   resetButton.addEventListener('click', resetSession);
   inputs.forEach((input) => input.addEventListener('input', () => {
-    if (state === 'idle' || state === 'finished') updateSummary();
+    if (state === 'idle' || state === 'finished') {
+      if (phaseInputs.includes(input)) syncPresetFromInputs();
+      updateSummary();
+    }
   }));
 
+  syncPresetFromInputs();
   updateSummary();
 })();
