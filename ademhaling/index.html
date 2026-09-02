@@ -13,6 +13,7 @@
   </script>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="../utility-rail.css">
+  <link rel="stylesheet" href="../google_palette.css">
 </head>
 <body>
   <aside class="utility-rail" aria-label="Snelkoppelingen">
@@ -121,5 +122,24 @@
   </main>
 
   <script src="app.js"></script>
+  <script>
+  (function () {
+    const THEME_KEY = 'startpagina-theme';
+    const button = document.getElementById('railTheme');
+    if (!button) return;
+
+    function applyTheme(theme) {
+      const safeTheme = theme === 'light' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = safeTheme;
+      localStorage.setItem(THEME_KEY, safeTheme);
+      button.setAttribute('aria-label', safeTheme === 'dark' ? 'Schakel naar licht thema' : 'Schakel naar donker thema');
+    }
+
+    applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+    button.addEventListener('click', () => {
+      applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+    });
+  })();
+  </script>
 </body>
 </html>
