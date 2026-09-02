@@ -45,8 +45,44 @@ body {
 }
 button, input, select { font: inherit; }
 
-/* De zijbalk zelf komt uitsluitend uit ../utility-rail.css.
-   Zo gebruikt /ademhaling/ exact dezelfde rail als de startpagina. */
+/* De zijbalk komt uit ../utility-rail.css. Op desktop corrigeren we hier
+   uitsluitend de visuele schaal van /ademhaling/ naar de feitelijke /main-rail. */
+@media (min-width: 761px) {
+  body > .utility-rail {
+    top: 50px !important;
+    bottom: 30px !important;
+    left: 12px !important;
+    width: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    padding: 6px 3px !important;
+    gap: 4px !important;
+  }
+
+  body > .utility-rail > .rail-button {
+    width: 30px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    flex: 0 0 34px !important;
+  }
+
+  body > .utility-rail .rail-icon {
+    width: 16px !important;
+    min-width: 16px !important;
+    max-width: 16px !important;
+    height: 16px !important;
+    min-height: 16px !important;
+    max-height: 16px !important;
+    flex-basis: 16px !important;
+  }
+
+  body > .utility-rail > .rail-separator {
+    width: 22px !important;
+  }
+}
 
 .floating-edit {
   position: fixed;
@@ -360,10 +396,10 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 }
 
 @media (max-height: 720px) and (min-width: 761px) {
+  .breathing-stage { height: 190px; min-height: 180px; }
+  .breathing-ball { width: 78px; }
   .tool-card { padding: 9px 11px; }
-  .settings { gap: 5px; padding-top: 6px; }
-  .phase-inputs { gap: 3px; }
-  .breathing-ball { width: clamp(120px, 18vh, 155px); }
+  .preset-note { min-height: 32px; padding-block: 5px; }
 }
 
 @media (prefers-reduced-motion: reduce) { .breathing-ball { will-change: auto; } }
