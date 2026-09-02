@@ -149,6 +149,109 @@ button:hover:not(:disabled) { border-color: color-mix(in srgb, var(--text) 20%, 
 button.primary { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
 button:disabled { opacity: .4; cursor: not-allowed; }
 
+/* Desktop: bediening links onder elkaar, ademanimatie ruim rechts. */
+@media (min-width: 761px) {
+  .tool-card {
+    min-height: min(620px, calc(100vh - 20px));
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 20px;
+    align-items: stretch;
+  }
+
+  .tool-header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .settings {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: center;
+    width: 100%;
+    gap: 9px;
+    padding: 12px 0 4px;
+  }
+
+  .preset-row,
+  .settings-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 9px;
+    align-items: stretch;
+  }
+
+  .preset-field {
+    grid-column: 1 !important;
+  }
+
+  .phase-inputs {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .phase-inputs label,
+  .repetitions-field {
+    grid-template-columns: 78px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+  }
+
+  .phase-inputs label > span,
+  .repetitions-field > span {
+    margin: 0;
+  }
+
+  .validation {
+    min-height: 14px;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .summary-grid > div + div {
+    border-left: 1px solid var(--border);
+  }
+
+  .summary-grid > div:nth-child(3) {
+    border-left: 0;
+  }
+
+  .summary-grid > div:nth-child(n+3) {
+    border-top: 1px solid var(--border);
+  }
+
+  .actions {
+    grid-template-columns: 1fr;
+  }
+
+  .breathing-stage {
+    grid-column: 2;
+    grid-row: 2;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+    margin: 0;
+    align-self: stretch;
+  }
+
+  .phase-label {
+    top: 28px;
+    font-size: 15px;
+  }
+
+  .phase-time {
+    font-size: 22px;
+  }
+
+  .breathing-ball {
+    width: clamp(145px, 19vh, 190px);
+  }
+}
+
 @media (max-width: 760px) {
   html,
   body { height: 100%; min-height: 100%; overflow: hidden; }
@@ -257,10 +360,10 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 }
 
 @media (max-height: 720px) and (min-width: 761px) {
-  .breathing-stage { height: 190px; min-height: 180px; }
-  .breathing-ball { width: 78px; }
   .tool-card { padding: 9px 11px; }
-  .preset-note { min-height: 32px; padding-block: 5px; }
+  .settings { gap: 5px; padding-top: 6px; }
+  .phase-inputs { gap: 3px; }
+  .breathing-ball { width: clamp(120px, 18vh, 155px); }
 }
 
 @media (prefers-reduced-motion: reduce) { .breathing-ball { will-change: auto; } }
