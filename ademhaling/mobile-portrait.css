@@ -31,7 +31,7 @@
     height: auto;
     min-height: 0;
     max-height: none;
-    margin: 4px 0 8px;
+    margin: 6px 0 10px;
     align-self: stretch;
   }
 
@@ -39,25 +39,104 @@
     width: clamp(96px, 14dvh, 122px);
   }
 
+  /* Fase wordt visueel alleen door de bal en timer weergegeven. */
   .phase-label {
-    top: 8px;
+    display: none;
   }
 
   .settings {
     grid-row: 3;
     align-self: end;
     width: 100%;
-    padding-bottom: 2px;
+    gap: 8px;
+    padding: 0 1px 4px;
+  }
+
+  .preset-field {
+    gap: 4px;
+  }
+
+  .preset-field > span,
+  legend,
+  .repetitions-field > span {
+    margin-bottom: 3px;
+    line-height: 1.35;
+  }
+
+  .settings-row {
+    gap: 8px;
+  }
+
+  .phase-inputs {
+    gap: 6px;
+  }
+
+  .phase-inputs label,
+  .repetitions-field {
+    gap: 4px;
+  }
+
+  select,
+  input[type="number"] {
+    height: 34px;
+  }
+
+  .validation {
+    min-height: 12px;
+    height: 12px;
+  }
+
+  .summary-grid > div {
+    padding: 7px 3px;
+    text-align: center;
+  }
+
+  .summary-grid span,
+  .summary-grid strong {
+    text-align: center;
+  }
+
+  .summary-grid strong {
+    margin-top: 3px;
+  }
+
+  .actions {
+    gap: 6px;
+  }
+
+  .actions button {
+    height: 34px;
   }
 }
 
-/* Op erg korte telefoons blijft de bal groter dan voorheen, maar past 2x schaal nog steeds. */
+/* Op erg korte telefoons blijft alles zonder scrollen passen. */
 @media (max-width: 760px) and (orientation: portrait) and (max-height: 700px) {
   .breathing-ball {
     width: clamp(82px, 13dvh, 96px);
   }
 
   .breathing-stage {
-    margin-bottom: 5px;
+    margin: 3px 0 5px;
+  }
+
+  .settings {
+    gap: 5px;
+    padding-bottom: 1px;
+  }
+
+  .preset-field > span,
+  legend,
+  .repetitions-field > span {
+    margin-bottom: 1px;
+  }
+
+  select,
+  input[type="number"],
+  .actions button {
+    height: 30px;
+  }
+
+  .summary-grid > div {
+    padding: 4px 2px;
   }
 }
