@@ -26,7 +26,7 @@ body {
   font-size: 11px;
   line-height: 1.35;
 }
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 
 .app-shell {
   width: min(100% - 24px, 980px);
@@ -83,9 +83,9 @@ button, input { font: inherit; }
 
 .breathing-stage {
   position: relative;
-  height: clamp(230px, 38vh, 320px);
-  min-height: 210px;
-  margin: 8px 0;
+  height: clamp(220px, 35vh, 300px);
+  min-height: 200px;
+  margin: 7px 0;
   display: grid;
   place-items: center;
 }
@@ -121,7 +121,7 @@ button, input { font: inherit; }
   overflow: hidden;
 }
 .breathing-ball {
-  width: clamp(88px, 12vh, 108px);
+  width: clamp(84px, 11vh, 104px);
   aspect-ratio: 1;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #d7d7d7, #9ca3af 52%, #5f6368 100%);
@@ -132,7 +132,46 @@ button, input { font: inherit; }
   box-shadow: 0 8px 24px rgba(0, 0, 0, .28);
 }
 
-.settings { display: grid; gap: 7px; }
+.settings { display: grid; gap: 6px; }
+.preset-row {
+  display: grid;
+  grid-template-columns: minmax(250px, 340px) minmax(0, 1fr);
+  gap: 8px;
+  align-items: end;
+}
+.preset-field { display: grid; gap: 3px; }
+.preset-field > span,
+legend,
+.repetitions-field > span {
+  margin-bottom: 3px;
+  color: var(--muted);
+  font-weight: 700;
+}
+.preset-note {
+  min-width: 0;
+  min-height: 34px;
+  margin: 0;
+  padding: 7px 9px;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--panel-2) 68%, var(--bg));
+  color: var(--muted);
+  font-size: 10px;
+}
+select,
+input[type="number"] {
+  width: 100%;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 4px 7px;
+  background: color-mix(in srgb, var(--panel-2) 84%, var(--bg));
+  color: var(--text);
+}
+select { padding-right: 28px; }
+
 .settings-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 120px;
@@ -140,12 +179,6 @@ button, input { font: inherit; }
   align-items: end;
 }
 fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
-legend,
-.repetitions-field > span {
-  margin-bottom: 4px;
-  color: var(--muted);
-  font-weight: 700;
-}
 .phase-inputs {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -155,22 +188,17 @@ label { color: var(--muted); font-size: 10px; }
 .phase-inputs label,
 .repetitions-field { display: grid; gap: 3px; }
 input[type="number"] {
-  width: 100%;
-  height: 34px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  padding: 4px 7px;
-  background: color-mix(in srgb, var(--panel-2) 84%, var(--bg));
-  color: var(--text);
   text-align: center;
   font-size: 12px;
 }
 input:focus-visible,
+select:focus-visible,
 button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-input:disabled { opacity: .55; cursor: not-allowed; }
+input:disabled,
+select:disabled { opacity: .55; cursor: not-allowed; }
 
 .validation {
   min-height: 14px;
@@ -218,7 +246,8 @@ button:disabled { opacity: .4; cursor: not-allowed; }
   body { overflow: auto; }
   .app-shell { height: auto; min-height: 100vh; padding: 8px 0; }
   .tool-card { max-height: none; }
-  .breathing-stage { height: 245px; min-height: 220px; }
+  .breathing-stage { height: 235px; min-height: 210px; }
+  .preset-row,
   .settings-row { grid-template-columns: 1fr; }
   .repetitions-field { width: 100%; }
   .phase-inputs { grid-template-columns: repeat(4, 1fr); }
@@ -229,9 +258,10 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 }
 
 @media (max-height: 720px) and (min-width: 621px) {
-  .breathing-stage { height: 220px; min-height: 200px; }
-  .breathing-ball { width: 84px; }
+  .breathing-stage { height: 190px; min-height: 180px; }
+  .breathing-ball { width: 78px; }
   .tool-card { padding: 9px 11px; }
+  .preset-note { min-height: 32px; padding-block: 5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
