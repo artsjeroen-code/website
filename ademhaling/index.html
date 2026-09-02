@@ -5,9 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
   <title>Ademhalingstool</title>
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('startpagina-theme') || 'dark';
+      document.documentElement.dataset.theme = savedTheme;
+    })();
+  </script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <aside class="utility-rail" aria-label="Snelkoppelingen">
+    <button class="rail-button rail-theme" id="railTheme" type="button" aria-label="Wissel licht/donker thema" title="Thema">
+      <span class="rail-icon icon-theme" aria-hidden="true"></span>
+    </button>
+
+    <a class="rail-button rail-current" href="./" aria-label="Ademhalingstool" title="Ademhalingstool" aria-current="page">
+      <span class="rail-icon icon-lotus" aria-hidden="true"></span>
+    </a>
+
+    <div class="rail-separator" aria-hidden="true"></div>
+
+    <a class="rail-button" href="https://chatgpt.com/" target="_blank" rel="noopener" aria-label="ChatGPT" title="ChatGPT"><span class="rail-icon icon-chatgpt" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://web.whatsapp.com/" target="_blank" rel="noopener" aria-label="WhatsApp Web" title="WhatsApp Web"><span class="rail-icon icon-whatsapp" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://mail.google.com/" target="_blank" rel="noopener" aria-label="Gmail" title="Gmail"><span class="rail-icon icon-mail" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://calendar.google.com/" target="_blank" rel="noopener" aria-label="Google Calendar" title="Google Calendar"><span class="rail-icon icon-calendar" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://drive.google.com/" target="_blank" rel="noopener" aria-label="Google Drive" title="Google Drive"><span class="rail-icon icon-drive" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://photos.google.com/" target="_blank" rel="noopener" aria-label="Google Foto's" title="Google Foto's"><span class="rail-icon icon-photos" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://passwords.google.com/" target="_blank" rel="noopener" aria-label="Google Passwords" title="Google Passwords"><span class="rail-icon icon-key" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://www.google.com/maps" target="_blank" rel="noopener" aria-label="Google Maps" title="Google Maps"><span class="rail-icon icon-map" aria-hidden="true"></span></a>
+
+    <div class="rail-separator" aria-hidden="true"></div>
+
+    <a class="rail-button" href="https://www.rabobank.nl/" target="_blank" rel="noopener" aria-label="Rabobank" title="Rabobank"><span class="rail-icon icon-bank" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://www.marktplaats.nl/" target="_blank" rel="noopener" aria-label="Marktplaats" title="Marktplaats"><span class="rail-icon icon-market" aria-hidden="true"></span></a>
+  </aside>
+
+  <a class="floating-edit" href="https://github.com/artsjeroen-code/website/blob/main/ademhaling/index.html" target="_blank" rel="noopener" aria-label="Ademhalingstool bewerken op GitHub" title="GitHub bewerken">
+    <span class="rail-icon icon-edit" aria-hidden="true"></span>
+  </a>
+
   <main class="app-shell">
     <section class="tool-card" aria-labelledby="pageTitle">
       <header class="tool-header">
@@ -38,7 +74,7 @@
             <select id="breathingPreset">
               <option value="custom">Eigen ritme</option>
               <option value="4-7-8-0">Diepe ontspanning · 4-7-8-0</option>
-              <option value="4-4-4-4">Focus & kalmte · 4-4-4-4</option>
+              <option value="4-4-4-4">Focus &amp; kalmte · 4-4-4-4</option>
               <option value="4-0-8-0">Ontstressen · 4-0-8-0</option>
               <option value="5-0-5-0">Rustig ritme · 5-0-5-0</option>
               <option value="7-0-11-0">Diepe rust · 7-0-11-0</option>
@@ -84,5 +120,24 @@
   </main>
 
   <script src="app.js"></script>
+  <script>
+    (function () {
+      const THEME_KEY = 'startpagina-theme';
+      const button = document.getElementById('railTheme');
+      if (!button) return;
+
+      function applyTheme(theme) {
+        const safeTheme = theme === 'light' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = safeTheme;
+        localStorage.setItem(THEME_KEY, safeTheme);
+        button.setAttribute('aria-label', safeTheme === 'dark' ? 'Schakel naar licht thema' : 'Schakel naar donker thema');
+      }
+
+      applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+      button.addEventListener('click', function () {
+        applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+      });
+    })();
+  </script>
 </body>
 </html>
