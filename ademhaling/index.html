@@ -14,14 +14,6 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="../google_palette.css">
   <link rel="stylesheet" href="../utility-rail.css">
-  <style>
-    @media (min-width: 761px) {
-      .utility-rail {
-        transform: scale(.84);
-        transform-origin: left top;
-      }
-    }
-  </style>
 </head>
 <body>
   <aside class="utility-rail" aria-label="Snelkoppelingen">
@@ -55,11 +47,8 @@
   </a>
 
   <main class="app-shell">
-    <section class="tool-card" aria-labelledby="pageTitle">
-      <header class="tool-header">
-        <div>
-          <h1 id="pageTitle">Ademhalingstool</h1>
-        </div>
+    <section class="tool-card" aria-label="Ademhalingstool">
+      <header class="tool-header" style="justify-content:flex-end">
         <label class="sound-toggle">
           <input id="soundEnabled" type="checkbox" checked>
           <span>Geluid</span>
@@ -78,7 +67,7 @@
 
       <form id="settingsForm" class="settings" novalidate>
         <div class="preset-row">
-          <label class="preset-field">
+          <label class="preset-field" style="grid-column:1 / -1">
             <span>Snelkeuze</span>
             <select id="breathingPreset">
               <option value="custom">Eigen ritme</option>
@@ -90,7 +79,6 @@
               <option value="4-4-4-0">Driehoek-focus · 4-4-4-0</option>
             </select>
           </label>
-          <p class="preset-note" id="presetNote">Kies een vast patroon of stel hieronder je eigen ritme in.</p>
         </div>
 
         <div class="settings-row">
