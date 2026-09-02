@@ -14,6 +14,14 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="../google_palette.css">
   <link rel="stylesheet" href="../utility-rail.css">
+  <style>
+    @media (min-width: 761px) {
+      .utility-rail {
+        transform: scale(.95);
+        transform-origin: left center;
+      }
+    }
+  </style>
 </head>
 <body>
   <aside class="utility-rail" aria-label="Snelkoppelingen">
@@ -62,7 +70,7 @@
       <section class="breathing-stage" aria-live="polite">
         <div class="phase-copy">
           <p class="phase-label" id="phaseLabel">Klaar</p>
-          <p class="phase-time" id="phaseTime">0,0 s</p>
+          <p class="phase-time" id="phaseTime">0</p>
         </div>
         <div class="ball-space" aria-hidden="true">
           <div class="breathing-ball" id="breathingBall"></div>
@@ -122,6 +130,24 @@
   </main>
 
   <script src="app.js"></script>
+  <script>
+  (function () {
+    const phaseTime = document.getElementById('phaseTime');
+    if (!phaseTime) return;
+
+    const normalizeTimer = () => {
+      const match = phaseTime.textContent.match(/\d+(?:[.,]\d+)?/);
+      if (!match) return;
+      const seconds = Math.max(0, Math.ceil(Number.parseFloat(match[0].replace(',', '.'))));
+      const next = String(seconds);
+      if (phaseTime.textContent !== next) phaseTime.textContent = next;
+    };
+
+    const observer = new MutationObserver(normalizeTimer);
+    observer.observe(phaseTime, { childList: true, characterData: true, subtree: true });
+    normalizeTimer();
+  })();
+  </script>
   <script>
   (function () {
     const THEME_KEY = 'startpagina-theme';
