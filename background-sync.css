@@ -19,6 +19,12 @@ body {
     var(--bg) !important;
 }
 
+/* /main gebruikt historisch body { zoom: .9 }. Compenseer die ouderregel alleen
+   voor de utility-rail, zodat de gedeelde rail-CSS werkelijk 1:1 wordt gerenderd. */
+body > .utility-rail {
+  zoom: 1.1111111111 !important;
+}
+
 /* Voorkom een donkerdere/lichtere strook bovenaan door de sticky topbar. */
 .topbar {
   background: transparent !important;
