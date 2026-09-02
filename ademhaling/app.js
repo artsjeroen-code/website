@@ -1,4 +1,6 @@
 (() => {
+  const STORAGE_KEY = 'ademhaling-settings-v1';
+
   const form = document.getElementById('settingsForm');
   const inhaleInput = document.getElementById('inhale');
   const holdFullInput = document.getElementById('holdFull');
@@ -65,6 +67,40 @@
     const parsed = Number.parseInt(value, 10);
     if (!Number.isFinite(parsed)) return min;
     return Math.min(max, Math.max(min, parsed));
+  };
+
+  const savePreferences = () => {
+    const payload = {
+      inhale: clampInt(inhaleInput.value, 0, 20),
+      holdFull: clampInt(holdFullInput.value, 0, 20),
+      exhale: clampInt(exhaleInput.value, 0, 20),
+      holdEmpty: clampInt(holdEmptyInput.value, 0, 20),
+      repetitions: clampInt(repetitionsInput.value, 1, 99),
+      preset: breathingPreset.value,
+      sound: Boolean(soundEnabled.checked)
+    };
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    } catch (_) {
+      // De tool blijft werken als lokale opslag niet beschikbaar is.
+    }
+  };
+
+  const restorePreferences = () => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      inhaleInput.value = clampInt(saved.inhale, 0, 20);
+      holdFullInput.value = clampInt(saved.holdFull, 0, 20);
+      exhaleInput.value = clampInt(saved.exhale, 0, 20);
+      holdEmptyInput.value = clampInt(saved.holdEmpty, 0, 20);
+      repetitionsInput.value = clampInt(saved.repetitions, 1, 99);
+      soundEnabled.checked = saved.sound !== false;
+    } catch (_) {
+      // Ongeldige of geblokkeerde opslag valt terug op de HTML-standaardwaarden.
+    }
   };
 
   const formatClock = (seconds) => {
@@ -150,6 +186,7 @@
     const preset = presets[breathingPreset.value];
     if (!preset) {
       presetNote.textContent = 'Eigen ritme — pas de vier fasen vrij aan tussen 0 en 20 seconden.';
+      savePreferences();
       return;
     }
 
@@ -158,6 +195,7 @@
     });
     presetNote.textContent = preset.note;
     updateSummary();
+    savePreferences();
   };
 
   const updateSummary = () => {
@@ -257,6 +295,7 @@
       return;
     }
 
+    savePreferences();
     ensureAudio();
     session = buildSession(settings);
     state = 'running';
@@ -334,6 +373,7 @@
     pauseButton.textContent = 'Pauze';
     syncPresetFromInputs();
     updateSummary();
+    savePreferences();
   };
 
   form.addEventListener('submit', (event) => {
@@ -342,15 +382,18 @@
   });
 
   breathingPreset.addEventListener('change', applyPreset);
+  soundEnabled.addEventListener('change', savePreferences);
   pauseButton.addEventListener('click', pauseSession);
   resetButton.addEventListener('click', resetSession);
   inputs.forEach((input) => input.addEventListener('input', () => {
     if (state === 'idle' || state === 'finished') {
       if (phaseInputs.includes(input)) syncPresetFromInputs();
       updateSummary();
+      savePreferences();
     }
   }));
 
+  restorePreferences();
   syncPresetFromInputs();
   updateSummary();
 })();
