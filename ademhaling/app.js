@@ -5,6 +5,7 @@
   const exhaleInput = document.getElementById('exhale');
   const holdEmptyInput = document.getElementById('holdEmpty');
   const repetitionsInput = document.getElementById('repetitions');
+  const soundEnabled = document.getElementById('soundEnabled');
 
   const phaseLabel = document.getElementById('phaseLabel');
   const phaseTime = document.getElementById('phaseTime');
@@ -27,6 +28,8 @@
   let startedAt = 0;
   let pausedAt = 0;
   let totalPaused = 0;
+  let audioContext = null;
+  let lastPhaseToken = '';
 
   const clampInt = (value, min, max) => {
     const parsed = Number.parseInt(value, 10);
@@ -43,6 +46,46 @@
 
   const formatDecimal = (seconds) => `${Math.max(0, seconds).toFixed(1).replace('.', ',')} s`;
 
+  const ensureAudio = () => {
+    if (!soundEnabled.checked) return null;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    if (!audioContext) audioContext = new AudioContextClass();
+    if (audioContext.state === 'suspended') audioContext.resume();
+    return audioContext;
+  };
+
+  const playTone = (frequency = 440, duration = 0.12, volume = 0.035) => {
+    if (!soundEnabled.checked) return;
+    const ctx = ensureAudio();
+    if (!ctx) return;
+
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const now = ctx.currentTime;
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(frequency, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(volume, now + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start(now);
+    oscillator.stop(now + duration + 0.02);
+  };
+
+  const phaseTone = (key) => {
+    const tones = {
+      inhale: 523.25,
+      holdFull: 659.25,
+      exhale: 392.0,
+      holdEmpty: 329.63
+    };
+    playTone(tones[key] || 440, 0.11, 0.03);
+  };
+
   const readSettings = () => {
     const settings = {
       inhale: clampInt(inhaleInput.value, 0, 9),
@@ -57,7 +100,6 @@
     exhaleInput.value = settings.exhale;
     holdEmptyInput.value = settings.holdEmpty;
     repetitionsInput.value = settings.repetitions;
-
     return settings;
   };
 
@@ -88,31 +130,19 @@
     ];
 
     const cycleSeconds = getCycleSeconds(settings);
-    return {
-      settings,
-      phases,
-      cycleSeconds,
-      totalSeconds: cycleSeconds * settings.repetitions
-    };
+    return { settings, phases, cycleSeconds, totalSeconds: cycleSeconds * settings.repetitions };
   };
 
   const setInputsDisabled = (disabled) => inputs.forEach((input) => { input.disabled = disabled; });
-
-  const setBallScale = (scale) => {
-    ball.style.transform = `scale(${scale})`;
-  };
+  const setBallScale = (scale) => { ball.style.transform = `scale(${scale})`; };
 
   const locatePhase = (elapsedInCycle) => {
     let cursor = 0;
-
     for (const phase of session.phases) {
       if (phase.duration <= 0) continue;
       const end = cursor + phase.duration;
       if (elapsedInCycle < end || Math.abs(elapsedInCycle - end) < 0.000001) {
-        return {
-          ...phase,
-          elapsed: Math.min(phase.duration, Math.max(0, elapsedInCycle - cursor))
-        };
+        return { ...phase, elapsed: Math.min(phase.duration, Math.max(0, elapsedInCycle - cursor)) };
       }
       cursor = end;
     }
@@ -135,13 +165,15 @@
     const repetitionIndex = Math.floor(elapsed / session.cycleSeconds);
     const elapsedInCycle = elapsed - repetitionIndex * session.cycleSeconds;
     const currentPhase = locatePhase(elapsedInCycle);
+    if (!currentPhase) return finishSession();
 
-    if (!currentPhase) {
-      finishSession();
-      return;
+    const token = `${repetitionIndex}:${currentPhase.key}`;
+    if (state === 'running' && token !== lastPhaseToken) {
+      lastPhaseToken = token;
+      phaseTone(currentPhase.key);
     }
 
-    const progress = currentPhase.duration > 0 ? Math.min(1, currentPhase.elapsed / currentPhase.duration) : 1;
+    const progress = Math.min(1, currentPhase.elapsed / currentPhase.duration);
     const scale = currentPhase.from + (currentPhase.to - currentPhase.from) * progress;
     const phaseRemaining = currentPhase.duration - currentPhase.elapsed;
     const totalRemaining = session.totalSeconds - elapsed;
@@ -156,23 +188,24 @@
   const tick = (now) => {
     if (state !== 'running') return;
     renderRunningState(now);
-    animationFrame = requestAnimationFrame(tick);
+    if (state === 'running') animationFrame = requestAnimationFrame(tick);
   };
 
   const startSession = () => {
     const settings = readSettings();
     const cycleSeconds = getCycleSeconds(settings);
-
     if (cycleSeconds <= 0) {
       validationMessage.textContent = 'Kies minimaal één fase met een duur groter dan 0 seconden.';
       return;
     }
 
+    ensureAudio();
     session = buildSession(settings);
     state = 'running';
     startedAt = performance.now();
     pausedAt = 0;
     totalPaused = 0;
+    lastPhaseToken = '';
 
     setInputsDisabled(true);
     startButton.disabled = true;
@@ -183,6 +216,7 @@
     remainingDuration.textContent = formatClock(session.totalSeconds);
 
     cancelAnimationFrame(animationFrame);
+    renderRunningState(startedAt);
     animationFrame = requestAnimationFrame(tick);
   };
 
@@ -210,6 +244,7 @@
   const finishSession = () => {
     cancelAnimationFrame(animationFrame);
     state = 'finished';
+    playTone(783.99, 0.2, 0.04);
     setBallScale(1);
     phaseLabel.textContent = 'Klaar';
     phaseTime.textContent = '0,0 s';
@@ -229,6 +264,7 @@
     startedAt = 0;
     pausedAt = 0;
     totalPaused = 0;
+    lastPhaseToken = '';
 
     setInputsDisabled(false);
     setBallScale(1);
@@ -248,7 +284,6 @@
 
   pauseButton.addEventListener('click', pauseSession);
   resetButton.addEventListener('click', resetSession);
-
   inputs.forEach((input) => input.addEventListener('input', () => {
     if (state === 'idle' || state === 'finished') updateSummary();
   }));
