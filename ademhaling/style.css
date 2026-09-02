@@ -150,19 +150,110 @@ button.primary { border-color: var(--accent); background: var(--accent-soft); co
 button:disabled { opacity: .4; cursor: not-allowed; }
 
 @media (max-width: 760px) {
-  body { overflow: auto; padding-bottom: 54px; }
-  .floating-edit { bottom: 58px; right: 12px; }
-  .app-shell { width: min(100% - 16px, 980px); height: auto; min-height: 100vh; margin: 0 auto; padding: 8px 0; }
-  .tool-card { max-height: none; }
-  .breathing-stage { height: 235px; min-height: 210px; }
-  .preset-row,
-  .settings-row { grid-template-columns: 1fr; }
-  .repetitions-field { width: 100%; }
-  .phase-inputs { grid-template-columns: repeat(4, 1fr); }
-  .summary-grid { grid-template-columns: repeat(2, 1fr); }
-  .summary-grid > div + div { border-left: 0; }
-  .summary-grid > div:nth-child(even) { border-left: 1px solid var(--border); }
-  .summary-grid > div:nth-child(n+3) { border-top: 1px solid var(--border); }
+  html,
+  body { height: 100%; min-height: 100%; overflow: hidden; }
+  body { padding: 0 0 52px; }
+
+  .floating-edit { display: none; }
+
+  .app-shell {
+    width: calc(100% - 12px);
+    height: calc(100vh - 52px);
+    min-height: 0;
+    margin: 0 auto;
+    padding: 4px 0;
+    display: block;
+  }
+
+  .tool-card {
+    height: 100%;
+    max-height: 100%;
+    padding: 7px;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .tool-header {
+    min-height: 28px;
+    gap: 8px;
+    padding-bottom: 3px;
+  }
+  .tool-header h1 { font-size: 14px; }
+  .sound-toggle { gap: 4px; font-size: 9px; }
+
+  .breathing-stage {
+    height: 27vh;
+    min-height: 150px;
+    max-height: 210px;
+    margin: 2px 0 4px;
+  }
+  .phase-label { top: 1px; font-size: 11px; }
+  .phase-time { font-size: 15px; }
+  .breathing-ball { width: clamp(70px, 10vh, 88px); }
+
+  .settings { gap: 4px; }
+  .preset-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 5px;
+  }
+  .preset-field { gap: 1px; }
+  .preset-field > span,
+  legend,
+  .repetitions-field > span { margin-bottom: 1px; font-size: 9px; }
+  .preset-note {
+    min-height: 30px;
+    height: 30px;
+    padding: 4px 6px;
+    overflow: hidden;
+    font-size: 8px;
+    line-height: 1.15;
+  }
+
+  select,
+  input[type="number"],
+  button { height: 30px; }
+
+  .settings-row {
+    grid-template-columns: minmax(0, 1fr) 86px;
+    gap: 5px;
+  }
+  .phase-inputs { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+  label { font-size: 9px; }
+  input[type="number"] { font-size: 11px; }
+
+  .validation {
+    min-height: 10px;
+    height: 10px;
+    overflow: hidden;
+    font-size: 8px;
+    line-height: 1.1;
+  }
+
+  .summary-grid { grid-template-columns: repeat(4, 1fr); }
+  .summary-grid > div { padding: 4px 3px; }
+  .summary-grid > div + div { border-left: 1px solid var(--border); }
+  .summary-grid > div:nth-child(n+3) { border-top: 0; }
+  .summary-grid span { font-size: 7px; }
+  .summary-grid strong { font-size: 10px; }
+
+  .actions { gap: 4px; }
+  .actions button { height: 30px; }
+}
+
+@media (max-width: 760px) and (max-height: 700px) {
+  .app-shell { height: calc(100vh - 50px); }
+  .tool-card { padding: 5px 6px; }
+  .tool-header h1 { font-size: 13px; }
+  .breathing-stage { height: 24vh; min-height: 125px; max-height: 165px; }
+  .breathing-ball { width: 66px; }
+  .preset-note { display: none; }
+  .preset-row { grid-template-columns: 1fr; }
+  .validation { display: none; }
+  select,
+  input[type="number"],
+  button,
+  .actions button { height: 28px; }
+  .summary-grid > div { padding: 3px 2px; }
 }
 
 @media (max-height: 720px) and (min-width: 761px) {
