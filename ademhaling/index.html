@@ -11,66 +11,51 @@
   <main class="app-shell">
     <section class="tool-card" aria-labelledby="pageTitle">
       <header class="tool-header">
-        <p class="eyebrow">Ademhaling</p>
-        <h1 id="pageTitle">Ademhalingstool</h1>
-        <p>Stel je ritme en aantal herhalingen in en volg de beweging van de bal.</p>
+        <div>
+          <p class="eyebrow">Ademhaling</p>
+          <h1 id="pageTitle">Ademhalingstool</h1>
+        </div>
+        <label class="sound-toggle">
+          <input id="soundEnabled" type="checkbox" checked>
+          <span>Geluid</span>
+        </label>
       </header>
 
       <section class="breathing-stage" aria-live="polite">
-        <p class="phase-label" id="phaseLabel">Klaar</p>
-        <p class="phase-time" id="phaseTime">0,0 s</p>
+        <div class="phase-copy">
+          <p class="phase-label" id="phaseLabel">Klaar</p>
+          <p class="phase-time" id="phaseTime">0,0 s</p>
+        </div>
         <div class="ball-space" aria-hidden="true">
           <div class="breathing-ball" id="breathingBall"></div>
         </div>
       </section>
 
       <form id="settingsForm" class="settings" novalidate>
-        <fieldset>
-          <legend>Ademritme in seconden</legend>
-          <div class="phase-inputs">
-            <label>
-              <span>Inademen</span>
-              <input id="inhale" type="number" min="0" max="9" step="1" inputmode="numeric" value="4">
-            </label>
-            <label>
-              <span>Vasthouden</span>
-              <input id="holdFull" type="number" min="0" max="9" step="1" inputmode="numeric" value="0">
-            </label>
-            <label>
-              <span>Uitademen</span>
-              <input id="exhale" type="number" min="0" max="9" step="1" inputmode="numeric" value="8">
-            </label>
-            <label>
-              <span>Vasthouden</span>
-              <input id="holdEmpty" type="number" min="0" max="9" step="1" inputmode="numeric" value="0">
-            </label>
-          </div>
-        </fieldset>
+        <div class="settings-row">
+          <fieldset>
+            <legend>Ademritme in seconden</legend>
+            <div class="phase-inputs">
+              <label><span>In</span><input id="inhale" type="number" min="0" max="9" step="1" inputmode="numeric" value="4"></label>
+              <label><span>Vasth.</span><input id="holdFull" type="number" min="0" max="9" step="1" inputmode="numeric" value="0"></label>
+              <label><span>Uit</span><input id="exhale" type="number" min="0" max="9" step="1" inputmode="numeric" value="8"></label>
+              <label><span>Vasth.</span><input id="holdEmpty" type="number" min="0" max="9" step="1" inputmode="numeric" value="0"></label>
+            </div>
+          </fieldset>
 
-        <label class="repetitions-field">
-          <span>Herhalingen</span>
-          <input id="repetitions" type="number" min="1" max="99" step="1" inputmode="numeric" value="5">
-        </label>
+          <label class="repetitions-field">
+            <span>Herhalingen</span>
+            <input id="repetitions" type="number" min="1" max="99" step="1" inputmode="numeric" value="5">
+          </label>
+        </div>
 
         <p class="validation" id="validationMessage" role="alert"></p>
 
         <div class="summary-grid">
-          <div>
-            <span>Per cyclus</span>
-            <strong id="cycleDuration">00:12</strong>
-          </div>
-          <div>
-            <span>Totale tijd</span>
-            <strong id="totalDuration">01:00</strong>
-          </div>
-          <div>
-            <span>Resterend</span>
-            <strong id="remainingDuration">01:00</strong>
-          </div>
-          <div>
-            <span>Herhaling</span>
-            <strong id="repetitionStatus">0 / 5</strong>
-          </div>
+          <div><span>Per cyclus</span><strong id="cycleDuration">00:12</strong></div>
+          <div><span>Totale tijd</span><strong id="totalDuration">01:00</strong></div>
+          <div><span>Resterend</span><strong id="remainingDuration">01:00</strong></div>
+          <div><span>Herhaling</span><strong id="repetitionStatus">0 / 5</strong></div>
         </div>
 
         <div class="actions">
