@@ -1,4 +1,4 @@
-/* Reserveer dezelfde verticale scrollbar-gutter als /main zonder onnodig scrollen. */
+/* Houd scrollbar-reservering gelijk aan /main. */
 html {
   overflow-y: auto;
   scrollbar-gutter: stable;
@@ -20,48 +20,50 @@ html {
   border-radius: 999px;
 }
 
-/* Overschrijf de tijdelijke lokale kalibratie uit ademhaling/style.css.
-   Vanaf hier zijn de desktopmaten exact gelijk aan utility-rail.css. */
+/* /main wordt op desktop door de historische body-zoom op 90% gerenderd.
+   Gebruik hier exact dezelfde effectieve railmaten, zonder de ademtool zelf te schalen. */
 @media (min-width: 761px) {
   body > .utility-rail {
-    top: 58px !important;
+    top: 52.2px !important;
     right: auto !important;
-    bottom: 50px !important;
-    left: 12px !important;
-    width: 42px !important;
-    min-width: 42px !important;
-    max-width: 42px !important;
+    bottom: 45px !important;
+    left: 10.8px !important;
+    width: 37.8px !important;
+    min-width: 37.8px !important;
+    max-width: 37.8px !important;
     height: auto !important;
-    padding: 6px 3px !important;
-    gap: 4px !important;
+    padding: 5.4px 2.7px !important;
+    gap: 3.6px !important;
+    border-radius: 10.8px !important;
     zoom: 1 !important;
   }
 
   body > .utility-rail > .rail-button {
-    width: 34px !important;
-    min-width: 34px !important;
-    max-width: 34px !important;
-    height: 34px !important;
-    min-height: 34px !important;
-    max-height: 34px !important;
-    flex: 0 0 34px !important;
+    width: 30.6px !important;
+    min-width: 30.6px !important;
+    max-width: 30.6px !important;
+    height: 30.6px !important;
+    min-height: 30.6px !important;
+    max-height: 30.6px !important;
+    flex: 0 0 30.6px !important;
+    border-radius: 7.2px !important;
   }
 
   body > .utility-rail .rail-icon {
-    width: 18px !important;
-    min-width: 18px !important;
-    max-width: 18px !important;
-    height: 18px !important;
-    min-height: 18px !important;
-    max-height: 18px !important;
-    flex: 0 0 18px !important;
+    width: 16.2px !important;
+    min-width: 16.2px !important;
+    max-width: 16.2px !important;
+    height: 16.2px !important;
+    min-height: 16.2px !important;
+    max-height: 16.2px !important;
+    flex: 0 0 16.2px !important;
   }
 
   body > .utility-rail > .rail-separator {
-    width: 24px !important;
-    height: 1px !important;
-    min-height: 1px !important;
-    margin: 2px 0 !important;
-    flex: 0 0 1px !important;
+    width: 21.6px !important;
+    height: .9px !important;
+    min-height: .9px !important;
+    margin: 1.8px 0 !important;
+    flex: 0 0 .9px !important;
   }
 }
