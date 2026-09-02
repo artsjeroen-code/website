@@ -71,7 +71,7 @@
     cycleDuration.textContent = formatClock(cycle);
     totalDuration.textContent = formatClock(total);
 
-    if (state === 'idle') {
+    if (state === 'idle' || state === 'finished') {
       remainingDuration.textContent = formatClock(total);
       repetitionStatus.textContent = `0 / ${settings.repetitions}`;
     }
