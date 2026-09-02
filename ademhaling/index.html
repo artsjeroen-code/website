@@ -32,14 +32,30 @@
       </section>
 
       <form id="settingsForm" class="settings" novalidate>
+        <div class="preset-row">
+          <label class="preset-field">
+            <span>Snelkeuze</span>
+            <select id="breathingPreset">
+              <option value="custom">Eigen ritme</option>
+              <option value="4-7-8-0">Diepe ontspanning · 4-7-8-0</option>
+              <option value="4-4-4-4">Focus & kalmte · 4-4-4-4</option>
+              <option value="4-0-8-0">Ontstressen · 4-0-8-0</option>
+              <option value="5-0-5-0">Rustig ritme · 5-0-5-0</option>
+              <option value="7-0-11-0">Diepe rust · 7-0-11-0</option>
+              <option value="4-4-4-0">Driehoek-focus · 4-4-4-0</option>
+            </select>
+          </label>
+          <p class="preset-note" id="presetNote">Kies een vast patroon of stel hieronder je eigen ritme in.</p>
+        </div>
+
         <div class="settings-row">
           <fieldset>
             <legend>Ademritme in seconden</legend>
             <div class="phase-inputs">
-              <label><span>In</span><input id="inhale" type="number" min="0" max="9" step="1" inputmode="numeric" value="4"></label>
-              <label><span>Vasth.</span><input id="holdFull" type="number" min="0" max="9" step="1" inputmode="numeric" value="0"></label>
-              <label><span>Uit</span><input id="exhale" type="number" min="0" max="9" step="1" inputmode="numeric" value="8"></label>
-              <label><span>Vasth.</span><input id="holdEmpty" type="number" min="0" max="9" step="1" inputmode="numeric" value="0"></label>
+              <label><span>In</span><input id="inhale" type="number" min="0" max="20" step="1" inputmode="numeric" value="4"></label>
+              <label><span>Vasth.</span><input id="holdFull" type="number" min="0" max="20" step="1" inputmode="numeric" value="0"></label>
+              <label><span>Uit</span><input id="exhale" type="number" min="0" max="20" step="1" inputmode="numeric" value="8"></label>
+              <label><span>Vasth.</span><input id="holdEmpty" type="number" min="0" max="20" step="1" inputmode="numeric" value="0"></label>
             </div>
           </fieldset>
 
