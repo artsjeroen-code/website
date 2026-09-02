@@ -97,20 +97,22 @@ button, input, select { font: inherit; }
 .sound-toggle input { accent-color: var(--accent); }
 
 .breathing-stage { position: relative; height: clamp(220px, 35vh, 300px); min-height: 200px; margin: 7px 0; display: grid; place-items: center; }
-.phase-copy { position: absolute; top: 3px; left: 50%; transform: translateX(-50%); z-index: 2; text-align: center; pointer-events: none; }
-.phase-label { margin: 0; min-height: 1.3em; color: var(--text); font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.phase-time { margin: 2px 0 0; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.phase-copy { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; text-align: center; pointer-events: none; }
+.phase-label { position: absolute; top: 3px; left: 50%; transform: translateX(-50%); margin: 0; min-height: 1.3em; color: var(--text); font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.phase-time { margin: 0; color: #ffffff; font-size: 16px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px rgba(0, 0, 0, .38); }
 .ball-space { width: 100%; height: 100%; display: grid; place-items: center; overflow: hidden; }
 .breathing-ball {
   width: clamp(84px, 11vh, 104px);
   aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--panel) 50%, #d7d7d7), #9ca3af 52%, #5f6368 100%);
-  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, .34), transparent 26%),
+    linear-gradient(145deg, #4285f4 0%, #4285f4 58%, #34a853 76%, #fbbc05 89%, #ea4335 100%);
+  border: 1px solid rgba(255, 255, 255, .24);
   transform: scale(1);
   transform-origin: center;
   will-change: transform;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
+  box-shadow: 0 8px 24px rgba(66, 133, 244, .24);
 }
 
 .settings { display: grid; gap: 6px; }
