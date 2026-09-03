@@ -1,3 +1,44 @@
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: page-fade-out 220ms ease both;
+}
+
+::view-transition-new(root) {
+  animation: page-fade-in 220ms ease both;
+}
+
+@keyframes page-fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
 :root {
   --utility-rail-width: 42px;
   --utility-gap: 10px;
