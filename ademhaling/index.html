@@ -104,12 +104,12 @@
 
         <p class="validation" id="validationMessage" role="alert"></p>
 
-        <div class="summary-grid">
-          <div><span>Per cyclus</span><strong id="cycleDuration">00:12</strong></div>
-          <div><span>Totale tijd</span><strong id="totalDuration">04:00</strong></div>
-          <div><span>Resterend</span><strong id="remainingDuration">04:00</strong></div>
+        <div class="summary-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+          <div><span>Tijd</span><strong id="totalDuration">04:00</strong></div>
           <div><span>Herhaling</span><strong id="repetitionStatus">0 / 20</strong></div>
         </div>
+        <span id="cycleDuration" hidden>00:12</span>
+        <span id="remainingDuration" hidden>04:00</span>
 
         <div class="actions">
           <button id="startButton" class="primary" type="submit">Start</button>
@@ -122,6 +122,23 @@
 
   <script src="audio-unlock.js"></script>
   <script src="app.js"></script>
+  <script>
+  (function () {
+    const remaining = document.getElementById('remainingDuration');
+    const visibleTime = document.getElementById('totalDuration');
+    if (!remaining || !visibleTime) return;
+
+    const syncVisibleTime = () => {
+      visibleTime.textContent = remaining.textContent;
+    };
+
+    new MutationObserver(syncVisibleTime).observe(remaining, {
+      childList: true,
+      characterData: true,
+      subtree: true
+    });
+  })();
+  </script>
   <script>
   (function () {
     const phaseTime = document.getElementById('phaseTime');
