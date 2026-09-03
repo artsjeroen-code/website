@@ -86,7 +86,7 @@
         <p id="presetNote" hidden></p>
 
         <div class="settings-row">
-          <fieldset>
+          <fieldset id="customRhythmFields">
             <legend>Ademritme in seconden</legend>
             <div class="phase-inputs">
               <label><span>In</span><input id="inhale" type="number" min="0" max="20" step="1" inputmode="numeric" value="4"></label>
@@ -122,6 +122,20 @@
 
   <script src="audio-unlock.js"></script>
   <script src="app.js"></script>
+  <script>
+  (function () {
+    const preset = document.getElementById('breathingPreset');
+    const customFields = document.getElementById('customRhythmFields');
+    if (!preset || !customFields) return;
+
+    const syncCustomFields = () => {
+      customFields.hidden = preset.value !== 'custom';
+    };
+
+    preset.addEventListener('change', syncCustomFields);
+    syncCustomFields();
+  })();
+  </script>
   <script>
   (function () {
     const remaining = document.getElementById('remainingDuration');
