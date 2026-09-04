@@ -62,6 +62,32 @@
   let totalPaused = 0;
   let audioContext = null;
   let lastPhaseToken = '';
+  let wakeLock = null;
+
+  const requestWakeLock = async () => {
+    if (!('wakeLock' in navigator) || document.visibilityState !== 'visible' || state !== 'running') return;
+
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => {
+        wakeLock = null;
+      });
+    } catch (_) {
+      wakeLock = null;
+    }
+  };
+
+  const releaseWakeLock = async () => {
+    const activeWakeLock = wakeLock;
+    wakeLock = null;
+    if (!activeWakeLock) return;
+
+    try {
+      await activeWakeLock.release();
+    } catch (_) {
+      // Geen probleem als de browser de wake lock al zelf heeft vrijgegeven.
+    }
+  };
 
   const clampInt = (value, min, max) => {
     const parsed = Number.parseInt(value, 10);
@@ -312,6 +338,7 @@
     ensureAudio();
     session = buildSession(settings);
     state = 'running';
+    requestWakeLock();
     startedAt = performance.now();
     pausedAt = 0;
     totalPaused = 0;
@@ -333,6 +360,7 @@
   const pauseSession = () => {
     if (state === 'running') {
       state = 'paused';
+      releaseWakeLock();
       pausedAt = performance.now();
       cancelAnimationFrame(animationFrame);
       renderRunningState(pausedAt);
@@ -346,6 +374,7 @@
       totalPaused += resumedAt - pausedAt;
       pausedAt = 0;
       state = 'running';
+      requestWakeLock();
       pauseButton.textContent = 'Pauze';
       animationFrame = requestAnimationFrame(tick);
     }
@@ -354,6 +383,7 @@
   const finishSession = () => {
     cancelAnimationFrame(animationFrame);
     state = 'finished';
+    releaseWakeLock();
     playTone(587.33, 0.52, 0.016);
     setBallScale(1);
     phaseLabel.textContent = 'Klaar';
@@ -370,6 +400,7 @@
   const resetSession = () => {
     cancelAnimationFrame(animationFrame);
     state = 'idle';
+    releaseWakeLock();
     session = null;
     startedAt = 0;
     pausedAt = 0;
@@ -405,6 +436,12 @@
       savePreferences();
     }
   }));
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state === 'running') {
+      requestWakeLock();
+    }
+  });
 
   restorePreferences();
   syncPresetFromInputs();
