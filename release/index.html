@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Releasenotes – Startpagina werk</title>
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('startpagina-theme') || 'dark';
+      document.documentElement.dataset.theme = savedTheme;
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111827;
+      --panel: #182235;
+      --panel-soft: #202c42;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --line: rgba(255,255,255,.10);
+      --accent: #8ab4f8;
+      --start: #81c995;
+      --breath: #c58af9;
+      --shadow: 0 18px 45px rgba(0,0,0,.22);
+    }
+
+    html[data-theme="light"] {
+      color-scheme: light;
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --panel-soft: #f7f9fc;
+      --text: #202124;
+      --muted: #5f6368;
+      --line: rgba(32,33,36,.10);
+      --accent: #1967d2;
+      --start: #137333;
+      --breath: #8430ce;
+      --shadow: 0 18px 45px rgba(60,64,67,.12);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+
+    a { color: var(--accent); }
+    .page { width: min(1040px, calc(100% - 32px)); margin: 0 auto; padding: 36px 0 72px; }
+    .topline { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 30px; }
+    .home {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 9px 13px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+    .home:hover { border-color: var(--accent); }
+    .theme-button {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      padding: 9px 13px;
+      border-radius: 12px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    header { margin-bottom: 28px; }
+    h1 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.05; margin: 0 0 12px; letter-spacing: -.04em; }
+    .intro { max-width: 780px; margin: 0; color: var(--muted); font-size: 1.05rem; }
+    .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+    .pill { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 6px 10px; font-size: .9rem; }
+    .pill.start { color: var(--start); }
+    .pill.breath { color: var(--breath); }
+
+    .release-list { display: grid; gap: 22px; }
+    .release {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .release-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
+    .release h2 { margin: 0; font-size: 1.35rem; }
+    .date { color: var(--muted); font-size: .92rem; }
+    .section-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .change-block { background: var(--panel-soft); border: 1px solid var(--line); border-radius: 15px; padding: 16px 17px; }
+    .change-block h3 { margin: 0 0 8px; font-size: 1rem; }
+    .change-block.start h3 { color: var(--start); }
+    .change-block.breath h3 { color: var(--breath); }
+    ul { margin: 0; padding-left: 20px; }
+    li + li { margin-top: 5px; }
+    .none { color: var(--muted); font-style: italic; }
+    footer { color: var(--muted); margin-top: 26px; font-size: .9rem; text-align: center; }
+
+    @media (max-width: 720px) {
+      .page { width: min(100% - 20px, 1040px); padding-top: 18px; }
+      .section-grid { grid-template-columns: 1fr; }
+      .release { padding: 18px; border-radius: 16px; }
+      .topline { margin-bottom: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topline">
+      <a class="home" href="../">← Startpagina</a>
+      <button class="theme-button" id="themeButton" type="button">Licht / donker</button>
+    </div>
+
+    <header>
+      <h1>Releasenotes</h1>
+      <p class="intro">Een leesbaar overzicht van wijzigingen aan de website. Per versie staat apart wat er aan de <strong>Startpagina</strong> en aan de <strong>Ademhalingstool</strong> is veranderd.</p>
+      <div class="legend" aria-label="Onderdelen">
+        <span class="pill start">Startpagina</span>
+        <span class="pill breath">Ademhalingstool</span>
+      </div>
+    </header>
+
+    <div class="release-list">
+      <article class="release">
+        <div class="release-head">
+          <h2>Versie 2026.09.04</h2>
+          <span class="date">4 september 2026</span>
+        </div>
+        <div class="section-grid">
+          <section class="change-block start">
+            <h3>Startpagina</h3>
+            <p class="none">Geen functionele wijzigingen.</p>
+          </section>
+          <section class="change-block breath">
+            <h3>Ademhalingstool</h3>
+            <ul>
+              <li>Het scherm blijft tijdens een actieve ademhalingssessie wakker wanneer de browser dit ondersteunt.</li>
+            </ul>
+          </section>
+        </div>
+      </article>
+
+      <article class="release">
+        <div class="release-head">
+          <h2>Versie 2026.09.03</h2>
+          <span class="date">3 september 2026</span>
+        </div>
+        <div class="section-grid">
+          <section class="change-block start">
+            <h3>Startpagina</h3>
+            <ul>
+              <li>De overgang van de startpagina naar de ademhalingstool is vloeiender gemaakt.</li>
+            </ul>
+          </section>
+          <section class="change-block breath">
+            <h3>Ademhalingstool</h3>
+            <ul>
+              <li>De ademhalingsbal is in de desktopweergave groter en beter verticaal gecentreerd.</li>
+              <li>De samenvatting is vereenvoudigd naar tijd en herhalingen.</li>
+              <li>Totale tijd en resterende tijd worden in hetzelfde vak weergegeven.</li>
+              <li>De invoervelden voor inademen, vasthouden en uitademen zijn alleen zichtbaar bij <em>Eigen ritme</em>.</li>
+              <li>Het standaard aantal herhalingen is ingesteld op 20.</li>
+            </ul>
+          </section>
+        </div>
+      </article>
+
+      <article class="release">
+        <div class="release-head">
+          <h2>Versie 2026.09.02 – mobiel &amp; geluid</h2>
+          <span class="date">2 september 2026</span>
+        </div>
+        <div class="section-grid">
+          <section class="change-block start">
+            <h3>Startpagina</h3>
+            <ul>
+              <li>De snelkoppeling naar de ademhalingstool is opgenomen in de zijbalk.</li>
+              <li>De gedeelde zijbalkstijl is gelijkgetrokken tussen startpagina en ademhalingstool.</li>
+            </ul>
+          </section>
+          <section class="change-block breath">
+            <h3>Ademhalingstool</h3>
+            <ul>
+              <li>De mobiele portretweergave is compacter gemaakt zodat de tool beter binnen één scherm past.</li>
+              <li>Mobiele audio is aangepast zodat geluid na een gebruikersactie correct kan starten.</li>
+              <li>De brede geluidsbalk is vervangen door een compact geluidsicoon rechtsboven.</li>
+              <li>De homeknop en navigatie terug naar de startpagina zijn hersteld.</li>
+              <li>De tool opent weer in hetzelfde tabblad.</li>
+            </ul>
+          </section>
+        </div>
+      </article>
+
+      <article class="release">
+        <div class="release-head">
+          <h2>Versie 2026.09.02 – ademhalingstool</h2>
+          <span class="date">2 september 2026</span>
+        </div>
+        <div class="section-grid">
+          <section class="change-block start">
+            <h3>Startpagina</h3>
+            <ul>
+              <li>De visuele stijl en achtergrond zijn als basis gebruikt voor de nieuwe ademhalingstool.</li>
+            </ul>
+          </section>
+          <section class="change-block breath">
+            <h3>Ademhalingstool</h3>
+            <ul>
+              <li>Nieuwe interactieve ademhalingstool toegevoegd met instelbare fases voor inademen, vasthouden, uitademen en vasthouden.</li>
+              <li>Timinglogica, herhalingen en resterende tijd toegevoegd.</li>
+              <li>Vooraf ingestelde ritmes toegevoegd, waaronder 4-7-8, 4-4-4-4, 4-0-8-0, 5-0-5-0, 7-0-11-0 en 4-4-4-0.</li>
+              <li>Het bereik van de ademhalingsfases is uitgebreid voor langere patronen.</li>
+              <li>Fasegeluiden toegevoegd en later zachter en vriendelijker afgestemd.</li>
+              <li>Instellingen worden lokaal in de browser onthouden.</li>
+              <li>De vormgeving is gelijkgetrokken met de startpagina, inclusief licht/donker thema en utility-rail.</li>
+              <li>De desktopindeling is aangepast naar bediening links en een grotere animatie rechts.</li>
+            </ul>
+          </section>
+        </div>
+      </article>
+
+      <article class="release">
+        <div class="release-head">
+          <h2>Versie 2026.09.01</h2>
+          <span class="date">1 september 2026</span>
+        </div>
+        <div class="section-grid">
+          <section class="change-block start">
+            <h3>Startpagina</h3>
+            <ul>
+              <li>De sectie <em>Arbo Wetgeving</em> is hernoemd naar <em>Overige Wetgeving</em>.</li>
+              <li>Een link naar de Algemene wet bestuursrecht is toegevoegd.</li>
+            </ul>
+          </section>
+          <section class="change-block breath">
+            <h3>Ademhalingstool</h3>
+            <p class="none">Nog niet aanwezig.</p>
+          </section>
+        </div>
+      </article>
+
+      <article class="release">
+        <div class="release-head">
+          <h2>Versie 2026.08.29</h2>
+          <span class="date">29 augustus 2026</span>
+        </div>
+        <div class="section-grid">
+          <section class="change-block start">
+            <h3>Startpagina</h3>
+            <ul>
+              <li>De website is hersteld naar de stabiele versie van 29 augustus na een tijdelijke testwijziging.</li>
+            </ul>
+          </section>
+          <section class="change-block breath">
+            <h3>Ademhalingstool</h3>
+            <p class="none">Nog niet aanwezig.</p>
+          </section>
+        </div>
+      </article>
+
+      <article class="release">
+        <div class="release-head">
+          <h2>Versie 2026.08.26</h2>
+          <span class="date">26 augustus 2026</span>
+        </div>
+        <div class="section-grid">
+          <section class="change-block start">
+            <h3>Startpagina</h3>
+            <ul>
+              <li>Gemini in de zijbalk is vervangen door WhatsApp Web.</li>
+              <li>Links naar Markttoezichtverordening 2019/1020 en het Warenwetbesluit bestuurlijke boeten zijn bijgewerkt.</li>
+            </ul>
+          </section>
+          <section class="change-block breath">
+            <h3>Ademhalingstool</h3>
+            <p class="none">Nog niet aanwezig.</p>
+          </section>
+        </div>
+      </article>
+    </div>
+
+    <footer>Bron voor wijzigingen: commitgeschiedenis van <code>main</code> in GitHub.</footer>
+  </main>
+
+  <script>
+    const themeButton = document.getElementById('themeButton');
+    themeButton.addEventListener('click', () => {
+      const current = document.documentElement.dataset.theme || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem('startpagina-theme', next);
+    });
+  </script>
+</body>
+</html>
