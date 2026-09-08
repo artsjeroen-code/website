@@ -1,26 +1,28 @@
 # Rittenregistratie
 
-Deze tool wordt ontwikkeld op de branch `feature/rittenregistratie` en is bedoeld om later te draaien onder:
+Deze tool draait onder:
 
 `https://artsjeroen.ddns.net/tools/rittenregistratie/`
 
 ## Ontwikkelstappen
 
 1. Frontend-prototype: rit invoeren, km berekenen, lokale testopslag en CSV-export.
-2. Raspberry Pi API + SQLite: centrale en duurzame opslag van ritten.
-3. GPS -> adres: locatie op telefoon ophalen en via de eigen backend reverse-geocoden.
+2. GPS -> adres: locatie op telefoon ophalen en via OpenStreetMap Nominatim reverse-geocoden.
+3. Raspberry Pi API + SQLite: centrale en duurzame opslag van ritten.
 4. Routecontrole: optionele routeafstand vergelijken met kilometertellerafstand.
 5. Jaaroverzicht + definitieve export.
-6. Koppeling vanaf de startpagina en productie-deployment via `main`.
+6. Koppeling vanaf de startpagina.
 
 ## Belangrijk
 
-- GitHub is de bron van waarheid voor code.
+- GitHub `main` is de bron van waarheid voor code.
 - De ritgegevens zelf horen niet in GitHub.
 - Productiedata wordt later op de Raspberry Pi in SQLite opgeslagen, met back-up.
-- De frontend moet via HTTPS worden aangeboden voordat telefoongeolocatie betrouwbaar kan worden gebruikt.
-- De branch `feature/rittenregistratie` wordt niet naar `main` gemerged voordat de tool is getest.
+- De frontend wordt via HTTPS aangeboden zodat telefoongeolocatie kan worden gebruikt.
+- Reverse geocoding gebeurt alleen wanneer de gebruiker bewust op de locatieknop drukt.
+- Voor de huidige testfase wordt de publieke OpenStreetMap Nominatim-service gebruikt. Dit gebruik moet beperkt blijven; geen automatische of bulk-aanvragen.
+- Kaart- en adresgegevens worden toegeschreven aan OpenStreetMap-bijdragers.
 
 ## Huidige status
 
-Stap 1: frontend-prototype. In deze fase wordt alleen lokale browseropslag gebruikt als testmechanisme. Dit is nadrukkelijk nog niet geschikt als definitieve fiscale administratie.
+Stap 1 en 2 zijn als prototype beschikbaar. Ritten worden nog alleen in lokale browseropslag bewaard; dit is nadrukkelijk nog niet geschikt als definitieve fiscale administratie. De volgende stap is centrale SQLite-opslag op de Raspberry Pi.
