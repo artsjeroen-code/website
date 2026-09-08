@@ -32,6 +32,14 @@ De API controleert dat de beginstand van een nieuwe rit aansluit op de vorige ei
 
 De frontend wordt via HTTPS aangeboden zodat telefoongeolocatie kan worden gebruikt. Reverse geocoding gebeurt alleen wanneer de gebruiker bewust op de locatieknop drukt. Voor de huidige versie wordt de publieke OpenStreetMap Nominatim-service gebruikt; geen automatische of bulk-aanvragen. Kaart- en adresgegevens worden toegeschreven aan OpenStreetMap-bijdragers.
 
+## Routecontrole
+
+De knop `Controleer route` gebruikt de GPS-coördinaten van vertrek en aankomst en vraagt via de eigen backend een normale autoroute op bij OSRM. De OSRM Route service retourneert de afstand van de berekende route. De controle is adviserend en blokkeert het opslaan van een rit niet als de routingdienst niet bereikbaar is.
+
+Een verschil geldt als opvallend wanneer het groter is dan 3 km of 20% van de berekende routeafstand, waarbij de grootste grens wordt gebruikt. De kilometerteller blijft leidend. Bij een afwijking kan de gebruiker een toelichting of afwijkende route noteren.
+
+De publieke OSRM-demo wordt alleen gebruikt na een bewuste druk op de routecontroleknop en niet voor bulk- of achtergrondverkeer. Routegegevens worden toegeschreven aan OSRM/OpenStreetMap.
+
 ## Huidige status
 
-Stap 1 t/m 3 zijn operationeel. Ritten worden centraal in SQLite op de Raspberry Pi opgeslagen en zijn daardoor vanaf verschillende apparaten zichtbaar. De volgende ontwikkelstap is routecontrole en daarna de definitieve jaar-/exportfuncties.
+Stap 1 t/m 4 zijn operationeel. Ritten worden centraal in SQLite op de Raspberry Pi opgeslagen en zijn vanaf verschillende apparaten zichtbaar. De volgende ontwikkelstap is het jaaroverzicht en de definitieve exportfuncties.
