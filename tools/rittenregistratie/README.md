@@ -13,7 +13,8 @@ Deze tool draait onder:
 5. Jaaroverzicht + definitieve export.
 6. Voertuiggegevens.
 7. Gecontroleerde correcties + auditlog.
-8. Koppeling vanaf de startpagina.
+8. Dagelijkse SQLite-back-up + hersteltest.
+9. Koppeling vanaf de startpagina en beveiliging verder aanscherpen.
 
 ## Architectuur
 
@@ -22,7 +23,7 @@ Deze tool draait onder:
 - De ritten-API draait lokaal op `127.0.0.1:8765` via systemd.
 - Nginx publiceert de API onder `/tools/rittenregistratie/api/`.
 - De SQLite-database staat buiten de Git-repository in `/var/lib/rittenregistratie/ritten.db`.
-- Ritdata hoort niet in GitHub.
+- Ritdata en back-ups horen niet in GitHub.
 
 ## Opslaggedrag
 
@@ -62,6 +63,19 @@ Voor een correctie wordt de kilometerketen opnieuw gecontroleerd. De nieuwe begi
 
 De auditlog is leesbaar via `GET ./api/audit` en wordt in de webinterface getoond.
 
+## Dagelijkse back-up
+
+`backup.py` maakt met de SQLite backup-API een consistente kopie van `/var/lib/rittenregistratie/ritten.db`. De tijdelijke kopie wordt met `PRAGMA integrity_check` gecontroleerd voordat deze als geldige back-up wordt gepubliceerd.
+
+Back-ups staan buiten Git in `/var/backups/rittenregistratie/` met bestandsnamen zoals `ritten-20260909T011500Z.db`. Standaard worden back-ups ouder dan 35 dagen verwijderd. Dit is instelbaar met `RITTEN_BACKUP_RETENTION_DAYS`.
+
+Systemd gebruikt:
+
+- `deploy/rittenregistratie-backup.service`
+- `deploy/rittenregistratie-backup.timer`
+
+De timer plant dagelijks rond 03:15 lokale systeemtijd met maximaal 10 minuten willekeurige vertraging. `Persistent=true` zorgt dat een gemiste uitvoering na een uitgeschakelde RPi bij de volgende start alsnog wordt ingehaald.
+
 ## Huidige status
 
-Stap 1 t/m 7 zijn operationeel. De kernregistratie is daarmee functioneel compleet: centrale opslag, voertuigcontext, GPS/adressen, routecontrole, jaaroverzicht/export en traceerbare correcties. De volgende stap is koppeling vanaf de startpagina en daarna back-up/herstel en beveiliging verder aanscherpen.
+De kernregistratie is functioneel compleet: centrale opslag, voertuigcontext, GPS/adressen, routecontrole, jaaroverzicht/export en traceerbare correcties. Dagelijkse databaseback-up is in de bron opgenomen. Na installatie op de RPi moet nog expliciet een back-up én een hersteltest worden uitgevoerd. Daarna zijn koppeling vanaf de startpagina en verdere toegangsbeveiliging de belangrijkste vervolgstappen.
