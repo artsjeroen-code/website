@@ -136,11 +136,15 @@
     <section class="panel">
       <div class="panel-heading table-heading">
         <div>
-          <p class="eyebrow">Overzicht</p>
+          <p class="eyebrow">Jaaroverzicht</p>
           <h2>Opgeslagen ritten</h2>
         </div>
         <div class="table-actions">
-          <button class="secondary-button" id="exportCsv" type="button">Download CSV</button>
+          <label>
+            <span>Jaar</span>
+            <select id="yearFilter" aria-label="Selecteer kalenderjaar"></select>
+          </label>
+          <button class="secondary-button" id="exportCsv" type="button">Download jaar-CSV</button>
         </div>
       </div>
 
@@ -166,7 +170,7 @@
     </section>
 
     <section class="notice">
-      <strong>Centrale opslag:</strong> ritten worden opgeslagen in SQLite op de Raspberry Pi en via HTTPS opgehaald. Routecontrole gebruikt OSRM/OpenStreetMap en is adviserend; de kilometerteller blijft leidend. Verwijderen is voorlopig bewust uitgeschakeld totdat er een gecontroleerde correctie- en auditfunctie is. GPS-locaties worden bij gebruik van de locatieknop omgezet naar een adres met OpenStreetMap Nominatim. Kaart-, adres- en routegegevens © OpenStreetMap-bijdragers.
+      <strong>Centrale opslag:</strong> ritten worden opgeslagen in SQLite op de Raspberry Pi en via HTTPS opgehaald. Het jaarfilter bepaalt welke ritten, totalen en export je ziet. Routecontrole gebruikt OSRM/OpenStreetMap en is adviserend; de kilometerteller blijft leidend. Verwijderen is voorlopig bewust uitgeschakeld totdat er een gecontroleerde correctie- en auditfunctie is. GPS-locaties worden bij gebruik van de locatieknop omgezet naar een adres met OpenStreetMap Nominatim. Kaart-, adres- en routegegevens © OpenStreetMap-bijdragers.
     </section>
   </main>
 
