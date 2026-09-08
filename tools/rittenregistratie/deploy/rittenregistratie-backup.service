@@ -1,0 +1,15 @@
+[Unit]
+Description=Dagelijkse back-up rittenregistratie SQLite
+After=rittenregistratie.service
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+ExecStart=/usr/bin/python3 /var/www/html/tools/rittenregistratie/backup.py
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/backups/rittenregistratie
+ReadOnlyPaths=/var/lib/rittenregistratie
