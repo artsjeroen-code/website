@@ -12,7 +12,7 @@ Deze tool draait onder:
 4. Routecontrole: optionele routeafstand vergelijken met kilometertellerafstand.
 5. Jaaroverzicht + definitieve export.
 6. Voertuiggegevens.
-7. Gecontroleerde correctie/audit.
+7. Gecontroleerde correcties + auditlog.
 8. Koppeling vanaf de startpagina.
 
 ## Architectuur
@@ -22,25 +22,17 @@ Deze tool draait onder:
 - De ritten-API draait lokaal op `127.0.0.1:8765` via systemd.
 - Nginx publiceert de API onder `/tools/rittenregistratie/api/`.
 - De SQLite-database staat buiten de Git-repository in `/var/lib/rittenregistratie/ritten.db`.
-- Ritdata en voertuigdata horen niet in GitHub.
+- Ritdata hoort niet in GitHub.
 
 ## Opslaggedrag
 
-De frontend gebruikt geen lokale browseropslag voor ritten of voertuiggegevens. Ritten worden via `GET/POST ./api/rides` gelezen en opgeslagen. De voertuiggegevens worden via `GET/PUT ./api/vehicle` centraal beheerd.
+De frontend gebruikt geen lokale browseropslag voor ritten. Bij laden worden ritten via `GET ./api/rides` opgehaald en nieuwe ritten via `POST ./api/rides` centraal opgeslagen.
 
-De API controleert dat de beginstand van een nieuwe rit aansluit op de vorige eindstand. Nieuwe ritten kunnen pas worden opgeslagen nadat voertuiggegevens zijn vastgelegd. Verwijderen is voorlopig bewust niet beschikbaar; er komt een gecontroleerde correctie- en auditfunctie zodat wijzigingen aan de registratie traceerbaar blijven.
+De API controleert dat de beginstand van een nieuwe rit aansluit op de vorige eindstand.
 
 ## Voertuiggegevens
 
-De huidige versie ondersteunt één actief voertuigprofiel met:
-
-- merk;
-- type/model;
-- kenteken;
-- datum in gebruik vanaf;
-- optionele datum in gebruik tot.
-
-Deze gegevens worden centraal in SQLite opgeslagen en automatisch bovenaan de jaar-CSV opgenomen. Bij een toekomstige voertuigwissel moet vóór definitief gebruik ondersteuning voor historische voertuigprofielen worden toegevoegd, zodat oude ritten aan het juiste voertuig gekoppeld blijven.
+Merk, type/model, kenteken en gebruiksperiode worden centraal opgeslagen. Nieuwe ritten kunnen pas worden geregistreerd nadat voertuiggegevens aanwezig zijn. De jaar-CSV neemt deze gegevens mee.
 
 ## GPS en adressen
 
@@ -48,14 +40,28 @@ De frontend wordt via HTTPS aangeboden zodat telefoongeolocatie kan worden gebru
 
 ## Routecontrole
 
-De knop `Controleer route` gebruikt de GPS-coördinaten van vertrek en aankomst en vraagt via de eigen backend een normale autoroute op bij OSRM. De controle is adviserend en blokkeert het opslaan van een rit niet als de routingdienst niet bereikbaar is.
-
-Een verschil geldt als opvallend wanneer het groter is dan 3 km of 20% van de berekende routeafstand, waarbij de grootste grens wordt gebruikt. De kilometerteller blijft leidend. Bij een afwijking kan de gebruiker een toelichting of afwijkende route noteren.
+De knop `Controleer route` gebruikt de GPS-coördinaten van vertrek en aankomst en vraagt via de eigen backend een normale autoroute op bij OSRM. De controle is adviserend en blokkeert het opslaan van een rit niet als de routingdienst niet bereikbaar is. De kilometerteller blijft leidend.
 
 ## Jaaroverzicht en export
 
-De gebruiker kan per kalenderjaar filteren. De vier samenvattingskaarten en de rittenlijst tonen alleen het gekozen jaar. De knop `Download jaar-CSV` exporteert het gekozen jaar met voertuiggegevens, aantallen, begin- en eindstand, zakelijke kilometers, privékilometers, totaal gereden kilometers en de volledige rittenlijst.
+De gebruiker kan per kalenderjaar filteren. De samenvattingskaarten, rittenlijst en CSV-export volgen het gekozen jaar. De jaar-CSV bevat voertuiggegevens, begin- en eindkilometerstand, zakelijke kilometers, privékilometers, totaal en de volledige rittenlijst.
+
+## Correcties en auditlog
+
+Bestaande ritten worden niet hard verwijderd. Een fout wordt gecorrigeerd via `PATCH ./api/rides/<id>` en vereist altijd een reden van minimaal 5 tekens.
+
+Bij iedere correctie bewaart SQLite in `ride_audit`:
+
+- het ritnummer;
+- tijdstip van correctie;
+- reden;
+- de volledige oude versie van de rit;
+- de volledige nieuwe versie van de rit.
+
+Voor een correctie wordt de kilometerketen opnieuw gecontroleerd. De nieuwe beginstand moet aansluiten op de vorige rit en de nieuwe eindstand op de volgende rit. Een correctie die de keten verbreekt wordt geweigerd.
+
+De auditlog is leesbaar via `GET ./api/audit` en wordt in de webinterface getoond.
 
 ## Huidige status
 
-Stap 1 t/m 6 zijn operationeel. De volgende stap is een gecontroleerde correctie-/auditfunctie. Pas daarna is de registratie functioneel compleet genoeg om als definitieve administratie te gebruiken.
+Stap 1 t/m 7 zijn operationeel. De kernregistratie is daarmee functioneel compleet: centrale opslag, voertuigcontext, GPS/adressen, routecontrole, jaaroverzicht/export en traceerbare correcties. De volgende stap is koppeling vanaf de startpagina en daarna back-up/herstel en beveiliging verder aanscherpen.
