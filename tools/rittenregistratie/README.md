@@ -11,7 +11,8 @@ Deze tool draait onder:
 3. Raspberry Pi API + SQLite: centrale en duurzame opslag van ritten.
 4. Routecontrole: optionele routeafstand vergelijken met kilometertellerafstand.
 5. Jaaroverzicht + definitieve export.
-6. Koppeling vanaf de startpagina.
+6. Voertuiggegevens + gecontroleerde correctie/audit.
+7. Koppeling vanaf de startpagina.
 
 ## Architectuur
 
@@ -26,7 +27,7 @@ Deze tool draait onder:
 
 De frontend gebruikt geen lokale browseropslag meer voor ritten. Bij laden worden ritten via `GET ./api/rides` opgehaald en nieuwe ritten worden via `POST ./api/rides` centraal opgeslagen.
 
-De API controleert dat de beginstand van een nieuwe rit aansluit op de vorige eindstand. Verwijderen is voorlopig bewust niet beschikbaar; er komt later een gecontroleerde correctie- en auditfunctie zodat wijzigingen aan een fiscale registratie traceerbaar blijven.
+De API controleert dat de beginstand van een nieuwe rit aansluit op de vorige eindstand. Verwijderen is voorlopig bewust niet beschikbaar; er komt een gecontroleerde correctie- en auditfunctie zodat wijzigingen aan de registratie traceerbaar blijven.
 
 ## GPS en adressen
 
@@ -40,6 +41,21 @@ Een verschil geldt als opvallend wanneer het groter is dan 3 km of 20% van de be
 
 De publieke OSRM-demo wordt alleen gebruikt na een bewuste druk op de routecontroleknop en niet voor bulk- of achtergrondverkeer. Routegegevens worden toegeschreven aan OSRM/OpenStreetMap.
 
+## Jaaroverzicht en export
+
+De gebruiker kan per kalenderjaar filteren. De vier samenvattingskaarten en de rittenlijst tonen alleen het gekozen jaar. Het filter bevat bestaande jaren en alvast het huidige en volgende kalenderjaar.
+
+De knop `Download jaar-CSV` exporteert alleen het gekozen jaar. Bovenaan de CSV staan:
+
+- aantal ritten;
+- begin-kilometerstand;
+- eind-kilometerstand;
+- zakelijke kilometers;
+- privékilometers;
+- totaal gereden kilometers.
+
+Daaronder staat de volledige rittenlijst met datum, type, vertrekadres, aankomstadres, begin- en eindstand, kilometers en toelichting.
+
 ## Huidige status
 
-Stap 1 t/m 4 zijn operationeel. Ritten worden centraal in SQLite op de Raspberry Pi opgeslagen en zijn vanaf verschillende apparaten zichtbaar. De volgende ontwikkelstap is het jaaroverzicht en de definitieve exportfuncties.
+Stap 1 t/m 5 zijn operationeel. De volgende stap is het vastleggen van voertuiggegevens en daarna een gecontroleerde correctie-/auditfunctie. Pas daarna is de registratie functioneel compleet genoeg om als definitieve administratie te gebruiken.
