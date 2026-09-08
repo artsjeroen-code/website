@@ -32,7 +32,7 @@
         <h1>Rittenregistratie</h1>
         <p class="subtitle">Registreer iedere rit en houd de kilometerstanden sluitend.</p>
       </div>
-      <span class="mode-badge">Lokale testmodus</span>
+      <span class="mode-badge">Centrale opslag actief</span>
     </header>
 
     <section class="summary-grid" aria-label="Samenvatting">
@@ -133,7 +133,6 @@
         </div>
         <div class="table-actions">
           <button class="secondary-button" id="exportCsv" type="button">Download CSV</button>
-          <button class="danger-button" id="clearAll" type="button">Wis testgegevens</button>
         </div>
       </div>
 
@@ -159,7 +158,7 @@
     </section>
 
     <section class="notice">
-      <strong>Testfase:</strong> gegevens worden nu alleen in deze browser opgeslagen. GPS-locaties worden bij gebruik van de locatieknop omgezet naar een adres met OpenStreetMap Nominatim. Kaart- en adresgegevens © OpenStreetMap-bijdragers. De definitieve versie krijgt centrale SQLite-opslag op de Raspberry Pi.
+      <strong>Centrale opslag:</strong> ritten worden opgeslagen in SQLite op de Raspberry Pi en via HTTPS opgehaald. Verwijderen is voorlopig bewust uitgeschakeld totdat er een gecontroleerde correctie- en auditfunctie is. GPS-locaties worden bij gebruik van de locatieknop omgezet naar een adres met OpenStreetMap Nominatim. Kaart- en adresgegevens © OpenStreetMap-bijdragers.
     </section>
   </main>
 
