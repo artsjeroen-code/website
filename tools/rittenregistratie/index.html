@@ -159,10 +159,11 @@
     </section>
 
     <section class="notice">
-      <strong>Testfase:</strong> gegevens worden nu alleen in deze browser opgeslagen. De definitieve versie krijgt centrale SQLite-opslag op de Raspberry Pi en automatische omzetting van GPS naar een adres.
+      <strong>Testfase:</strong> gegevens worden nu alleen in deze browser opgeslagen. GPS-locaties worden bij gebruik van de locatieknop omgezet naar een adres met OpenStreetMap Nominatim. Kaart- en adresgegevens © OpenStreetMap-bijdragers. De definitieve versie krijgt centrale SQLite-opslag op de Raspberry Pi.
     </section>
   </main>
 
   <script src="app.js"></script>
+  <script src="geocode.js"></script>
 </body>
 </html>
