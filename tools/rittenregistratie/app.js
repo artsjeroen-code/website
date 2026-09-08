@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const STORAGE_KEY = 'rittenregistratie-demo-v1';
+  const API_BASE = './api';
 
   const form = document.getElementById('rideForm');
   const rideDate = document.getElementById('rideDate');
@@ -21,32 +21,16 @@
   const lastOdometer = document.getElementById('lastOdometer');
   const departureMeta = document.getElementById('departureMeta');
   const arrivalMeta = document.getElementById('arrivalMeta');
+  const submitButton = form.querySelector('button[type="submit"]');
 
-  let rides = loadRides();
-  let locationState = {
-    departureAddress: null,
-    arrivalAddress: null
-  };
+  let rides = [];
+  let apiAvailable = false;
 
   function localDateValue(date = new Date()) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
-  }
-
-  function loadRides() {
-    try {
-      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-      console.warn('Kon lokale ritten niet lezen.', error);
-      return [];
-    }
-  }
-
-  function saveRides() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(rides));
   }
 
   function numberValue(input) {
@@ -98,19 +82,32 @@
     setMessage(`Beginstand ingevuld met vorige eindstand: ${formatNumber(previous.endOdometer)} km.`, 'success');
   }
 
+  function clearLocationDataset(input) {
+    delete input.dataset.latitude;
+    delete input.dataset.longitude;
+  }
+
   function resetForm({ keepDate = true } = {}) {
     const currentDate = rideDate.value || localDateValue();
     form.reset();
     rideType.value = 'business';
     rideDate.value = keepDate ? currentDate : localDateValue();
-    locationState = { departureAddress: null, arrivalAddress: null };
     departureMeta.textContent = '';
     arrivalMeta.textContent = '';
+    clearLocationDataset(departureAddress);
+    clearLocationDataset(arrivalAddress);
     distancePreview.textContent = '— km';
     clearMessage();
 
     const previous = latestRide();
     if (previous) startOdometer.value = previous.endOdometer;
+  }
+
+  function coordsFromInput(input) {
+    const lat = Number(input.dataset.latitude);
+    const lon = Number(input.dataset.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    return { lat, lon };
   }
 
   function validateRide() {
@@ -141,35 +138,92 @@
     }
 
     return {
-      id: typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
       date: rideDate.value,
       type: rideType.value,
       startOdometer: start,
       endOdometer: end,
-      distance: end - start,
       departureAddress: departureAddress.value.trim(),
       arrivalAddress: arrivalAddress.value.trim(),
-      departureCoords: locationState.departureAddress,
-      arrivalCoords: locationState.arrivalAddress,
-      notes: notes.value.trim(),
-      createdAt: new Date().toISOString()
+      departureCoords: coordsFromInput(departureAddress),
+      arrivalCoords: coordsFromInput(arrivalAddress),
+      notes: notes.value.trim()
     };
   }
 
-  function handleSubmit(event) {
+  async function apiRequest(path, options = {}) {
+    const response = await fetch(`${API_BASE}${path}`, {
+      cache: 'no-store',
+      headers: {
+        Accept: 'application/json',
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(options.headers || {})
+      },
+      ...options
+    });
+
+    let payload = {};
+    try {
+      payload = await response.json();
+    } catch (error) {
+      throw new Error(`API gaf geen geldige JSON (HTTP ${response.status})`);
+    }
+
+    if (!response.ok) {
+      throw new Error(payload.error || `API-fout HTTP ${response.status}`);
+    }
+
+    return payload;
+  }
+
+  async function loadRides() {
+    try {
+      const payload = await apiRequest('/rides');
+      rides = Array.isArray(payload.rides) ? payload.rides : [];
+      apiAvailable = true;
+      submitButton.disabled = false;
+      render();
+      resetForm();
+    } catch (error) {
+      console.error('Kon ritten niet laden.', error);
+      rides = [];
+      apiAvailable = false;
+      submitButton.disabled = true;
+      render();
+      setMessage(`Centrale opslag niet bereikbaar: ${error.message}. Er wordt niets lokaal opgeslagen.`);
+    }
+  }
+
+  async function handleSubmit(event) {
     event.preventDefault();
     clearMessage();
+
+    if (!apiAvailable) {
+      setMessage('Centrale opslag is niet bereikbaar. Vernieuw de pagina nadat de API weer beschikbaar is.');
+      return;
+    }
 
     const ride = validateRide();
     if (!ride) return;
 
-    rides.push(ride);
-    saveRides();
-    render();
-    resetForm();
-    setMessage(`Rit opgeslagen: ${formatNumber(ride.distance)} km.`, 'success');
+    submitButton.disabled = true;
+    const oldText = submitButton.textContent;
+    submitButton.textContent = 'Opslaan…';
+
+    try {
+      const payload = await apiRequest('/rides', {
+        method: 'POST',
+        body: JSON.stringify(ride)
+      });
+      rides.push(payload.ride);
+      render();
+      resetForm();
+      setMessage(`Rit centraal opgeslagen: ${formatNumber(payload.ride.distance)} km.`, 'success');
+    } catch (error) {
+      setMessage(`Rit niet opgeslagen: ${error.message}`);
+    } finally {
+      submitButton.disabled = !apiAvailable;
+      submitButton.textContent = oldText;
+    }
   }
 
   function createCell(text, className = '') {
@@ -200,16 +254,7 @@
       row.appendChild(createCell(formatNumber(ride.endOdometer), 'numeric'));
       row.appendChild(createCell(formatNumber(ride.distance), 'numeric'));
       row.appendChild(createCell(ride.notes || '—'));
-
-      const actions = document.createElement('td');
-      const deleteButton = document.createElement('button');
-      deleteButton.type = 'button';
-      deleteButton.className = 'icon-button';
-      deleteButton.textContent = 'Wis';
-      deleteButton.setAttribute('aria-label', `Wis rit van ${formatDate(ride.date)}`);
-      deleteButton.addEventListener('click', () => deleteRide(ride.id));
-      actions.appendChild(deleteButton);
-      row.appendChild(actions);
+      row.appendChild(createCell('—'));
 
       ridesBody.appendChild(row);
     });
@@ -238,23 +283,6 @@
   function formatDate(value) {
     const [year, month, day] = value.split('-');
     return `${day}-${month}-${year}`;
-  }
-
-  function deleteRide(id) {
-    const index = rides.findIndex((ride) => ride.id === id);
-    if (index < 0) return;
-
-    const isLast = index === rides.length - 1;
-    const message = isLast
-      ? 'Deze rit uit de lokale testopslag wissen?'
-      : 'Deze rit staat midden in de registratie. Wissen kan de kilometerreeks niet-sluitend maken. Toch wissen?';
-
-    if (!window.confirm(message)) return;
-
-    rides.splice(index, 1);
-    saveRides();
-    render();
-    resetForm();
   }
 
   function csvEscape(value) {
@@ -299,67 +327,6 @@
     URL.revokeObjectURL(url);
   }
 
-  function clearAll() {
-    if (!rides.length) return;
-    if (!window.confirm('Alle lokale testgegevens wissen? Dit kan niet ongedaan worden gemaakt.')) return;
-
-    rides = [];
-    saveRides();
-    render();
-    resetForm({ keepDate: false });
-    setMessage('Alle lokale testgegevens zijn gewist.', 'success');
-  }
-
-  function requestLocation(targetId, button) {
-    if (!navigator.geolocation) {
-      setMessage('Deze browser ondersteunt geen locatiebepaling.');
-      return;
-    }
-
-    const originalText = button.textContent;
-    const restoreButton = () => {
-      button.disabled = false;
-      button.textContent = originalText;
-    };
-
-    button.disabled = true;
-    button.textContent = 'Locatie bepalen…';
-    clearMessage();
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-        const coords = {
-          lat: Number(latitude.toFixed(6)),
-          lon: Number(longitude.toFixed(6)),
-          accuracy: Math.round(accuracy)
-        };
-        locationState[targetId] = coords;
-
-        const target = document.getElementById(targetId);
-        target.value = `GPS ${coords.lat}, ${coords.lon}`;
-        const meta = targetId === 'departureAddress' ? departureMeta : arrivalMeta;
-        meta.textContent = `GPS gevonden (nauwkeurigheid ±${coords.accuracy} m). Adresomzetting volgt in stap 2.`;
-        setMessage('Locatie gevonden. In de volgende ontwikkelstap wordt deze automatisch naar een straatadres omgezet.', 'success');
-        restoreButton();
-      },
-      (error) => {
-        const messages = {
-          1: 'Locatietoegang is geweigerd. Geef de website locatietoestemming of vul het adres handmatig in.',
-          2: 'De telefoon kon de huidige locatie niet bepalen.',
-          3: 'Het bepalen van de locatie duurde te lang. Probeer het opnieuw.'
-        };
-        setMessage(messages[error.code] || 'Locatie bepalen is mislukt.');
-        restoreButton();
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 12000,
-        maximumAge: 30000
-      }
-    );
-  }
-
   function setupThemeToggle() {
     const button = document.getElementById('railTheme');
     if (!button) return;
@@ -372,20 +339,15 @@
   }
 
   rideDate.value = localDateValue();
+  submitButton.disabled = true;
   startOdometer.addEventListener('input', calculateDistance);
   endOdometer.addEventListener('input', calculateDistance);
   form.addEventListener('submit', handleSubmit);
   document.getElementById('fillFromPrevious').addEventListener('click', fillPreviousOdometer);
   document.getElementById('resetForm').addEventListener('click', () => resetForm());
   document.getElementById('exportCsv').addEventListener('click', exportCsv);
-  document.getElementById('clearAll').addEventListener('click', clearAll);
-
-  document.querySelectorAll('[data-location-target]').forEach((button) => {
-    button.addEventListener('click', () => requestLocation(button.dataset.locationTarget, button));
-  });
 
   setupThemeToggle();
   render();
-
-  if (latestRide()) startOdometer.value = latestRide().endOdometer;
+  loadRides();
 })();
