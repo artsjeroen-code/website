@@ -36,133 +36,85 @@
     </header>
 
     <section class="summary-grid" aria-label="Samenvatting">
-      <article class="summary-card">
-        <span>Ritten</span>
-        <strong id="totalRides">0</strong>
-      </article>
-      <article class="summary-card">
-        <span>Zakelijk</span>
-        <strong id="businessKm">0 km</strong>
-      </article>
-      <article class="summary-card">
-        <span>Privé</span>
-        <strong id="privateKm">0 km</strong>
-      </article>
-      <article class="summary-card">
-        <span>Laatste km-stand</span>
-        <strong id="lastOdometer">—</strong>
-      </article>
+      <article class="summary-card"><span>Ritten</span><strong id="totalRides">0</strong></article>
+      <article class="summary-card"><span>Zakelijk</span><strong id="businessKm">0 km</strong></article>
+      <article class="summary-card"><span>Privé</span><strong id="privateKm">0 km</strong></article>
+      <article class="summary-card"><span>Laatste km-stand</span><strong id="lastOdometer">—</strong></article>
     </section>
 
     <section class="panel">
       <div class="panel-heading">
         <div>
-          <p class="eyebrow">Nieuwe rit</p>
-          <h2>Rit invoeren</h2>
+          <p class="eyebrow">Voertuig</p>
+          <h2>Voertuiggegevens</h2>
         </div>
+      </div>
+      <form id="vehicleForm">
+        <div class="form-grid compact-grid">
+          <label><span>Merk</span><input id="vehicleMake" type="text" maxlength="80" placeholder="Bijv. Volkswagen" required></label>
+          <label><span>Type / model</span><input id="vehicleModel" type="text" maxlength="120" placeholder="Bijv. Golf" required></label>
+          <label><span>Kenteken</span><input id="vehiclePlate" type="text" maxlength="20" autocapitalize="characters" placeholder="AB-12-CD" required></label>
+          <label><span>In gebruik vanaf</span><input id="vehicleUseFrom" type="date" required></label>
+          <label><span>In gebruik tot <em>(optioneel)</em></span><input id="vehicleUseTo" type="date"></label>
+        </div>
+        <div id="vehicleMessage" class="form-message" role="status" aria-live="polite"></div>
+        <div class="form-actions">
+          <button class="secondary-button" id="saveVehicle" type="submit">Voertuiggegevens opslaan</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-heading">
+        <div><p class="eyebrow">Nieuwe rit</p><h2>Rit invoeren</h2></div>
         <button class="secondary-button" id="fillFromPrevious" type="button">Vorige eindstand overnemen</button>
       </div>
 
       <form id="rideForm" novalidate>
         <div class="form-grid compact-grid">
-          <label>
-            <span>Datum</span>
-            <input id="rideDate" name="rideDate" type="date" required>
-          </label>
-          <label>
-            <span>Type rit</span>
-            <select id="rideType" name="rideType" required>
-              <option value="business">Zakelijk</option>
-              <option value="private">Privé</option>
-            </select>
-          </label>
-          <label>
-            <span>Begin km-stand</span>
-            <input id="startOdometer" name="startOdometer" type="number" min="0" step="1" inputmode="numeric" required>
-          </label>
-          <label>
-            <span>Eind km-stand</span>
-            <input id="endOdometer" name="endOdometer" type="number" min="0" step="1" inputmode="numeric" required>
-          </label>
+          <label><span>Datum</span><input id="rideDate" name="rideDate" type="date" required></label>
+          <label><span>Type rit</span><select id="rideType" name="rideType" required><option value="business">Zakelijk</option><option value="private">Privé</option></select></label>
+          <label><span>Begin km-stand</span><input id="startOdometer" name="startOdometer" type="number" min="0" step="1" inputmode="numeric" required></label>
+          <label><span>Eind km-stand</span><input id="endOdometer" name="endOdometer" type="number" min="0" step="1" inputmode="numeric" required></label>
         </div>
 
-        <div class="distance-preview" aria-live="polite">
-          <span>Afstand volgens kilometerteller</span>
-          <strong id="distancePreview">— km</strong>
-        </div>
+        <div class="distance-preview" aria-live="polite"><span>Afstand volgens kilometerteller</span><strong id="distancePreview">— km</strong></div>
 
         <div class="address-grid">
           <div class="address-block">
             <label for="departureAddress">Vertrekadres</label>
-            <div class="address-row">
-              <input id="departureAddress" name="departureAddress" type="text" autocomplete="street-address" placeholder="Straat, huisnummer, plaats" required>
-              <button class="location-button" type="button" data-location-target="departureAddress">Gebruik locatie</button>
-            </div>
+            <div class="address-row"><input id="departureAddress" name="departureAddress" type="text" autocomplete="street-address" placeholder="Straat, huisnummer, plaats" required><button class="location-button" type="button" data-location-target="departureAddress">Gebruik locatie</button></div>
             <small id="departureMeta" class="field-meta"></small>
           </div>
-
           <div class="address-block">
             <label for="arrivalAddress">Aankomstadres</label>
-            <div class="address-row">
-              <input id="arrivalAddress" name="arrivalAddress" type="text" autocomplete="street-address" placeholder="Straat, huisnummer, plaats" required>
-              <button class="location-button" type="button" data-location-target="arrivalAddress">Gebruik locatie</button>
-            </div>
+            <div class="address-row"><input id="arrivalAddress" name="arrivalAddress" type="text" autocomplete="street-address" placeholder="Straat, huisnummer, plaats" required><button class="location-button" type="button" data-location-target="arrivalAddress">Gebruik locatie</button></div>
             <small id="arrivalMeta" class="field-meta"></small>
           </div>
         </div>
 
         <div class="distance-preview" aria-live="polite">
           <span>Routecontrole</span>
-          <div>
-            <strong id="routeCheckResult">Nog niet gecontroleerd.</strong>
-            <button class="secondary-button" id="checkRoute" type="button">Controleer route</button>
-          </div>
+          <div><strong id="routeCheckResult">Nog niet gecontroleerd.</strong><button class="secondary-button" id="checkRoute" type="button">Controleer route</button></div>
         </div>
 
-        <label class="notes-field">
-          <span>Doel / toelichting <em>(optioneel)</em></span>
-          <input id="notes" name="notes" type="text" placeholder="Bijv. klantbezoek, kantoor, afwijkende route">
-        </label>
-
+        <label class="notes-field"><span>Doel / toelichting <em>(optioneel)</em></span><input id="notes" name="notes" type="text" placeholder="Bijv. klantbezoek, kantoor, afwijkende route"></label>
         <div id="formMessage" class="form-message" role="status" aria-live="polite"></div>
-
-        <div class="form-actions">
-          <button class="primary-button" type="submit">Rit opslaan</button>
-          <button class="secondary-button" id="resetForm" type="button">Formulier wissen</button>
-        </div>
+        <div class="form-actions"><button class="primary-button" type="submit">Rit opslaan</button><button class="secondary-button" id="resetForm" type="button">Formulier wissen</button></div>
       </form>
     </section>
 
     <section class="panel">
       <div class="panel-heading table-heading">
-        <div>
-          <p class="eyebrow">Jaaroverzicht</p>
-          <h2>Opgeslagen ritten</h2>
-        </div>
+        <div><p class="eyebrow">Jaaroverzicht</p><h2>Opgeslagen ritten</h2></div>
         <div class="table-actions">
-          <label>
-            <span>Jaar</span>
-            <select id="yearFilter" aria-label="Selecteer kalenderjaar"></select>
-          </label>
+          <label><span>Jaar</span><select id="yearFilter" aria-label="Selecteer kalenderjaar"></select></label>
           <button class="secondary-button" id="exportCsv" type="button">Download jaar-CSV</button>
         </div>
       </div>
-
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th>Datum</th>
-              <th>Type</th>
-              <th>Van</th>
-              <th>Naar</th>
-              <th>Begin</th>
-              <th>Eind</th>
-              <th>Km</th>
-              <th>Toelichting</th>
-              <th></th>
-            </tr>
-          </thead>
+          <thead><tr><th>Datum</th><th>Type</th><th>Van</th><th>Naar</th><th>Begin</th><th>Eind</th><th>Km</th><th>Toelichting</th><th></th></tr></thead>
           <tbody id="ridesBody"></tbody>
         </table>
       </div>
@@ -170,7 +122,7 @@
     </section>
 
     <section class="notice">
-      <strong>Centrale opslag:</strong> ritten worden opgeslagen in SQLite op de Raspberry Pi en via HTTPS opgehaald. Het jaarfilter bepaalt welke ritten, totalen en export je ziet. Routecontrole gebruikt OSRM/OpenStreetMap en is adviserend; de kilometerteller blijft leidend. Verwijderen is voorlopig bewust uitgeschakeld totdat er een gecontroleerde correctie- en auditfunctie is. GPS-locaties worden bij gebruik van de locatieknop omgezet naar een adres met OpenStreetMap Nominatim. Kaart-, adres- en routegegevens © OpenStreetMap-bijdragers.
+      <strong>Centrale opslag:</strong> ritten en voertuiggegevens worden opgeslagen in SQLite op de Raspberry Pi. Het jaarfilter bepaalt welke ritten, totalen en export je ziet. Routecontrole gebruikt OSRM/OpenStreetMap en is adviserend; de kilometerteller blijft leidend. Verwijderen is voorlopig uitgeschakeld totdat er een gecontroleerde correctie- en auditfunctie is. Kaart-, adres- en routegegevens © OpenStreetMap-bijdragers.
     </section>
   </main>
 
