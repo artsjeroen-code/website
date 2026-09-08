@@ -316,8 +316,13 @@
       return;
     }
 
-    button.disabled = true;
     const originalText = button.textContent;
+    const restoreButton = () => {
+      button.disabled = false;
+      button.textContent = originalText;
+    };
+
+    button.disabled = true;
     button.textContent = 'Locatie bepalen…';
     clearMessage();
 
@@ -336,6 +341,7 @@
         const meta = targetId === 'departureAddress' ? departureMeta : arrivalMeta;
         meta.textContent = `GPS gevonden (nauwkeurigheid ±${coords.accuracy} m). Adresomzetting volgt in stap 2.`;
         setMessage('Locatie gevonden. In de volgende ontwikkelstap wordt deze automatisch naar een straatadres omgezet.', 'success');
+        restoreButton();
       },
       (error) => {
         const messages = {
@@ -344,6 +350,7 @@
           3: 'Het bepalen van de locatie duurde te lang. Probeer het opnieuw.'
         };
         setMessage(messages[error.code] || 'Locatie bepalen is mislukt.');
+        restoreButton();
       },
       {
         enableHighAccuracy: true,
@@ -351,25 +358,6 @@
         maximumAge: 30000
       }
     );
-
-    const restore = () => {
-      button.disabled = false;
-      button.textContent = originalText;
-    };
-
-    const timeout = window.setTimeout(restore, 13000);
-    const observer = new MutationObserver(() => {
-      if (button.textContent !== 'Locatie bepalen…') {
-        window.clearTimeout(timeout);
-        observer.disconnect();
-      }
-    });
-    observer.observe(button, { childList: true });
-
-    window.setTimeout(() => {
-      restore();
-      observer.disconnect();
-    }, 13000);
   }
 
   function setupThemeToggle() {
