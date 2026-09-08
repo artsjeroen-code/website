@@ -1,0 +1,11 @@
+[Unit]
+Description=Dagelijkse timer voor rittenregistratie-back-up
+
+[Timer]
+OnCalendar=*-*-* 03:15:00
+Persistent=true
+RandomizedDelaySec=10m
+Unit=rittenregistratie-backup.service
+
+[Install]
+WantedBy=timers.target
