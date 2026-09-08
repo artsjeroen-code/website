@@ -1,0 +1,24 @@
+[Unit]
+Description=Rittenregistratie API
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/html/tools/rittenregistratie
+Environment=PYTHONUNBUFFERED=1
+Environment=RITTEN_HOST=127.0.0.1
+Environment=RITTEN_PORT=8765
+Environment=RITTEN_DB=/var/lib/rittenregistratie/ritten.db
+ExecStart=/usr/bin/python3 /var/www/html/tools/rittenregistratie/server.py
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/rittenregistratie
+
+[Install]
+WantedBy=multi-user.target
