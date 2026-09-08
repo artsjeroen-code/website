@@ -12,7 +12,7 @@ HOST = os.environ.get("RITTEN_HOST", "127.0.0.1")
 PORT = int(os.environ.get("RITTEN_PORT", "8765"))
 DB_PATH = os.environ.get("RITTEN_DB", "/var/lib/rittenregistratie/ritten.db")
 OSRM_BASE = os.environ.get("RITTEN_OSRM", "https://router.project-osrm.org")
-USER_AGENT = "artsjeroen-rittenregistratie/0.2 (+https://artsjeroen.ddns.net/tools/rittenregistratie/)"
+USER_AGENT = "artsjeroen-rittenregistratie/0.3 (+https://artsjeroen.ddns.net/tools/rittenregistratie/)"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS rides (
@@ -32,6 +32,16 @@ CREATE TABLE IF NOT EXISTS rides (
     created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_rides_date ON rides(ride_date, id);
+
+CREATE TABLE IF NOT EXISTS vehicle (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    make TEXT NOT NULL,
+    model TEXT NOT NULL,
+    plate TEXT NOT NULL,
+    use_from TEXT NOT NULL,
+    use_to TEXT,
+    updated_at TEXT NOT NULL
+);
 """
 
 
@@ -68,6 +78,52 @@ def row_to_dict(row):
     }
 
 
+def vehicle_to_dict(row):
+    if row is None:
+        return None
+    return {
+        "make": row["make"],
+        "model": row["model"],
+        "plate": row["plate"],
+        "useFrom": row["use_from"],
+        "useTo": row["use_to"],
+        "updatedAt": row["updated_at"],
+    }
+
+
+def validate_date(value, label, required=True):
+    if value in (None, ""):
+        if required:
+            raise ValueError(f"{label} is verplicht")
+        return None
+    try:
+        datetime.strptime(value, "%Y-%m-%d")
+    except (TypeError, ValueError):
+        raise ValueError(f"{label} moet YYYY-MM-DD zijn")
+    return value
+
+
+def validate_vehicle(payload):
+    make = str(payload.get("make") or "").strip()
+    model = str(payload.get("model") or "").strip()
+    plate = str(payload.get("plate") or "").strip().upper()
+    use_from = validate_date(payload.get("useFrom"), "Begindatum gebruik")
+    use_to = validate_date(payload.get("useTo"), "Einddatum gebruik", required=False)
+
+    if not make:
+        raise ValueError("Merk is verplicht")
+    if not model:
+        raise ValueError("Type/model is verplicht")
+    if not plate:
+        raise ValueError("Kenteken is verplicht")
+    if len(make) > 80 or len(model) > 120 or len(plate) > 20:
+        raise ValueError("Voertuiggegevens zijn te lang")
+    if use_to and use_to < use_from:
+        raise ValueError("Einddatum gebruik kan niet vóór de begindatum liggen")
+
+    return make, model, plate, use_from, use_to
+
+
 def validate_ride(payload):
     required = [
         "date", "type", "startOdometer", "endOdometer",
@@ -90,11 +146,7 @@ def validate_ride(payload):
     if start < 0 or end < start:
         raise ValueError("Ongeldige kilometerstanden")
 
-    try:
-        datetime.strptime(payload["date"], "%Y-%m-%d")
-    except (TypeError, ValueError):
-        raise ValueError("Datum moet YYYY-MM-DD zijn")
-
+    validate_date(payload["date"], "Datum")
     return start, end
 
 
@@ -137,17 +189,15 @@ def fetch_route(payload):
         raise RuntimeError("Geen autoroute gevonden")
 
     route = result["routes"][0]
-    distance_km = round(float(route["distance"]) / 1000, 1)
-    duration_minutes = round(float(route["duration"]) / 60)
     return {
-        "distanceKm": distance_km,
-        "durationMinutes": duration_minutes,
+        "distanceKm": round(float(route["distance"]) / 1000, 1),
+        "durationMinutes": round(float(route["duration"]) / 60),
         "provider": "OSRM / OpenStreetMap",
     }
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RittenregistratieAPI/0.2"
+    server_version = "RittenregistratieAPI/0.3"
 
     def log_message(self, fmt, *args):
         print(f"{self.address_string()} - {fmt % args}")
@@ -185,7 +235,46 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, {"rides": [row_to_dict(row) for row in rows]})
             return
 
+        if path == "/api/vehicle":
+            with db_connect() as db:
+                row = db.execute("SELECT * FROM vehicle WHERE id = 1").fetchone()
+            self.send_json(200, {"vehicle": vehicle_to_dict(row)})
+            return
+
         self.send_json(404, {"error": "Niet gevonden"})
+
+    def do_PUT(self):
+        path = urlparse(self.path).path
+        if path != "/api/vehicle":
+            self.send_json(404, {"error": "Niet gevonden"})
+            return
+
+        try:
+            payload = self.read_json()
+            make, model, plate, use_from, use_to = validate_vehicle(payload)
+            updated_at = datetime.now(timezone.utc).isoformat()
+            with db_connect() as db:
+                db.execute(
+                    """
+                    INSERT INTO vehicle (id, make, model, plate, use_from, use_to, updated_at)
+                    VALUES (1, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        make = excluded.make,
+                        model = excluded.model,
+                        plate = excluded.plate,
+                        use_from = excluded.use_from,
+                        use_to = excluded.use_to,
+                        updated_at = excluded.updated_at
+                    """,
+                    (make, model, plate, use_from, use_to, updated_at),
+                )
+                row = db.execute("SELECT * FROM vehicle WHERE id = 1").fetchone()
+                db.commit()
+            self.send_json(200, {"vehicle": vehicle_to_dict(row)})
+        except ValueError as error:
+            self.send_json(400, {"error": str(error)})
+        except sqlite3.Error:
+            self.send_json(500, {"error": "Databasefout"})
 
     def do_POST(self):
         path = urlparse(self.path).path
@@ -207,12 +296,15 @@ class Handler(BaseHTTPRequestHandler):
         try:
             payload = self.read_json()
             start, end = validate_ride(payload)
-
             departure = payload.get("departureCoords") or {}
             arrival = payload.get("arrivalCoords") or {}
             created_at = datetime.now(timezone.utc).isoformat()
 
             with db_connect() as db:
+                vehicle = db.execute("SELECT id FROM vehicle WHERE id = 1").fetchone()
+                if vehicle is None:
+                    raise ValueError("Sla eerst de voertuiggegevens op")
+
                 previous = db.execute(
                     "SELECT end_odometer FROM rides ORDER BY id DESC LIMIT 1"
                 ).fetchone()
