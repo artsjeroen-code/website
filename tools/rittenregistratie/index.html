@@ -111,6 +111,14 @@
           </div>
         </div>
 
+        <div class="distance-preview" aria-live="polite">
+          <span>Routecontrole</span>
+          <div>
+            <strong id="routeCheckResult">Nog niet gecontroleerd.</strong>
+            <button class="secondary-button" id="checkRoute" type="button">Controleer route</button>
+          </div>
+        </div>
+
         <label class="notes-field">
           <span>Doel / toelichting <em>(optioneel)</em></span>
           <input id="notes" name="notes" type="text" placeholder="Bijv. klantbezoek, kantoor, afwijkende route">
@@ -158,11 +166,12 @@
     </section>
 
     <section class="notice">
-      <strong>Centrale opslag:</strong> ritten worden opgeslagen in SQLite op de Raspberry Pi en via HTTPS opgehaald. Verwijderen is voorlopig bewust uitgeschakeld totdat er een gecontroleerde correctie- en auditfunctie is. GPS-locaties worden bij gebruik van de locatieknop omgezet naar een adres met OpenStreetMap Nominatim. Kaart- en adresgegevens © OpenStreetMap-bijdragers.
+      <strong>Centrale opslag:</strong> ritten worden opgeslagen in SQLite op de Raspberry Pi en via HTTPS opgehaald. Routecontrole gebruikt OSRM/OpenStreetMap en is adviserend; de kilometerteller blijft leidend. Verwijderen is voorlopig bewust uitgeschakeld totdat er een gecontroleerde correctie- en auditfunctie is. GPS-locaties worden bij gebruik van de locatieknop omgezet naar een adres met OpenStreetMap Nominatim. Kaart-, adres- en routegegevens © OpenStreetMap-bijdragers.
     </section>
   </main>
 
   <script src="app.js"></script>
   <script src="geocode.js"></script>
+  <script src="routecheck.js"></script>
 </body>
 </html>
