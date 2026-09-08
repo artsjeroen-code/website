@@ -21,10 +21,12 @@
   const lastOdometer = document.getElementById('lastOdometer');
   const departureMeta = document.getElementById('departureMeta');
   const arrivalMeta = document.getElementById('arrivalMeta');
+  const yearFilter = document.getElementById('yearFilter');
   const submitButton = form.querySelector('button[type="submit"]');
 
   let rides = [];
   let apiAvailable = false;
+  let selectedYear = String(new Date().getFullYear());
 
   function localDateValue(date = new Date()) {
     const year = date.getFullYear();
@@ -68,6 +70,10 @@
 
   function latestRide() {
     return rides.length ? rides[rides.length - 1] : null;
+  }
+
+  function filteredRides() {
+    return rides.filter((ride) => String(ride.date).startsWith(`${selectedYear}-`));
   }
 
   function fillPreviousOdometer() {
@@ -181,6 +187,7 @@
       rides = Array.isArray(payload.rides) ? payload.rides : [];
       apiAvailable = true;
       submitButton.disabled = false;
+      populateYearFilter();
       render();
       resetForm();
     } catch (error) {
@@ -188,6 +195,7 @@
       rides = [];
       apiAvailable = false;
       submitButton.disabled = true;
+      populateYearFilter();
       render();
       setMessage(`Centrale opslag niet bereikbaar: ${error.message}. Er wordt niets lokaal opgeslagen.`);
     }
@@ -215,6 +223,8 @@
         body: JSON.stringify(ride)
       });
       rides.push(payload.ride);
+      selectedYear = String(payload.ride.date).slice(0, 4);
+      populateYearFilter();
       render();
       resetForm();
       setMessage(`Rit centraal opgeslagen: ${formatNumber(payload.ride.distance)} km.`, 'success');
@@ -226,6 +236,25 @@
     }
   }
 
+  function populateYearFilter() {
+    const years = new Set(rides.map((ride) => String(ride.date).slice(0, 4)));
+    years.add(String(new Date().getFullYear()));
+    years.add(String(new Date().getFullYear() + 1));
+
+    if (!years.has(selectedYear)) {
+      selectedYear = [...years].sort().reverse()[0];
+    }
+
+    yearFilter.replaceChildren();
+    [...years].sort().reverse().forEach((year) => {
+      const option = document.createElement('option');
+      option.value = year;
+      option.textContent = year;
+      option.selected = year === selectedYear;
+      yearFilter.appendChild(option);
+    });
+  }
+
   function createCell(text, className = '') {
     const cell = document.createElement('td');
     cell.textContent = text;
@@ -234,10 +263,12 @@
   }
 
   function renderTable() {
+    const visibleRides = filteredRides();
     ridesBody.replaceChildren();
-    emptyState.hidden = rides.length > 0;
+    emptyState.hidden = visibleRides.length > 0;
+    emptyState.textContent = `Nog geen ritten opgeslagen voor ${selectedYear}.`;
 
-    rides.forEach((ride) => {
+    visibleRides.forEach((ride) => {
       const row = document.createElement('tr');
       row.appendChild(createCell(formatDate(ride.date)));
 
@@ -261,18 +292,19 @@
   }
 
   function renderSummary() {
-    const businessTotal = rides
+    const visibleRides = filteredRides();
+    const businessTotal = visibleRides
       .filter((ride) => ride.type === 'business')
       .reduce((sum, ride) => sum + ride.distance, 0);
-    const privateTotal = rides
+    const privateTotal = visibleRides
       .filter((ride) => ride.type === 'private')
       .reduce((sum, ride) => sum + ride.distance, 0);
-    const previous = latestRide();
+    const lastVisibleRide = visibleRides.length ? visibleRides[visibleRides.length - 1] : null;
 
-    totalRides.textContent = String(rides.length);
+    totalRides.textContent = String(visibleRides.length);
     businessKm.textContent = `${formatNumber(businessTotal)} km`;
     privateKm.textContent = `${formatNumber(privateTotal)} km`;
-    lastOdometer.textContent = previous ? `${formatNumber(previous.endOdometer)} km` : '—';
+    lastOdometer.textContent = lastVisibleRide ? `${formatNumber(lastVisibleRide.endOdometer)} km` : '—';
   }
 
   function render() {
@@ -291,28 +323,45 @@
   }
 
   function exportCsv() {
-    if (!rides.length) {
-      setMessage('Er zijn nog geen ritten om te exporteren.');
+    const visibleRides = filteredRides();
+    if (!visibleRides.length) {
+      setMessage(`Er zijn geen ritten voor ${selectedYear} om te exporteren.`);
       return;
     }
 
-    const header = [
-      'Datum', 'Type', 'Vertrekadres', 'Aankomstadres',
-      'Begin km-stand', 'Eind km-stand', 'Kilometers', 'Toelichting'
+    const businessTotal = visibleRides
+      .filter((ride) => ride.type === 'business')
+      .reduce((sum, ride) => sum + ride.distance, 0);
+    const privateTotal = visibleRides
+      .filter((ride) => ride.type === 'private')
+      .reduce((sum, ride) => sum + ride.distance, 0);
+    const totalDistance = businessTotal + privateTotal;
+    const firstRide = visibleRides[0];
+    const lastRide = visibleRides[visibleRides.length - 1];
+
+    const rows = [
+      ['Rittenregistratie', selectedYear],
+      ['Aantal ritten', visibleRides.length],
+      ['Begin kilometerstand', firstRide.startOdometer],
+      ['Eind kilometerstand', lastRide.endOdometer],
+      ['Zakelijke kilometers', businessTotal],
+      ['Privékilometers', privateTotal],
+      ['Totaal kilometers', totalDistance],
+      [],
+      ['Datum', 'Type', 'Vertrekadres', 'Aankomstadres', 'Begin km-stand', 'Eind km-stand', 'Kilometers', 'Toelichting'],
+      ...visibleRides.map((ride) => [
+        ride.date,
+        ride.type === 'private' ? 'Privé' : 'Zakelijk',
+        ride.departureAddress,
+        ride.arrivalAddress,
+        ride.startOdometer,
+        ride.endOdometer,
+        ride.distance,
+        ride.notes
+      ])
     ];
 
-    const rows = rides.map((ride) => [
-      ride.date,
-      ride.type === 'private' ? 'Privé' : 'Zakelijk',
-      ride.departureAddress,
-      ride.arrivalAddress,
-      ride.startOdometer,
-      ride.endOdometer,
-      ride.distance,
-      ride.notes
-    ]);
-
-    const content = [header, ...rows]
+    const content = rows
       .map((row) => row.map(csvEscape).join(';'))
       .join('\r\n');
 
@@ -320,11 +369,12 @@
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `rittenregistratie-${new Date().getFullYear()}.csv`;
+    link.download = `rittenregistratie-${selectedYear}.csv`;
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+    setMessage(`Jaaroverzicht ${selectedYear} geëxporteerd.`, 'success');
   }
 
   function setupThemeToggle() {
@@ -346,8 +396,13 @@
   document.getElementById('fillFromPrevious').addEventListener('click', fillPreviousOdometer);
   document.getElementById('resetForm').addEventListener('click', () => resetForm());
   document.getElementById('exportCsv').addEventListener('click', exportCsv);
+  yearFilter.addEventListener('change', () => {
+    selectedYear = yearFilter.value;
+    render();
+  });
 
   setupThemeToggle();
+  populateYearFilter();
   render();
   loadRides();
 })();
