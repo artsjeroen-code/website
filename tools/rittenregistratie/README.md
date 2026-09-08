@@ -14,7 +14,8 @@ Deze tool draait onder:
 6. Voertuiggegevens.
 7. Gecontroleerde correcties + auditlog.
 8. Dagelijkse SQLite-back-up + hersteltest.
-9. Koppeling vanaf de startpagina en beveiliging verder aanscherpen.
+9. Toegangsbeveiliging via Nginx Basic Auth.
+10. Koppeling vanaf de startpagina.
 
 ## Architectuur
 
@@ -23,7 +24,7 @@ Deze tool draait onder:
 - De ritten-API draait lokaal op `127.0.0.1:8765` via systemd.
 - Nginx publiceert de API onder `/tools/rittenregistratie/api/`.
 - De SQLite-database staat buiten de Git-repository in `/var/lib/rittenregistratie/ritten.db`.
-- Ritdata en back-ups horen niet in GitHub.
+- Ritdata, back-ups en wachtwoordbestanden horen niet in GitHub.
 
 ## Opslaggedrag
 
@@ -76,6 +77,14 @@ Systemd gebruikt:
 
 De timer plant dagelijks rond 03:15 lokale systeemtijd met maximaal 10 minuten willekeurige vertraging. `Persistent=true` zorgt dat een gemiste uitvoering na een uitgeschakelde RPi bij de volgende start alsnog wordt ingehaald.
 
+## Toegangsbeveiliging
+
+De volledige map `/tools/rittenregistratie/` en de specifiekere API-location `/tools/rittenregistratie/api/` worden in Nginx met HTTP Basic Auth beveiligd. Omdat de site uitsluitend via HTTPS wordt gebruikt, worden de Basic Auth-gegevens versleuteld over TLS verzonden.
+
+Het wachtwoordbestand staat alleen op de Raspberry Pi in `/etc/nginx/rittenregistratie.htpasswd` en wordt niet in GitHub opgeslagen. De voorbeeldconfig staat in `deploy/nginx-location.conf`.
+
+Na activering moet een request zonder inloggegevens voor zowel de pagina als de API `401 Unauthorized` retourneren. Na geldige authenticatie moeten beide normaal bereikbaar zijn.
+
 ## Huidige status
 
-De kernregistratie is functioneel compleet: centrale opslag, voertuigcontext, GPS/adressen, routecontrole, jaaroverzicht/export en traceerbare correcties. Dagelijkse databaseback-up is in de bron opgenomen. Na installatie op de RPi moet nog expliciet een back-up én een hersteltest worden uitgevoerd. Daarna zijn koppeling vanaf de startpagina en verdere toegangsbeveiliging de belangrijkste vervolgstappen.
+De kernregistratie is functioneel compleet: centrale opslag, voertuigcontext, GPS/adressen, routecontrole, jaaroverzicht/export en traceerbare correcties. Dagelijkse databaseback-up en Nginx-toegangsbeveiliging zijn in de bron opgenomen. Op de RPi moeten de timer en Basic Auth eenmalig worden geïnstalleerd en getest. Daarna kan de tool desgewenst vanaf de startpagina worden gekoppeld.
