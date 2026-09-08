@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Rittenregistratie</title>
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('startpagina-theme') || 'dark';
+      document.documentElement.dataset.theme = savedTheme;
+    })();
+  </script>
+  <link rel="stylesheet" href="../../google_palette.css">
+  <link rel="stylesheet" href="../../utility-rail.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <aside class="utility-rail" aria-label="Snelkoppelingen">
+    <button class="rail-button rail-theme" id="railTheme" type="button" aria-label="Wissel licht/donker thema" title="Thema">
+      <span class="rail-icon icon-theme" aria-hidden="true"></span>
+    </button>
+    <a class="rail-button" href="../../" aria-label="Terug naar startpagina" title="Startpagina">
+      <span class="rail-icon icon-home" aria-hidden="true"></span>
+    </a>
+  </aside>
+
+  <main class="page-shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">Tool</p>
+        <h1>Rittenregistratie</h1>
+        <p class="subtitle">Registreer iedere rit en houd de kilometerstanden sluitend.</p>
+      </div>
+      <span class="mode-badge">Lokale testmodus</span>
+    </header>
+
+    <section class="summary-grid" aria-label="Samenvatting">
+      <article class="summary-card">
+        <span>Ritten</span>
+        <strong id="totalRides">0</strong>
+      </article>
+      <article class="summary-card">
+        <span>Zakelijk</span>
+        <strong id="businessKm">0 km</strong>
+      </article>
+      <article class="summary-card">
+        <span>Privé</span>
+        <strong id="privateKm">0 km</strong>
+      </article>
+      <article class="summary-card">
+        <span>Laatste km-stand</span>
+        <strong id="lastOdometer">—</strong>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Nieuwe rit</p>
+          <h2>Rit invoeren</h2>
+        </div>
+        <button class="secondary-button" id="fillFromPrevious" type="button">Vorige eindstand overnemen</button>
+      </div>
+
+      <form id="rideForm" novalidate>
+        <div class="form-grid compact-grid">
+          <label>
+            <span>Datum</span>
+            <input id="rideDate" name="rideDate" type="date" required>
+          </label>
+          <label>
+            <span>Type rit</span>
+            <select id="rideType" name="rideType" required>
+              <option value="business">Zakelijk</option>
+              <option value="private">Privé</option>
+            </select>
+          </label>
+          <label>
+            <span>Begin km-stand</span>
+            <input id="startOdometer" name="startOdometer" type="number" min="0" step="1" inputmode="numeric" required>
+          </label>
+          <label>
+            <span>Eind km-stand</span>
+            <input id="endOdometer" name="endOdometer" type="number" min="0" step="1" inputmode="numeric" required>
+          </label>
+        </div>
+
+        <div class="distance-preview" aria-live="polite">
+          <span>Afstand volgens kilometerteller</span>
+          <strong id="distancePreview">— km</strong>
+        </div>
+
+        <div class="address-grid">
+          <div class="address-block">
+            <label for="departureAddress">Vertrekadres</label>
+            <div class="address-row">
+              <input id="departureAddress" name="departureAddress" type="text" autocomplete="street-address" placeholder="Straat, huisnummer, plaats" required>
+              <button class="location-button" type="button" data-location-target="departureAddress">Gebruik locatie</button>
+            </div>
+            <small id="departureMeta" class="field-meta"></small>
+          </div>
+
+          <div class="address-block">
+            <label for="arrivalAddress">Aankomstadres</label>
+            <div class="address-row">
+              <input id="arrivalAddress" name="arrivalAddress" type="text" autocomplete="street-address" placeholder="Straat, huisnummer, plaats" required>
+              <button class="location-button" type="button" data-location-target="arrivalAddress">Gebruik locatie</button>
+            </div>
+            <small id="arrivalMeta" class="field-meta"></small>
+          </div>
+        </div>
+
+        <label class="notes-field">
+          <span>Doel / toelichting <em>(optioneel)</em></span>
+          <input id="notes" name="notes" type="text" placeholder="Bijv. klantbezoek, kantoor, afwijkende route">
+        </label>
+
+        <div id="formMessage" class="form-message" role="status" aria-live="polite"></div>
+
+        <div class="form-actions">
+          <button class="primary-button" type="submit">Rit opslaan</button>
+          <button class="secondary-button" id="resetForm" type="button">Formulier wissen</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-heading table-heading">
+        <div>
+          <p class="eyebrow">Overzicht</p>
+          <h2>Opgeslagen ritten</h2>
+        </div>
+        <div class="table-actions">
+          <button class="secondary-button" id="exportCsv" type="button">Download CSV</button>
+          <button class="danger-button" id="clearAll" type="button">Wis testgegevens</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Datum</th>
+              <th>Type</th>
+              <th>Van</th>
+              <th>Naar</th>
+              <th>Begin</th>
+              <th>Eind</th>
+              <th>Km</th>
+              <th>Toelichting</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="ridesBody"></tbody>
+        </table>
+      </div>
+      <p id="emptyState" class="empty-state">Nog geen ritten opgeslagen.</p>
+    </section>
+
+    <section class="notice">
+      <strong>Testfase:</strong> gegevens worden nu alleen in deze browser opgeslagen. De definitieve versie krijgt centrale SQLite-opslag op de Raspberry Pi en automatische omzetting van GPS naar een adres.
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
