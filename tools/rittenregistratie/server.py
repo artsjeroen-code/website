@@ -4,11 +4,15 @@ import os
 import sqlite3
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 
 HOST = os.environ.get("RITTEN_HOST", "127.0.0.1")
 PORT = int(os.environ.get("RITTEN_PORT", "8765"))
 DB_PATH = os.environ.get("RITTEN_DB", "/var/lib/rittenregistratie/ritten.db")
+OSRM_BASE = os.environ.get("RITTEN_OSRM", "https://router.project-osrm.org")
+USER_AGENT = "artsjeroen-rittenregistratie/0.2 (+https://artsjeroen.ddns.net/tools/rittenregistratie/)"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS rides (
@@ -94,8 +98,56 @@ def validate_ride(payload):
     return start, end
 
 
+def validate_coord(value, minimum, maximum, label):
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"Ongeldige {label}")
+    if number < minimum or number > maximum:
+        raise ValueError(f"Ongeldige {label}")
+    return number
+
+
+def fetch_route(payload):
+    departure = payload.get("departure") or {}
+    arrival = payload.get("arrival") or {}
+    dep_lat = validate_coord(departure.get("lat"), -90, 90, "vertrek-latitude")
+    dep_lon = validate_coord(departure.get("lon"), -180, 180, "vertrek-longitude")
+    arr_lat = validate_coord(arrival.get("lat"), -90, 90, "aankomst-latitude")
+    arr_lon = validate_coord(arrival.get("lon"), -180, 180, "aankomst-longitude")
+
+    url = (
+        f"{OSRM_BASE}/route/v1/driving/"
+        f"{dep_lon},{dep_lat};{arr_lon},{arr_lat}"
+        "?overview=false&alternatives=false&steps=false"
+    )
+    request = Request(url, headers={
+        "Accept": "application/json",
+        "User-Agent": USER_AGENT,
+        "Referer": "https://artsjeroen.ddns.net/tools/rittenregistratie/",
+    })
+
+    try:
+        with urlopen(request, timeout=10) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
+        raise RuntimeError("Route-service tijdelijk niet beschikbaar") from error
+
+    if result.get("code") != "Ok" or not result.get("routes"):
+        raise RuntimeError("Geen autoroute gevonden")
+
+    route = result["routes"][0]
+    distance_km = round(float(route["distance"]) / 1000, 1)
+    duration_minutes = round(float(route["duration"]) / 60)
+    return {
+        "distanceKm": distance_km,
+        "durationMinutes": duration_minutes,
+        "provider": "OSRM / OpenStreetMap",
+    }
+
+
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RittenregistratieAPI/0.1"
+    server_version = "RittenregistratieAPI/0.2"
 
     def log_message(self, fmt, *args):
         print(f"{self.address_string()} - {fmt % args}")
@@ -137,6 +189,17 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
+
+        if path == "/api/route":
+            try:
+                payload = self.read_json()
+                self.send_json(200, {"route": fetch_route(payload)})
+            except ValueError as error:
+                self.send_json(400, {"error": str(error)})
+            except RuntimeError as error:
+                self.send_json(503, {"error": str(error)})
+            return
+
         if path != "/api/rides":
             self.send_json(404, {"error": "Niet gevonden"})
             return
