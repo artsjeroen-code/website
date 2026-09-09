@@ -8,6 +8,8 @@
   const correctionType = document.getElementById('correctionType');
   const correctionStart = document.getElementById('correctionStart');
   const correctionEnd = document.getElementById('correctionEnd');
+  const correctionDepartureTime = document.getElementById('correctionDepartureTime');
+  const correctionArrivalTime = document.getElementById('correctionArrivalTime');
   const correctionDeparture = document.getElementById('correctionDeparture');
   const correctionArrival = document.getElementById('correctionArrival');
   const correctionNotes = document.getElementById('correctionNotes');
@@ -70,6 +72,8 @@
     correctionType.value = ride.type;
     correctionStart.value = ride.startOdometer;
     correctionEnd.value = ride.endOdometer;
+    correctionDepartureTime.value = ride.departureTime || '';
+    correctionArrivalTime.value = ride.arrivalTime || '';
     correctionDeparture.value = ride.departureAddress;
     correctionArrival.value = ride.arrivalAddress;
     correctionNotes.value = ride.notes || '';
@@ -83,6 +87,7 @@
     const changed = [];
     const labels = {
       date: 'datum', type: 'type', startOdometer: 'beginstand', endOdometer: 'eindstand',
+      departureTime: 'vertrektijd', arrivalTime: 'aankomsttijd',
       departureAddress: 'vertrekadres', arrivalAddress: 'aankomstadres', notes: 'toelichting'
     };
     Object.keys(labels).forEach((key) => {
@@ -144,6 +149,8 @@
           type: correctionType.value,
           startOdometer: Number(correctionStart.value),
           endOdometer: Number(correctionEnd.value),
+          departureTime: correctionDepartureTime.value || null,
+          arrivalTime: correctionArrivalTime.value || null,
           departureAddress: correctionDeparture.value.trim(),
           arrivalAddress: correctionArrival.value.trim(),
           notes: correctionNotes.value.trim(),
