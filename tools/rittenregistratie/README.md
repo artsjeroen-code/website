@@ -20,7 +20,7 @@ De interface is opgebouwd als compacte webapp met een hamburgermenu linksboven e
 - De ritten-API draait lokaal op `127.0.0.1:8765` via systemd.
 - Nginx publiceert de API onder `/tools/rittenregistratie/api/`.
 - De SQLite-database staat buiten Git in `/var/lib/rittenregistratie/ritten.db`.
-- Ritdata, back-ups en wachtwoordbestanden horen niet in GitHub.
+- Ritdata, back-ups, mailwachtwoorden en wachtwoordbestanden horen niet in GitHub.
 
 ## Voertuigen en kilometerketens
 
@@ -95,6 +95,33 @@ Back-ups staan in `/var/backups/rittenregistratie/`. Standaard worden back-ups o
 
 - `deploy/rittenregistratie-backup.service`
 - `deploy/rittenregistratie-backup.timer`
+
+## Maandelijkse e-mailrapportage
+
+`monthly_report.py` leest de SQLite-database alleen-lezen en maakt op de eerste dag van iedere maand een rapport van de volledige vorige kalendermaand.
+
+De e-mail bevat:
+
+- aantal ritten;
+- zakelijke kilometers;
+- privékilometers;
+- totaal aantal kilometers;
+- een CSV-bijlage met alle ritten, inclusief vertrek-/aankomsttijd en kenteken.
+
+Ook een maand zonder ritten wordt verzonden, met een CSV die alleen de kolomkoppen bevat.
+
+Systemd gebruikt:
+
+- `deploy/rittenregistratie-monthly-report.service`
+- `deploy/rittenregistratie-monthly-report.timer`
+
+De timer draait op de eerste dag van de maand rond 08:00 lokale RPi-tijd en gebruikt `Persistent=true`, zodat een gemiste run na een latere boot alsnog wordt uitgevoerd.
+
+Mailconfiguratie staat uitsluitend op de RPi in `/etc/rittenregistratie-mail.env`. Gebruik `deploy/rittenregistratie-mail.env.example` als voorbeeld. Een Gmail app-wachtwoord mag nooit in GitHub of chat worden gezet.
+
+## Releasenotes
+
+Rittenregistratie heeft een eigen leesbare releasenotepagina onder `release/rittenregistratie.html`, gescheiden van de startpagina en andere tools.
 
 ## Toegangsbeveiliging
 
