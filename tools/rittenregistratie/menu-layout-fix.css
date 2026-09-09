@@ -1,0 +1,6 @@
+/* Houd op desktop altijd ruimte vrij voor de vaste hamburgerknop linksboven. */
+@media (min-width: 769px) {
+  .page-shell {
+    width: min(1180px, calc(100% - 128px));
+  }
+}
