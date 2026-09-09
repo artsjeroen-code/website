@@ -40,19 +40,21 @@
 
     const response = await fetch(`${NOMINATIM_REVERSE_URL}?${params.toString()}`, {
       method: 'GET',
-      headers: {
-        Accept: 'application/json'
-      }
+      headers: { Accept: 'application/json' }
     });
 
-    if (!response.ok) {
-      throw new Error(`Reverse geocoding gaf HTTP ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`Reverse geocoding gaf HTTP ${response.status}`);
 
     const result = await response.json();
     const formatted = formatAddress(result);
     if (!formatted) throw new Error('Geen bruikbaar adres gevonden');
     return formatted;
+  }
+
+  function notifyLocationFilled(targetId) {
+    document.dispatchEvent(new CustomEvent('rittenregistratie:location-filled', {
+      detail: { targetId }
+    }));
   }
 
   function locateAndFill(targetId, button) {
@@ -97,6 +99,7 @@
           meta.textContent = `GPS ±${Math.round(accuracy)} m · adres kon niet automatisch worden bepaald`;
           setFormMessage('Locatie gevonden, maar het straatadres kon niet worden opgehaald. Je kunt het adres handmatig aanpassen.');
         } finally {
+          notifyLocationFilled(targetId);
           restore();
         }
       },
