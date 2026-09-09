@@ -50,9 +50,11 @@
         <li>Overzicht kan per kalenderjaar of afzonderlijke maand worden gefilterd en als CSV worden geëxporteerd.</li>
         <li>Gecontroleerde ritcorrecties met auditlog toegevoegd.</li>
         <li>Dagelijkse consistente SQLite-back-up met integriteitscontrole en rotatie toegevoegd.</li>
-        <li>Rittenregistratie en API afgeschermd met Nginx Basic Auth over HTTPS.</li>
         <li>Maandelijkse e-mailrapportage toegevoegd: op de eerste dag van de maand wordt het overzicht van de vorige maand met CSV-bijlage verzonden via de Raspberry Pi.</li>
         <li>Online-first PWA toegevoegd met manifest, standalone weergave, app-iconen en service worker. Alleen statische appbestanden worden gecachet; API- en ritdata worden expliciet niet gecachet.</li>
+        <li>Passkey/WebAuthn-login toegevoegd via een aparte lokale authenticatieservice. Dagelijkse toegang kan daardoor met Face ID, Touch ID, vingerafdruk of de door het apparaat gekozen gebruikersverificatie plaatsvinden.</li>
+        <li>De bestaande Basic Auth is teruggebracht tot bootstrap/herstel voor het registreren van een eerste of extra passkey; normale ritdata en API-toegang vereisen een geldige passkey-sessie.</li>
+        <li>Passkey-private keys en biometrische gegevens worden niet op de Raspberry Pi opgeslagen; alleen publieke credentialdata en sessies staan lokaal in <code>/var/lib/rittenregistratie/auth.db</code>.</li>
       </ul>
     </article>
 
