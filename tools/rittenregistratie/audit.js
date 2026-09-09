@@ -55,7 +55,7 @@
     return `${ride.date} · ${plate} · ${ride.startOdometer}-${ride.endOdometer} km · ${ride.departureAddress} → ${ride.arrivalAddress}`;
   }
 
-  function populateRideSelect() {
+  function populateRideSelect(selectedRideId = '') {
     rideSelect.replaceChildren();
     const placeholder = document.createElement('option');
     placeholder.value = '';
@@ -68,6 +68,10 @@
       option.textContent = rideLabel(ride);
       rideSelect.appendChild(option);
     });
+
+    if (selectedRideId && rides.some((ride) => String(ride.id) === String(selectedRideId))) {
+      rideSelect.value = String(selectedRideId);
+    }
   }
 
   function fillCorrectionForm() {
@@ -126,13 +130,14 @@
     });
   }
 
-  async function load() {
+  async function load(selectedRideId = '') {
     try {
       const [ridesPayload, auditPayload] = await Promise.all([api('/rides'), api('/audit')]);
       rides = ridesPayload.rides || [];
       audit = auditPayload.audit || [];
-      populateRideSelect();
+      populateRideSelect(selectedRideId);
       renderAudit();
+      if (selectedRideId) fillCorrectionForm();
     } catch (error) {
       setMessage(`Correcties konden niet worden geladen: ${error.message}`);
     }
@@ -172,8 +177,11 @@
           reason: correctionReason.value.trim()
         })
       });
-      setMessage('Correctie opgeslagen en in de auditlog vastgelegd. Pagina wordt ververst.', true);
-      window.setTimeout(() => window.location.reload(), 600);
+
+      await load(id);
+      correctionReason.value = '';
+      setMessage('Rit is gecorrigeerd en de wijziging is in de auditlog vastgelegd.', true);
+      document.dispatchEvent(new CustomEvent('rittenregistratie:data-changed'));
     } catch (error) {
       setMessage(`Correctie niet opgeslagen: ${error.message}`);
     } finally {
@@ -185,6 +193,14 @@
   [correctionDepartureTime, correctionArrivalTime].forEach((input) => {
     input.addEventListener('blur', () => normalizeTimeField(input));
   });
+
+  document.addEventListener('rittenregistratie:edit-ride', (event) => {
+    const rideId = event.detail && event.detail.rideId;
+    if (!rideId) return;
+    rideSelect.value = String(rideId);
+    fillCorrectionForm();
+  });
+
   rideSelect.addEventListener('change', fillCorrectionForm);
   correctionForm.addEventListener('submit', submitCorrection);
   load();
