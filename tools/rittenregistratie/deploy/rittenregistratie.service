@@ -11,7 +11,7 @@ Environment=PYTHONUNBUFFERED=1
 Environment=RITTEN_HOST=127.0.0.1
 Environment=RITTEN_PORT=8765
 Environment=RITTEN_DB=/var/lib/rittenregistratie/ritten.db
-ExecStart=/usr/bin/python3 /var/www/html/tools/rittenregistratie/server.py
+ExecStart=/usr/bin/python3 /var/www/html/tools/rittenregistratie/quick_server.py
 Restart=on-failure
 RestartSec=3
 NoNewPrivileges=true
