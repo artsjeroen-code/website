@@ -18,9 +18,11 @@ De interface is opgebouwd als compacte webapp met een hamburgermenu linksboven e
 - GitHub `main` is de bron van waarheid voor code.
 - De website staat op de RPi onder `/var/www/html`.
 - De ritten-API draait lokaal op `127.0.0.1:8765` via systemd.
-- Nginx publiceert de API onder `/tools/rittenregistratie/api/`.
-- De SQLite-database staat buiten Git in `/var/lib/rittenregistratie/ritten.db`.
-- Ritdata, back-ups, mailwachtwoorden en wachtwoordbestanden horen niet in GitHub.
+- De passkey-authenticatieservice draait lokaal op `127.0.0.1:8766` via systemd.
+- Nginx publiceert de tool en gebruikt een interne `auth_request` naar de authenticatieservice.
+- De ritten-SQLite-database staat buiten Git in `/var/lib/rittenregistratie/ritten.db`.
+- Passkeys en sessies staan apart buiten Git in `/var/lib/rittenregistratie/auth.db`.
+- Ritdata, passkeycredentials, back-ups, mailwachtwoorden en wachtwoordbestanden horen niet in GitHub.
 
 ## PWA
 
@@ -33,9 +35,62 @@ Bestanden:
 - `pwa.js` — registreert de service worker;
 - `icons/` — app-iconen.
 
-Belangrijk: `/tools/rittenregistratie/api/` wordt expliciet niet door de service worker onderschept of gecachet. Ritdata, voertuigen en auditgegevens blijven daardoor uitsluitend via de centrale API/SQLite-opslag lopen.
+Belangrijk: `/tools/rittenregistratie/api/` wordt expliciet niet door de service worker onderschept of gecachet. Ritdata, voertuigen, auditgegevens en authenticatieresponses blijven daardoor uitsluitend via de centrale services lopen. Loginredirects worden niet als app-shell gecachet.
 
-Als de verbinding wegvalt kan een eerder geladen app-shell nog openen, maar gegevens ophalen, ritten opslaan, RDW, reverse geocoding en routecontrole vereisen een werkende netwerkverbinding. Er is bewust nog geen offline synchronisatiewachtrij om dubbele ritten of conflicten in de kilometerketen te voorkomen.
+Als de verbinding wegvalt kan een eerder geladen app-shell nog openen, maar gegevens ophalen, ritten opslaan, inloggen, RDW, reverse geocoding en routecontrole vereisen een werkende netwerkverbinding. Er is bewust nog geen offline synchronisatiewachtrij om dubbele ritten of conflicten in de kilometerketen te voorkomen.
+
+## Passkey / Face ID / vingerafdruk
+
+De dagelijkse toegang gebruikt WebAuthn/passkeys. De gebruiker opent eerst `login.html` en authenticatie gebeurt met de passkey-provider van het apparaat. `userVerification=required` wordt gebruikt. Afhankelijk van het platform kan dit Face ID, Touch ID, vingerafdruk, Windows Hello of de apparaat-PIN/-code zijn. De website kan niet afdwingen welke lokale verificatiemethode het besturingssysteem kiest.
+
+De server bewaart geen biometrische informatie en geen private key. In `auth.db` staan alleen de publieke WebAuthn-credentialdata en sessies.
+
+Bestanden:
+
+- `auth_server.py` — aparte WebAuthn- en sessieservice;
+- `login.html`, `passkey.js`, `auth.css` — publieke logininterface zonder ritdata;
+- `register.html`, `register-passkey.js` — bootstrap/herstel voor nieuwe passkeys;
+- `requirements-auth.txt` — gepinde Python-dependency `fido2==1.2.0`;
+- `deploy/rittenregistratie-auth.service` — systemd-service op `127.0.0.1:8766`;
+- `deploy/nginx-location.conf` — Nginx-routing en sessiecontrole.
+
+De bestaande Nginx Basic Auth blijft alleen voor `register.html` en de registratie-endpoints bestaan. Daardoor kan een eerste of extra passkey alleen worden toegevoegd nadat het bestaande wachtwoord is ingevoerd. Normale toegang tot de rittenregistratie gebruikt daarna geen Basic Auth meer.
+
+Een succesvolle passkey-login maakt een `HttpOnly`, `Secure`, `SameSite=Strict` sessiecookie met scope `/tools/rittenregistratie/`. De standaard systemd-config laat sessies zeven dagen geldig zijn. De normale ritten-API is alleen bereikbaar wanneer Nginx via `/auth-check` een geldige sessie bevestigt.
+
+### Veilige deployvolgorde passkeys
+
+Voer de overstap in deze volgorde uit zodat de huidige Basic Auth actief blijft tot de nieuwe service bewezen werkt:
+
+1. `git pull origin main` op de RPi.
+2. Maak een back-up van de rittenregistratie.
+3. Installeer een aparte virtualenv en dependency:
+
+   ```bash
+   sudo apt update
+   sudo apt install python3-venv
+   sudo python3 -m venv /var/lib/rittenregistratie/auth-venv
+   sudo /var/lib/rittenregistratie/auth-venv/bin/pip install -r /var/www/html/tools/rittenregistratie/requirements-auth.txt
+   sudo chown -R www-data:www-data /var/lib/rittenregistratie/auth-venv
+   ```
+
+4. Installeer en start eerst alleen de auth-service:
+
+   ```bash
+   sudo cp /var/www/html/tools/rittenregistratie/deploy/rittenregistratie-auth.service /etc/systemd/system/
+   sudo systemctl daemon-reload
+   sudo systemctl enable --now rittenregistratie-auth.service
+   systemctl status rittenregistratie-auth.service --no-pager
+   curl http://127.0.0.1:8766/api/auth/status
+   ```
+
+5. Pas pas na een succesvolle lokale statuscheck de Nginx-locations toe vanuit `deploy/nginx-location.conf`.
+6. Voer `sudo nginx -t` uit; alleen bij succes `sudo systemctl reload nginx`.
+7. Open `https://artsjeroen.ddns.net/tools/rittenregistratie/`. Zonder sessie moet de browser naar `login.html` gaan.
+8. Kies **Eerste passkey instellen**. Alleen dan verschijnt de bestaande Basic Auth-vraag. Registreer de passkey en controleer dat de app daarna opent.
+9. Test in een privévenster: normale toegang moet zonder wachtwoordprompt naar de passkey-login gaan; de ritten-API moet zonder sessie `401` geven.
+
+Verwijder het bestaande htpasswd-bestand niet: het blijft het gecontroleerde bootstrap/herstelpad voor het registreren van extra passkeys.
 
 ## Voertuigen en kilometerketens
 
@@ -137,7 +192,3 @@ Mailconfiguratie staat uitsluitend op de RPi in `/etc/rittenregistratie-mail.env
 ## Releasenotes
 
 Rittenregistratie heeft een eigen leesbare releasenotepagina onder `release/rittenregistratie.html`, gescheiden van de startpagina en andere tools.
-
-## Toegangsbeveiliging
-
-De volledige map `/tools/rittenregistratie/` en de API worden in Nginx met HTTP Basic Auth beveiligd. Het wachtwoordbestand staat alleen op de Raspberry Pi in `/etc/nginx/rittenregistratie.htpasswd`.
