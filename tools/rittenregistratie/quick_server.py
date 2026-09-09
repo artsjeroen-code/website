@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
+import json
 import sqlite3
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 import server as base
+
+FULL_REGISTRATION_FROM = "2027-01-01"
+PRIVATE_KM_LIMIT = 500
 
 QUICK_SCHEMA = """
 CREATE TABLE IF NOT EXISTS quick_rides (
@@ -29,6 +33,17 @@ def db_connect():
     db = base.db_connect()
     db.executescript(QUICK_SCHEMA)
     return db
+
+
+def full_registration(date_value):
+    return str(date_value or "") >= FULL_REGISTRATION_FROM
+
+
+def validate_policy_ride(payload):
+    start, end = base.validate_ride(payload)
+    if not full_registration(payload.get("date")) and payload.get("type") != "business":
+        raise ValueError("Tot en met 2026 worden alleen zakelijke ritten geregistreerd")
+    return start, end
 
 
 def quick_to_dict(row):
@@ -66,10 +81,17 @@ def capture_values(payload):
 
 
 class Handler(base.Handler):
-    server_version = "RittenregistratieAPI/0.8"
+    server_version = "RittenregistratieAPI/0.9"
 
     def do_GET(self):
-        if urlparse(self.path).path != "/api/quick-rides":
+        path = urlparse(self.path).path
+        if path == "/api/policy":
+            self.send_json(200, {
+                "fullRegistrationFrom": FULL_REGISTRATION_FROM,
+                "privateKmLimit": PRIVATE_KM_LIMIT,
+            })
+            return
+        if path != "/api/quick-rides":
             return super().do_GET()
         try:
             with db_connect() as db:
@@ -80,8 +102,72 @@ class Handler(base.Handler):
         except sqlite3.Error:
             self.send_json(500, {"error": "Databasefout"})
 
+    def save_policy_ride(self):
+        try:
+            payload = self.read_json()
+            start, end = validate_policy_ride(payload)
+            vehicle_id = base.validate_vehicle_id(payload)
+            departure = payload.get("departureCoords") or {}
+            arrival = payload.get("arrivalCoords") or {}
+            departure_time = base.validate_time(payload.get("departureTime"), "Vertrektijd")
+            arrival_time = base.validate_time(payload.get("arrivalTime"), "Aankomsttijd")
+            created_at = datetime.now(timezone.utc).isoformat()
+
+            with db_connect() as db:
+                vehicle = db.execute("SELECT * FROM vehicles WHERE id = ?", (vehicle_id,)).fetchone()
+                if vehicle is None:
+                    raise ValueError("Geselecteerd voertuig bestaat niet")
+                if payload["date"] < vehicle["use_from"]:
+                    raise ValueError(f"Ritdatum ligt vóór de gebruiksperiode van {vehicle['plate']}")
+                if vehicle["use_to"] and payload["date"] > vehicle["use_to"]:
+                    raise ValueError(f"Ritdatum ligt ná de gebruiksperiode van {vehicle['plate']}")
+
+                if full_registration(payload["date"]):
+                    previous = db.execute(
+                        """
+                        SELECT end_odometer, ride_date FROM rides
+                        WHERE vehicle_id = ? AND ride_date >= ?
+                        ORDER BY ride_date DESC, id DESC LIMIT 1
+                        """,
+                        (vehicle_id, FULL_REGISTRATION_FROM),
+                    ).fetchone()
+                    if previous is not None:
+                        if payload["date"] < previous["ride_date"]:
+                            raise ValueError("Voeg ritten vanaf 2027 in chronologische volgorde toe")
+                        if start != previous["end_odometer"]:
+                            raise ValueError(
+                                f"Niet sluitend voor {vehicle['plate']}: vorige eindstand is {previous['end_odometer']} km"
+                            )
+
+                cursor = db.execute(
+                    """
+                    INSERT INTO rides (
+                        vehicle_id, ride_date, ride_type, start_odometer, end_odometer, distance,
+                        departure_address, arrival_address, departure_lat, departure_lon,
+                        arrival_lat, arrival_lon, departure_time, arrival_time, notes, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        vehicle_id, payload["date"], payload["type"], start, end, end - start,
+                        str(payload["departureAddress"]).strip(), str(payload["arrivalAddress"]).strip(),
+                        departure.get("lat"), departure.get("lon"), arrival.get("lat"), arrival.get("lon"),
+                        departure_time, arrival_time, str(payload.get("notes") or "").strip(), created_at,
+                    ),
+                )
+                row = db.execute(base.ride_select_sql("WHERE r.id = ?"), (cursor.lastrowid,)).fetchone()
+                db.commit()
+            self.send_json(201, {"ride": base.row_to_dict(row)})
+        except ValueError as error:
+            self.send_json(400, {"error": str(error)})
+        except sqlite3.Error:
+            self.send_json(500, {"error": "Databasefout"})
+
     def do_POST(self):
         path = urlparse(self.path).path
+        if path == "/api/rides":
+            self.save_policy_ride()
+            return
+
         if path not in ("/api/quick-rides/start", "/api/quick-rides/end") and not (
             path.startswith("/api/quick-rides/") and path.endswith("/archive")
         ):
@@ -150,9 +236,102 @@ class Handler(base.Handler):
         except sqlite3.Error:
             self.send_json(500, {"error": "Databasefout"})
 
+    def do_PATCH(self):
+        path = urlparse(self.path).path
+        parts = path.strip("/").split("/")
+        if len(parts) != 3 or parts[0] != "api" or parts[1] != "rides":
+            return super().do_PATCH()
+        try:
+            ride_id = int(parts[2])
+            payload = self.read_json()
+            reason = str(payload.get("reason") or "").strip()
+            if len(reason) < 5:
+                raise ValueError("Geef een duidelijke correctiereden van minimaal 5 tekens")
+            if len(reason) > 500:
+                raise ValueError("Correctiereden is te lang")
+            start, end = validate_policy_ride(payload)
+
+            with db_connect() as db:
+                current = db.execute(base.ride_select_sql("WHERE r.id = ?"), (ride_id,)).fetchone()
+                if current is None:
+                    raise ValueError("Rit niet gevonden")
+                vehicle_id = current["vehicle_id"]
+                old_snapshot = base.row_to_dict(current)
+                plate = current["vehicle_plate"] or "dit voertuig"
+
+                if full_registration(payload["date"]):
+                    prev = db.execute(
+                        """
+                        SELECT end_odometer FROM rides
+                        WHERE vehicle_id=? AND id<? AND ride_date>=?
+                        ORDER BY id DESC LIMIT 1
+                        """,
+                        (vehicle_id, ride_id, FULL_REGISTRATION_FROM),
+                    ).fetchone()
+                    nxt = db.execute(
+                        """
+                        SELECT start_odometer FROM rides
+                        WHERE vehicle_id=? AND id>? AND ride_date>=?
+                        ORDER BY id ASC LIMIT 1
+                        """,
+                        (vehicle_id, ride_id, FULL_REGISTRATION_FROM),
+                    ).fetchone()
+                    if prev is not None and start != prev["end_odometer"]:
+                        raise ValueError(
+                            f"Correctie verbreekt de kilometerketen van {plate}: vorige rit eindigt op {prev['end_odometer']} km"
+                        )
+                    if nxt is not None and end != nxt["start_odometer"]:
+                        raise ValueError(
+                            f"Correctie verbreekt de kilometerketen van {plate}: volgende rit begint op {nxt['start_odometer']} km"
+                        )
+
+                dep_lat, dep_lon = base.correction_coords(
+                    payload, "departureCoords", current["departure_lat"], current["departure_lon"]
+                )
+                arr_lat, arr_lon = base.correction_coords(
+                    payload, "arrivalCoords", current["arrival_lat"], current["arrival_lon"]
+                )
+                departure_time = base.validate_time(
+                    payload.get("departureTime", current["departure_time"]), "Vertrektijd"
+                )
+                arrival_time = base.validate_time(
+                    payload.get("arrivalTime", current["arrival_time"]), "Aankomsttijd"
+                )
+                db.execute(
+                    """
+                    UPDATE rides SET ride_date=?, ride_type=?, start_odometer=?, end_odometer=?, distance=?,
+                        departure_address=?, arrival_address=?, departure_lat=?, departure_lon=?,
+                        arrival_lat=?, arrival_lon=?, departure_time=?, arrival_time=?, notes=? WHERE id=?
+                    """,
+                    (
+                        payload["date"], payload["type"], start, end, end-start,
+                        str(payload["departureAddress"]).strip(), str(payload["arrivalAddress"]).strip(),
+                        dep_lat, dep_lon, arr_lat, arr_lon, departure_time, arrival_time,
+                        str(payload.get("notes") or "").strip(), ride_id,
+                    ),
+                )
+                updated = db.execute(base.ride_select_sql("WHERE r.id = ?"), (ride_id,)).fetchone()
+                new_snapshot = base.row_to_dict(updated)
+                corrected_at = datetime.now(timezone.utc).isoformat()
+                db.execute(
+                    "INSERT INTO ride_audit (ride_id, corrected_at, reason, old_json, new_json) VALUES (?, ?, ?, ?, ?)",
+                    (
+                        ride_id, corrected_at, reason,
+                        json.dumps(old_snapshot, ensure_ascii=False),
+                        json.dumps(new_snapshot, ensure_ascii=False),
+                    ),
+                )
+                db.commit()
+            self.send_json(200, {"ride": new_snapshot, "auditRecorded": True})
+        except (TypeError, ValueError) as error:
+            self.send_json(400, {"error": str(error)})
+        except sqlite3.Error:
+            self.send_json(500, {"error": "Databasefout"})
+
 
 if __name__ == "__main__":
     with db_connect():
         pass
     print(f"Rittenregistratie API + snelle invoer luistert op http://{base.HOST}:{base.PORT}")
+    print(f"Registratiebeleid: zakelijk t/m 2026; volledig vanaf {FULL_REGISTRATION_FROM}; privélimiet {PRIVATE_KM_LIMIT} km")
     base.ThreadingHTTPServer((base.HOST, base.PORT), Handler).serve_forever()
