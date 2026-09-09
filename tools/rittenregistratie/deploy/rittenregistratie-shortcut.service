@@ -1,0 +1,25 @@
+[Unit]
+Description=Rittenregistratie iPhone Shortcut API
+After=network.target rittenregistratie.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/html/tools/rittenregistratie
+Environment=PYTHONUNBUFFERED=1
+Environment=RITTEN_DB=/var/lib/rittenregistratie/ritten.db
+Environment=RITTEN_SHORTCUT_HOST=127.0.0.1
+Environment=RITTEN_SHORTCUT_PORT=8767
+EnvironmentFile=/etc/rittenregistratie-shortcut.env
+ExecStart=/usr/bin/python3 /var/www/html/tools/rittenregistratie/shortcut_server.py
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/rittenregistratie
+
+[Install]
+WantedBy=multi-user.target
