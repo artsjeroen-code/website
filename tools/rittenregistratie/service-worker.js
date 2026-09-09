@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rittenregistratie-shell-v11';
+const CACHE_NAME = 'rittenregistratie-shell-v12';
 const APP_SHELL = [
   './',
   './index.html',
@@ -45,6 +45,7 @@ self.addEventListener('fetch', (event) => {
 
   if (url.origin === self.location.origin && (
     url.pathname.includes('/tools/rittenregistratie/api/') ||
+    url.pathname.includes('/tools/rittenregistratie/quick/') ||
     url.pathname.endsWith('/tools/rittenregistratie/login.html') ||
     url.pathname.endsWith('/tools/rittenregistratie/passkey.js')
   )) {
