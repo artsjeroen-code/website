@@ -20,7 +20,7 @@ button { cursor: pointer; }
 .page-shell {
   width: min(1180px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 26px 0 48px;
+  padding: 14px 0 48px;
 }
 
 .page-header, .panel-heading, .form-actions, .table-actions, .address-row {
@@ -29,7 +29,13 @@ button { cursor: pointer; }
 }
 
 .page-header, .panel-heading { justify-content: space-between; gap: 20px; }
-.page-header { margin-bottom: 14px; padding-left: 54px; }
+.page-header {
+  height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+.page-header h1 { display: none; }
 
 .eyebrow {
   margin: 0 0 3px;
@@ -339,9 +345,8 @@ html[data-theme="light"] .route-status-copy span { color: #5f6368; }
 }
 
 @media (max-width: 640px) {
-  .page-shell { width: min(100% - 20px, 1180px); padding: 14px 0 32px; }
-  .page-header { padding-left: 46px; align-items: flex-start; flex-direction: column; gap: 5px; margin-bottom: 10px; }
-  .page-header h1 { font-size: 1.2rem; }
+  .page-shell { width: min(100% - 20px, 1180px); padding: 9px 0 32px; }
+  .page-header { height: 0; margin: 0; padding: 0; }
   .subtitle { font-size: .68rem; }
   .mode-badge { padding: 4px 7px; font-size: .62rem; }
   .menu-button { top: 9px; left: 9px; width: 34px; height: 34px; }
