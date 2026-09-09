@@ -1,0 +1,17 @@
+[Unit]
+Description=Maandelijks rittenregistratie-overzicht per e-mail
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+Environment=RITTEN_DB=/var/lib/rittenregistratie/ritten.db
+EnvironmentFile=/etc/rittenregistratie-mail.env
+ExecStart=/usr/bin/python3 /var/www/html/tools/rittenregistratie/monthly_report.py
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadOnlyPaths=/var/lib/rittenregistratie/ritten.db
