@@ -23,7 +23,7 @@
 
   <main class="page-shell">
     <header class="page-header">
-      <div><p class="eyebrow">Tool</p><h1>Rittenregistratie</h1><p class="subtitle">Registreer iedere rit en houd de kilometerstanden sluitend.</p></div>
+      <div><p class="eyebrow">Tool</p><h1>Rittenregistratie</h1><p class="subtitle">Registreer iedere rit en houd de kilometerstanden per voertuig sluitend.</p></div>
       <span class="mode-badge">Centrale opslag actief</span>
     </header>
 
@@ -31,12 +31,19 @@
       <article class="summary-card"><span>Ritten</span><strong id="totalRides">0</strong></article>
       <article class="summary-card"><span>Zakelijk</span><strong id="businessKm">0 km</strong></article>
       <article class="summary-card"><span>Privé</span><strong id="privateKm">0 km</strong></article>
-      <article class="summary-card"><span>Laatste km-stand</span><strong id="lastOdometer">—</strong></article>
+      <article class="summary-card"><span>Laatste km-stand gekozen auto</span><strong id="lastOdometer">—</strong></article>
     </section>
 
     <section class="panel">
-      <div class="panel-heading"><div><p class="eyebrow">Voertuig</p><h2>Voertuiggegevens</h2></div></div>
-      <form id="vehicleForm">
+      <div class="panel-heading">
+        <div><p class="eyebrow">Voertuig</p><h2>Kenteken kiezen</h2></div>
+        <button class="secondary-button" id="toggleVehicleForm" type="button">Voertuig toevoegen</button>
+      </div>
+      <div class="form-grid compact-grid">
+        <label><span>Kenteken</span><select id="vehicleSelect" aria-label="Selecteer voertuig"></select></label>
+        <div class="distance-preview"><span>Geselecteerd voertuig</span><strong id="selectedVehicleLabel">—</strong></div>
+      </div>
+      <form id="vehicleForm" hidden>
         <div class="form-grid compact-grid">
           <label><span>Merk</span><input id="vehicleMake" type="text" maxlength="80" placeholder="Bijv. Volkswagen" required></label>
           <label><span>Type / model</span><input id="vehicleModel" type="text" maxlength="120" placeholder="Bijv. Golf" required></label>
@@ -45,8 +52,12 @@
           <label><span>In gebruik tot <em>(optioneel)</em></span><input id="vehicleUseTo" type="date"></label>
         </div>
         <div id="vehicleMessage" class="form-message" role="status" aria-live="polite"></div>
-        <div class="form-actions"><button class="secondary-button" id="saveVehicle" type="submit">Voertuiggegevens opslaan</button></div>
+        <div class="form-actions">
+          <button class="primary-button" id="saveVehicle" type="submit">Voertuig toevoegen</button>
+          <button class="secondary-button" id="cancelVehicle" type="button">Annuleren</button>
+        </div>
       </form>
+      <div id="vehicleStatusMessage" class="form-message" role="status" aria-live="polite"></div>
     </section>
 
     <section class="panel">
@@ -72,7 +83,7 @@
 
     <section class="panel">
       <div class="panel-heading table-heading"><div><p class="eyebrow">Jaaroverzicht</p><h2>Opgeslagen ritten</h2></div><div class="table-actions"><label><span>Jaar</span><select id="yearFilter" aria-label="Selecteer kalenderjaar"></select></label><button class="secondary-button" id="exportCsv" type="button">Download jaar-CSV</button></div></div>
-      <div class="table-wrap"><table><thead><tr><th>Datum</th><th>Type</th><th>Van</th><th>Naar</th><th>Begin</th><th>Eind</th><th>Km</th><th>Toelichting</th><th></th></tr></thead><tbody id="ridesBody"></tbody></table></div>
+      <div class="table-wrap"><table><thead><tr><th>Datum</th><th>Kenteken</th><th>Type</th><th>Van</th><th>Naar</th><th>Begin</th><th>Eind</th><th>Km</th><th>Toelichting</th></tr></thead><tbody id="ridesBody"></tbody></table></div>
       <p id="emptyState" class="empty-state">Nog geen ritten opgeslagen.</p>
     </section>
 
@@ -103,7 +114,7 @@
       <p id="auditEmpty" class="empty-state">Nog geen correcties vastgelegd.</p>
     </section>
 
-    <section class="notice"><strong>Centrale opslag:</strong> ritten en voertuiggegevens worden opgeslagen in SQLite op de Raspberry Pi. Correcties overschrijven een fout niet stil: de oorspronkelijke en nieuwe versie plus reden worden in een auditlog vastgelegd. De server weigert correcties die de kilometerketen met de vorige of volgende rit verbreken. Routecontrole gebruikt OSRM/OpenStreetMap en is adviserend; de kilometerteller blijft leidend. Kaart-, adres- en routegegevens © OpenStreetMap-bijdragers.</section>
+    <section class="notice"><strong>Voertuigketens:</strong> iedere rit is gekoppeld aan een kenteken. De beginstand hoeft alleen aan te sluiten op de vorige rit van hetzelfde voertuig. Daardoor mag een nieuw voertuig met een totaal andere kilometerstand gewoon een nieuwe, eigen keten starten. Correcties worden per voertuigketen gecontroleerd en blijven via het auditlog traceerbaar.</section>
   </main>
 
   <script src="app.js"></script>
