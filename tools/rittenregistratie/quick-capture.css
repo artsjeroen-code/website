@@ -91,5 +91,25 @@
   .quick-ride-actions { width: 100%; }
   .quick-ride-actions button { flex: 1 1 0; }
   .ride-meta-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+  .ride-meta-grid input[type="date"],
+  .ride-meta-grid select {
+    box-sizing: border-box;
+    display: block;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px;
+    padding-top: 0;
+    padding-bottom: 0;
+    line-height: 38px;
+  }
+  .ride-meta-grid input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .ride-meta-grid input[type="date"]::-webkit-date-and-time-value {
+    min-height: 0;
+    line-height: 38px;
+    text-align: left;
+  }
   .ride-point-grid { grid-template-columns: 1fr; gap: 12px; }
 }
