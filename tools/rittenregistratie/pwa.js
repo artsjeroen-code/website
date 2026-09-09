@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const ASSET_VERSION = 'v12';
+  const ASSET_VERSION = 'v13';
   const versioned = (path) => `${path}?${ASSET_VERSION}`;
 
   function simplifyPageHeader() {
@@ -124,6 +124,24 @@
     document.body.appendChild(script);
   }
 
+  function addEmployerExport() {
+    const csvButton = document.getElementById('exportCsv');
+    if (!csvButton || document.getElementById('exportEmployer')) return;
+
+    const exportButton = document.createElement('button');
+    exportButton.className = 'secondary-button';
+    exportButton.id = 'exportEmployer';
+    exportButton.type = 'button';
+    exportButton.textContent = 'Download Rittenregistratie';
+    csvButton.insertAdjacentElement('afterend', exportButton);
+
+    const script = document.createElement('script');
+    script.src = versioned('employer-export.js');
+    script.defer = true;
+    script.dataset.employerExport = 'true';
+    document.body.appendChild(script);
+  }
+
   function addQuickCapturePanel() {
     const dashboard = document.querySelector('[data-view-panel="dashboard"]');
     const vehiclePanel = dashboard && dashboard.querySelector('.dashboard-vehicle-panel');
@@ -151,6 +169,7 @@
   loadAddressPresetAssets();
   loadDatePickerAssets();
   loadRegistrationPolicy();
+  addEmployerExport();
 
   if (!('serviceWorker' in navigator)) return;
   window.addEventListener('load', () => {
