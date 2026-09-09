@@ -12,7 +12,7 @@ HOST = os.environ.get("RITTEN_HOST", "127.0.0.1")
 PORT = int(os.environ.get("RITTEN_PORT", "8765"))
 DB_PATH = os.environ.get("RITTEN_DB", "/var/lib/rittenregistratie/ritten.db")
 OSRM_BASE = os.environ.get("RITTEN_OSRM", "https://router.project-osrm.org")
-USER_AGENT = "artsjeroen-rittenregistratie/0.6 (+https://artsjeroen.ddns.net/tools/rittenregistratie/)"
+USER_AGENT = "artsjeroen-rittenregistratie/0.7 (+https://artsjeroen.ddns.net/tools/rittenregistratie/)"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS rides (
@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS rides (
     departure_lon REAL,
     arrival_lat REAL,
     arrival_lon REAL,
+    departure_time TEXT,
+    arrival_time TEXT,
     notes TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL
 );
@@ -76,6 +78,10 @@ def migrate_schema(db):
     ride_columns = table_columns(db, "rides")
     if "vehicle_id" not in ride_columns:
         db.execute("ALTER TABLE rides ADD COLUMN vehicle_id INTEGER")
+    if "departure_time" not in ride_columns:
+        db.execute("ALTER TABLE rides ADD COLUMN departure_time TEXT")
+    if "arrival_time" not in ride_columns:
+        db.execute("ALTER TABLE rides ADD COLUMN arrival_time TEXT")
 
     vehicle_columns = table_columns(db, "vehicles")
     if "initial_odometer" not in vehicle_columns:
@@ -145,6 +151,8 @@ def row_to_dict(row):
         "distance": row["distance"],
         "departureAddress": row["departure_address"],
         "arrivalAddress": row["arrival_address"],
+        "departureTime": row["departure_time"] if "departure_time" in keys else None,
+        "arrivalTime": row["arrival_time"] if "arrival_time" in keys else None,
         "departureCoords": None if row["departure_lat"] is None else {
             "lat": row["departure_lat"], "lon": row["departure_lon"]
         },
@@ -193,6 +201,21 @@ def validate_date(value, label, required=True):
     except (TypeError, ValueError):
         raise ValueError(f"{label} moet YYYY-MM-DD zijn")
     return value
+
+
+def validate_time(value, label, required=False):
+    if value in (None, ""):
+        if required:
+            raise ValueError(f"{label} is verplicht")
+        return None
+    text = str(value).strip()
+    for fmt in ("%H:%M:%S", "%H:%M"):
+        try:
+            parsed = datetime.strptime(text, fmt)
+            return parsed.strftime("%H:%M:%S")
+        except ValueError:
+            pass
+    raise ValueError(f"{label} moet een geldig tijdstip zijn")
 
 
 def validate_vehicle(payload):
@@ -315,7 +338,7 @@ def ride_select_sql(where=""):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RittenregistratieAPI/0.6"
+    server_version = "RittenregistratieAPI/0.7"
 
     def log_message(self, fmt, *args):
         print(f"{self.address_string()} - {fmt % args}")
@@ -436,6 +459,8 @@ class Handler(BaseHTTPRequestHandler):
             vehicle_id = validate_vehicle_id(payload)
             departure = payload.get("departureCoords") or {}
             arrival = payload.get("arrivalCoords") or {}
+            departure_time = validate_time(payload.get("departureTime"), "Vertrektijd")
+            arrival_time = validate_time(payload.get("arrivalTime"), "Aankomsttijd")
             created_at = datetime.now(timezone.utc).isoformat()
 
             with db_connect() as db:
@@ -466,14 +491,14 @@ class Handler(BaseHTTPRequestHandler):
                     INSERT INTO rides (
                         vehicle_id, ride_date, ride_type, start_odometer, end_odometer, distance,
                         departure_address, arrival_address, departure_lat, departure_lon,
-                        arrival_lat, arrival_lon, notes, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        arrival_lat, arrival_lon, departure_time, arrival_time, notes, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         vehicle_id, payload["date"], payload["type"], start, end, end - start,
                         str(payload["departureAddress"]).strip(), str(payload["arrivalAddress"]).strip(),
                         departure.get("lat"), departure.get("lon"), arrival.get("lat"), arrival.get("lon"),
-                        str(payload.get("notes") or "").strip(), created_at,
+                        departure_time, arrival_time, str(payload.get("notes") or "").strip(), created_at,
                     ),
                 )
                 row = db.execute(ride_select_sql("WHERE r.id = ?"), (cursor.lastrowid,)).fetchone()
@@ -575,16 +600,23 @@ class Handler(BaseHTTPRequestHandler):
                 arr_lat, arr_lon = correction_coords(
                     payload, "arrivalCoords", current["arrival_lat"], current["arrival_lon"]
                 )
+                departure_time = validate_time(
+                    payload.get("departureTime", current["departure_time"]), "Vertrektijd"
+                )
+                arrival_time = validate_time(
+                    payload.get("arrivalTime", current["arrival_time"]), "Aankomsttijd"
+                )
                 db.execute(
                     """
                     UPDATE rides SET ride_date=?, ride_type=?, start_odometer=?, end_odometer=?, distance=?,
                         departure_address=?, arrival_address=?, departure_lat=?, departure_lon=?,
-                        arrival_lat=?, arrival_lon=?, notes=? WHERE id=?
+                        arrival_lat=?, arrival_lon=?, departure_time=?, arrival_time=?, notes=? WHERE id=?
                     """,
                     (
                         payload["date"], payload["type"], start, end, end-start,
                         str(payload["departureAddress"]).strip(), str(payload["arrivalAddress"]).strip(),
-                        dep_lat, dep_lon, arr_lat, arr_lon, str(payload.get("notes") or "").strip(), ride_id,
+                        dep_lat, dep_lon, arr_lat, arr_lon, departure_time, arrival_time,
+                        str(payload.get("notes") or "").strip(), ride_id,
                     ),
                 )
                 updated = db.execute(ride_select_sql("WHERE r.id = ?"), (ride_id,)).fetchone()
