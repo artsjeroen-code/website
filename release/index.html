@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Releasenotes – Startpagina werk</title>
+  <title>Releasenotes – Website & tools</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <script>
     (function () {
@@ -28,19 +28,20 @@
     .release-card-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
     .release-card h2 { margin: 0; color: var(--orange); font-size: 14px; }
     .release-date { color: var(--muted); }
-    .release-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+    .release-sections { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
     .release-section { padding: 9px 10px; border: 1px solid var(--ring); border-radius: 11px; background: color-mix(in srgb, var(--panel) 88%, var(--bg)); }
     .release-section h3 { margin: 0 0 6px; font-size: 12px; }
     .release-section.start h3 { color: var(--green); }
     .release-section.breath h3 { color: var(--purple); }
+    .release-section.rides h3 { color: var(--blue); }
     .release-section ul { margin: 0; padding-left: 18px; }
     .release-section li + li { margin-top: 4px; }
     .release-none { margin: 0; color: var(--muted); font-style: italic; }
     .release-footer { margin-top: 12px; color: var(--muted); text-align: center; }
     :root[data-theme="light"] .release-header, :root[data-theme="light"] .release-card, :root[data-theme="light"] .release-button { box-shadow: 0 4px 14px rgba(31,41,51,.08); }
+    @media (max-width: 900px) { .release-sections { grid-template-columns: 1fr; } }
     @media (max-width: 760px) {
       .release-page { width: min(100% - 16px, 1180px); padding-top: 8px; }
-      .release-sections { grid-template-columns: 1fr; }
       .release-topbar { position: sticky; top: 0; z-index: 5; padding: 6px 0; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(8px); }
     }
   </style>
@@ -54,15 +55,25 @@
 
     <header class="release-header">
       <h1>Releasenotes</h1>
-      <p>Overzicht van wijzigingen aan de website, per versie uitgesplitst naar Startpagina en Ademhalingstool.</p>
+      <p>Wijzigingen worden per versie afzonderlijk bijgehouden voor Startpagina, Ademhalingstool en Rittenregistratie.</p>
     </header>
 
     <div class="release-list">
+      <article class="release-card">
+        <div class="release-card-head"><h2>Versie 2026.09.09</h2><span class="release-date">9 september 2026</span></div>
+        <div class="release-sections">
+          <section class="release-section start"><h3>Startpagina</h3><p class="release-none">Geen functionele wijzigingen.</p></section>
+          <section class="release-section breath"><h3>Ademhalingstool</h3><p class="release-none">Geen functionele wijzigingen.</p></section>
+          <section class="release-section rides"><h3>Rittenregistratie</h3><ul><li>Nieuwe app-indeling met hamburgermenu en aparte schermen voor Dashboard, Voertuigen, Ritcorrectie &amp; auditlog en Overzicht.</li><li>Dashboard compacter gemaakt en aangesloten op de monospace-/Google-kleurenstijl van de startpagina.</li><li>Meerdere voertuigen ondersteund met een eigen kilometerketen per kenteken.</li><li>Voertuiggegevens worden bij toevoegen automatisch opgehaald uit RDW Open Data; tellerstand bij ingebruikname wordt apart vastgelegd.</li><li>Routecontrole start automatisch zodra locaties en kilometerstanden beschikbaar zijn, met groen vinkje, geel vraagteken of rood uitroepteken afhankelijk van de afwijking.</li><li>Vertrek- en aankomsttijd worden automatisch geregistreerd op het moment dat de bijbehorende locatie wordt opgevraagd; tijden worden opgeslagen in SQLite en opgenomen in overzicht, CSV en auditgegevens.</li><li>Overzicht kan per kalenderjaar of afzonderlijke maand worden gefilterd en geëxporteerd.</li><li>Gecontroleerde ritcorrecties met verplichte reden en auditlog toegevoegd.</li><li>Dagelijkse consistente SQLite-back-up met integriteitscontrole en rotatie toegevoegd.</li><li>Rittenregistratie en API afgeschermd met Nginx Basic Auth over HTTPS.</li></ul></section>
+        </div>
+      </article>
+
       <article class="release-card">
         <div class="release-card-head"><h2>Versie 2026.09.08</h2><span class="release-date">8 september 2026</span></div>
         <div class="release-sections">
           <section class="release-section start"><h3>Startpagina</h3><ul><li>De tools worden voortaan gegroepeerd onder de map <code>/tools/</code> op <code>main</code>, zodat de Raspberry Pi alles vanuit dezelfde branch kan deployen.</li></ul></section>
           <section class="release-section breath"><h3>Ademhalingstool</h3><ul><li>De volledige ademhalingstool is verplaatst van <code>/ademhaling/</code> naar <code>/tools/ademhaling/</code>.</li><li>Relatieve paden naar de gedeelde Google-palet- en utility-rail-styles zijn aangepast aan de nieuwe locatie.</li><li>De terugknop verwijst vanuit de nieuwe map weer correct naar de startpagina.</li><li>De GitHub-bewerklink verwijst nu naar <code>main/tools/ademhaling/index.html</code>.</li><li>De wake-lock-functionaliteit blijft onderdeel van de tool, zodat het scherm tijdens een actieve sessie wakker kan blijven.</li></ul></section>
+          <section class="release-section rides"><h3>Rittenregistratie</h3><ul><li>Rittenregistratie opgezet onder <code>/tools/rittenregistratie/</code> met centrale Python API en SQLite-opslag op de Raspberry Pi.</li><li>GPS naar adres, kilometerketen, routecontrole en jaar-CSV als basisfunctionaliteit toegevoegd.</li></ul></section>
         </div>
       </article>
 
@@ -71,6 +82,7 @@
         <div class="release-sections">
           <section class="release-section start"><h3>Startpagina</h3><p class="release-none">Geen functionele wijzigingen.</p></section>
           <section class="release-section breath"><h3>Ademhalingstool</h3><ul><li>De desktopweergave gebruikt nu exact hetzelfde compacte geluidsicoon rechtsboven als de mobiele weergave, inclusief de aan- en uitstatus.</li></ul></section>
+          <section class="release-section rides"><h3>Rittenregistratie</h3><p class="release-none">Nog niet aanwezig.</p></section>
         </div>
       </article>
 
@@ -79,6 +91,7 @@
         <div class="release-sections">
           <section class="release-section start"><h3>Startpagina</h3><p class="release-none">Geen functionele wijzigingen.</p></section>
           <section class="release-section breath"><h3>Ademhalingstool</h3><ul><li>Het scherm blijft tijdens een actieve ademhalingssessie wakker wanneer de browser dit ondersteunt.</li></ul></section>
+          <section class="release-section rides"><h3>Rittenregistratie</h3><p class="release-none">Nog niet aanwezig.</p></section>
         </div>
       </article>
 
@@ -87,6 +100,7 @@
         <div class="release-sections">
           <section class="release-section start"><h3>Startpagina</h3><ul><li>De overgang van de startpagina naar de ademhalingstool is vloeiender gemaakt.</li></ul></section>
           <section class="release-section breath"><h3>Ademhalingstool</h3><ul><li>De ademhalingsbal is in de desktopweergave groter en beter verticaal gecentreerd.</li><li>De samenvatting is vereenvoudigd naar tijd en herhalingen.</li><li>Totale tijd en resterende tijd worden in hetzelfde vak weergegeven.</li><li>De invoervelden voor inademen, vasthouden en uitademen zijn alleen zichtbaar bij <em>Eigen ritme</em>.</li><li>Het standaard aantal herhalingen is ingesteld op 20.</li></ul></section>
+          <section class="release-section rides"><h3>Rittenregistratie</h3><p class="release-none">Nog niet aanwezig.</p></section>
         </div>
       </article>
 
@@ -95,6 +109,7 @@
         <div class="release-sections">
           <section class="release-section start"><h3>Startpagina</h3><ul><li>De snelkoppeling naar de ademhalingstool is opgenomen in de zijbalk.</li><li>De gedeelde zijbalkstijl is gelijkgetrokken tussen startpagina en ademhalingstool.</li></ul></section>
           <section class="release-section breath"><h3>Ademhalingstool</h3><ul><li>De mobiele portretweergave is compacter gemaakt zodat de tool beter binnen één scherm past.</li><li>Mobiele audio is aangepast zodat geluid na een gebruikersactie correct kan starten.</li><li>De brede geluidsbalk is vervangen door een compact geluidsicoon rechtsboven.</li><li>De homeknop en navigatie terug naar de startpagina zijn hersteld.</li><li>De tool opent weer in hetzelfde tabblad.</li></ul></section>
+          <section class="release-section rides"><h3>Rittenregistratie</h3><p class="release-none">Nog niet aanwezig.</p></section>
         </div>
       </article>
 
@@ -103,6 +118,7 @@
         <div class="release-sections">
           <section class="release-section start"><h3>Startpagina</h3><ul><li>De visuele stijl en achtergrond zijn als basis gebruikt voor de nieuwe ademhalingstool.</li></ul></section>
           <section class="release-section breath"><h3>Ademhalingstool</h3><ul><li>Nieuwe interactieve ademhalingstool toegevoegd met instelbare fases voor inademen, vasthouden, uitademen en vasthouden.</li><li>Timinglogica, herhalingen en resterende tijd toegevoegd.</li><li>Vooraf ingestelde ritmes toegevoegd, waaronder 4-7-8, 4-4-4-4, 4-0-8-0, 5-0-5-0, 7-0-11-0 en 4-4-4-0.</li><li>Het bereik van de ademhalingsfases is uitgebreid voor langere patronen.</li><li>Fasegeluiden toegevoegd en later zachter en vriendelijker afgestemd.</li><li>Instellingen worden lokaal in de browser onthouden.</li><li>De vormgeving is gelijkgetrokken met de startpagina, inclusief licht/donker thema en utility-rail.</li><li>De desktopindeling is aangepast naar bediening links en een grotere animatie rechts.</li></ul></section>
+          <section class="release-section rides"><h3>Rittenregistratie</h3><p class="release-none">Nog niet aanwezig.</p></section>
         </div>
       </article>
 
@@ -111,6 +127,7 @@
         <div class="release-sections">
           <section class="release-section start"><h3>Startpagina</h3><ul><li>De sectie <em>Arbo Wetgeving</em> is hernoemd naar <em>Overige Wetgeving</em>.</li><li>Een link naar de Algemene wet bestuursrecht is toegevoegd.</li></ul></section>
           <section class="release-section breath"><h3>Ademhalingstool</h3><p class="release-none">Nog niet aanwezig.</p></section>
+          <section class="release-section rides"><h3>Rittenregistratie</h3><p class="release-none">Nog niet aanwezig.</p></section>
         </div>
       </article>
 
@@ -119,6 +136,7 @@
         <div class="release-sections">
           <section class="release-section start"><h3>Startpagina</h3><ul><li>De website is hersteld naar de stabiele versie van 29 augustus na een tijdelijke testwijziging.</li></ul></section>
           <section class="release-section breath"><h3>Ademhalingstool</h3><p class="release-none">Nog niet aanwezig.</p></section>
+          <section class="release-section rides"><h3>Rittenregistratie</h3><p class="release-none">Nog niet aanwezig.</p></section>
         </div>
       </article>
 
@@ -127,6 +145,7 @@
         <div class="release-sections">
           <section class="release-section start"><h3>Startpagina</h3><ul><li>Gemini in de zijbalk is vervangen door WhatsApp Web.</li><li>Links naar Markttoezichtverordening 2019/1020 en het Warenwetbesluit bestuurlijke boeten zijn bijgewerkt.</li></ul></section>
           <section class="release-section breath"><h3>Ademhalingstool</h3><p class="release-none">Nog niet aanwezig.</p></section>
+          <section class="release-section rides"><h3>Rittenregistratie</h3><p class="release-none">Nog niet aanwezig.</p></section>
         </div>
       </article>
     </div>
