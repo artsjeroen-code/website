@@ -2,9 +2,21 @@
   'use strict';
 
   const API_BASE = './api';
-
   const form = document.getElementById('rideForm');
   const vehicleForm = document.getElementById('vehicleForm');
+  const vehicleSelect = document.getElementById('vehicleSelect');
+  const selectedVehicleLabel = document.getElementById('selectedVehicleLabel');
+  const vehicleStatusMessage = document.getElementById('vehicleStatusMessage');
+  const toggleVehicleForm = document.getElementById('toggleVehicleForm');
+  const cancelVehicle = document.getElementById('cancelVehicle');
+  const saveVehicleButton = document.getElementById('saveVehicle');
+  const vehicleMessage = document.getElementById('vehicleMessage');
+  const vehicleMake = document.getElementById('vehicleMake');
+  const vehicleModel = document.getElementById('vehicleModel');
+  const vehiclePlate = document.getElementById('vehiclePlate');
+  const vehicleUseFrom = document.getElementById('vehicleUseFrom');
+  const vehicleUseTo = document.getElementById('vehicleUseTo');
+
   const rideDate = document.getElementById('rideDate');
   const rideType = document.getElementById('rideType');
   const startOdometer = document.getElementById('startOdometer');
@@ -24,16 +36,10 @@
   const arrivalMeta = document.getElementById('arrivalMeta');
   const yearFilter = document.getElementById('yearFilter');
   const submitButton = form.querySelector('button[type="submit"]');
-  const saveVehicleButton = document.getElementById('saveVehicle');
-  const vehicleMessage = document.getElementById('vehicleMessage');
-  const vehicleMake = document.getElementById('vehicleMake');
-  const vehicleModel = document.getElementById('vehicleModel');
-  const vehiclePlate = document.getElementById('vehiclePlate');
-  const vehicleUseFrom = document.getElementById('vehicleUseFrom');
-  const vehicleUseTo = document.getElementById('vehicleUseTo');
 
   let rides = [];
-  let vehicle = null;
+  let vehicles = [];
+  let selectedVehicleId = null;
   let apiAvailable = false;
   let selectedYear = String(new Date().getFullYear());
 
@@ -44,10 +50,41 @@
     return `${year}-${month}-${day}`;
   }
 
+  function formatNumber(value) {
+    return new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 1 }).format(value);
+  }
+
   function numberValue(input) {
     if (input.value.trim() === '') return null;
     const value = Number(input.value);
     return Number.isFinite(value) ? value : null;
+  }
+
+  function setMessage(message, success = false) {
+    formMessage.textContent = message;
+    formMessage.classList.toggle('success', success);
+  }
+
+  function setVehicleMessage(message, success = false) {
+    vehicleMessage.textContent = message;
+    vehicleMessage.classList.toggle('success', success);
+  }
+
+  function selectedVehicle() {
+    return vehicles.find((vehicle) => vehicle.id === selectedVehicleId) || null;
+  }
+
+  function ridesForSelectedVehicle() {
+    return rides.filter((ride) => ride.vehicleId === selectedVehicleId);
+  }
+
+  function latestRideForSelectedVehicle() {
+    const matches = ridesForSelectedVehicle();
+    return matches.length ? matches[matches.length - 1] : null;
+  }
+
+  function filteredRides() {
+    return rides.filter((ride) => String(ride.date).startsWith(`${selectedYear}-`));
   }
 
   function calculateDistance() {
@@ -62,46 +99,16 @@
     return distance;
   }
 
-  function formatNumber(value) {
-    return new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 1 }).format(value);
-  }
-
-  function setMessage(message, kind = 'warning') {
-    formMessage.textContent = message;
-    formMessage.classList.toggle('success', kind === 'success');
-  }
-
-  function setVehicleMessage(message, kind = 'warning') {
-    vehicleMessage.textContent = message;
-    vehicleMessage.classList.toggle('success', kind === 'success');
-  }
-
-  function clearMessage() {
-    setMessage('');
-  }
-
-  function latestRide() {
-    return rides.length ? rides[rides.length - 1] : null;
-  }
-
-  function filteredRides() {
-    return rides.filter((ride) => String(ride.date).startsWith(`${selectedYear}-`));
-  }
-
-  function fillPreviousOdometer() {
-    const previous = latestRide();
-    if (!previous) {
-      setMessage('Er is nog geen vorige rit om een eindstand van over te nemen.');
-      return;
-    }
-    startOdometer.value = previous.endOdometer;
-    calculateDistance();
-    setMessage(`Beginstand ingevuld met vorige eindstand: ${formatNumber(previous.endOdometer)} km.`, 'success');
-  }
-
   function clearLocationDataset(input) {
     delete input.dataset.latitude;
     delete input.dataset.longitude;
+  }
+
+  function coordsFromInput(input) {
+    const lat = Number(input.dataset.latitude);
+    const lon = Number(input.dataset.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    return { lat, lon };
   }
 
   function resetForm({ keepDate = true } = {}) {
@@ -114,57 +121,25 @@
     clearLocationDataset(departureAddress);
     clearLocationDataset(arrivalAddress);
     distancePreview.textContent = '— km';
-    clearMessage();
-    const previous = latestRide();
+    setMessage('');
+    const previous = latestRideForSelectedVehicle();
     if (previous) startOdometer.value = previous.endOdometer;
   }
 
-  function coordsFromInput(input) {
-    const lat = Number(input.dataset.latitude);
-    const lon = Number(input.dataset.longitude);
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-    return { lat, lon };
-  }
-
-  function validateRide() {
-    if (!form.reportValidity()) return null;
+  function fillPreviousOdometer() {
+    const vehicle = selectedVehicle();
     if (!vehicle) {
-      setMessage('Sla eerst de voertuiggegevens op.');
-      return null;
+      setMessage('Kies eerst een kenteken.');
+      return;
     }
-
-    const start = numberValue(startOdometer);
-    const end = numberValue(endOdometer);
-    if (start === null || end === null) {
-      setMessage('Vul een geldige begin- en eindkilometerstand in.');
-      return null;
+    const previous = latestRideForSelectedVehicle();
+    if (!previous) {
+      setMessage(`${vehicle.plate} heeft nog geen eerdere rit. Vul de beginstand van dit voertuig in.`);
+      return;
     }
-    if (!Number.isInteger(start) || !Number.isInteger(end)) {
-      setMessage('Gebruik hele kilometers voor de kilometerstanden.');
-      return null;
-    }
-    if (end < start) {
-      setMessage('De eindkilometerstand kan niet lager zijn dan de beginstand.');
-      return null;
-    }
-
-    const previous = latestRide();
-    if (previous && start !== previous.endOdometer) {
-      setMessage(`Niet sluitend: de vorige rit eindigde op ${formatNumber(previous.endOdometer)} km. Pas de beginstand aan voordat je opslaat.`);
-      return null;
-    }
-
-    return {
-      date: rideDate.value,
-      type: rideType.value,
-      startOdometer: start,
-      endOdometer: end,
-      departureAddress: departureAddress.value.trim(),
-      arrivalAddress: arrivalAddress.value.trim(),
-      departureCoords: coordsFromInput(departureAddress),
-      arrivalCoords: coordsFromInput(arrivalAddress),
-      notes: notes.value.trim()
-    };
+    startOdometer.value = previous.endOdometer;
+    calculateDistance();
+    setMessage(`Beginstand voor ${vehicle.plate}: ${formatNumber(previous.endOdometer)} km.`, true);
   }
 
   async function apiRequest(path, options = {}) {
@@ -177,7 +152,6 @@
       },
       ...options
     });
-
     let payload = {};
     try {
       payload = await response.json();
@@ -188,105 +162,38 @@
     return payload;
   }
 
-  function fillVehicleForm() {
-    if (!vehicle) return;
-    vehicleMake.value = vehicle.make || '';
-    vehicleModel.value = vehicle.model || '';
-    vehiclePlate.value = vehicle.plate || '';
-    vehicleUseFrom.value = vehicle.useFrom || '';
-    vehicleUseTo.value = vehicle.useTo || '';
+  function populateVehicleSelect() {
+    vehicleSelect.replaceChildren();
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = vehicles.length ? 'Kies kenteken…' : 'Nog geen voertuigen';
+    vehicleSelect.appendChild(placeholder);
+
+    vehicles.forEach((vehicle) => {
+      const option = document.createElement('option');
+      option.value = String(vehicle.id);
+      option.textContent = `${vehicle.plate} · ${vehicle.make} ${vehicle.model}`;
+      option.selected = vehicle.id === selectedVehicleId;
+      vehicleSelect.appendChild(option);
+    });
+
+    if (selectedVehicleId) vehicleSelect.value = String(selectedVehicleId);
+    updateSelectedVehicleUi();
   }
 
-  async function loadData() {
-    try {
-      const [ridesPayload, vehiclePayload] = await Promise.all([
-        apiRequest('/rides'),
-        apiRequest('/vehicle')
-      ]);
-      rides = Array.isArray(ridesPayload.rides) ? ridesPayload.rides : [];
-      vehicle = vehiclePayload.vehicle || null;
-      apiAvailable = true;
-      fillVehicleForm();
-      populateYearFilter();
-      render();
+  function updateSelectedVehicleUi() {
+    const vehicle = selectedVehicle();
+    selectedVehicleLabel.textContent = vehicle ? `${vehicle.plate} · ${vehicle.make} ${vehicle.model}` : '—';
+    submitButton.disabled = !apiAvailable || !vehicle;
+    const previous = latestRideForSelectedVehicle();
+    lastOdometer.textContent = previous ? `${formatNumber(previous.endOdometer)} km` : '—';
+    if (vehicle) {
+      vehicleStatusMessage.textContent = previous
+        ? `Kilometerketen actief voor ${vehicle.plate}; laatste stand ${formatNumber(previous.endOdometer)} km.`
+        : `${vehicle.plate} start een eigen kilometerketen. De eerste beginstand mag afwijken van andere voertuigen.`;
       resetForm();
-      submitButton.disabled = !vehicle;
-      if (!vehicle) setVehicleMessage('Vul de voertuiggegevens in en sla ze op voordat je een nieuwe rit registreert.');
-    } catch (error) {
-      console.error('Kon centrale gegevens niet laden.', error);
-      rides = [];
-      vehicle = null;
-      apiAvailable = false;
-      submitButton.disabled = true;
-      saveVehicleButton.disabled = true;
-      populateYearFilter();
-      render();
-      setMessage(`Centrale opslag niet bereikbaar: ${error.message}. Er wordt niets lokaal opgeslagen.`);
-    }
-  }
-
-  async function handleVehicleSubmit(event) {
-    event.preventDefault();
-    setVehicleMessage('');
-    if (!apiAvailable) {
-      setVehicleMessage('Centrale opslag is niet bereikbaar.');
-      return;
-    }
-    if (!vehicleForm.reportValidity()) return;
-
-    saveVehicleButton.disabled = true;
-    const oldText = saveVehicleButton.textContent;
-    saveVehicleButton.textContent = 'Opslaan…';
-    try {
-      const payload = await apiRequest('/vehicle', {
-        method: 'PUT',
-        body: JSON.stringify({
-          make: vehicleMake.value.trim(),
-          model: vehicleModel.value.trim(),
-          plate: vehiclePlate.value.trim(),
-          useFrom: vehicleUseFrom.value,
-          useTo: vehicleUseTo.value || null
-        })
-      });
-      vehicle = payload.vehicle;
-      fillVehicleForm();
-      submitButton.disabled = false;
-      setVehicleMessage(`Voertuig opgeslagen: ${vehicle.make} ${vehicle.model} · ${vehicle.plate}.`, 'success');
-    } catch (error) {
-      setVehicleMessage(`Voertuig niet opgeslagen: ${error.message}`);
-    } finally {
-      saveVehicleButton.disabled = false;
-      saveVehicleButton.textContent = oldText;
-    }
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-    clearMessage();
-    if (!apiAvailable) {
-      setMessage('Centrale opslag is niet bereikbaar. Vernieuw de pagina nadat de API weer beschikbaar is.');
-      return;
-    }
-
-    const ride = validateRide();
-    if (!ride) return;
-    submitButton.disabled = true;
-    const oldText = submitButton.textContent;
-    submitButton.textContent = 'Opslaan…';
-
-    try {
-      const payload = await apiRequest('/rides', { method: 'POST', body: JSON.stringify(ride) });
-      rides.push(payload.ride);
-      selectedYear = String(payload.ride.date).slice(0, 4);
-      populateYearFilter();
-      render();
-      resetForm();
-      setMessage(`Rit centraal opgeslagen: ${formatNumber(payload.ride.distance)} km.`, 'success');
-    } catch (error) {
-      setMessage(`Rit niet opgeslagen: ${error.message}`);
-    } finally {
-      submitButton.disabled = !apiAvailable || !vehicle;
-      submitButton.textContent = oldText;
+    } else {
+      vehicleStatusMessage.textContent = 'Kies een kenteken om een rit te registreren.';
     }
   }
 
@@ -321,6 +228,7 @@
     visibleRides.forEach((ride) => {
       const row = document.createElement('tr');
       row.appendChild(createCell(formatDate(ride.date)));
+      row.appendChild(createCell(ride.vehiclePlate || '—'));
       const typeCell = document.createElement('td');
       const pill = document.createElement('span');
       pill.className = 'type-pill';
@@ -333,7 +241,6 @@
       row.appendChild(createCell(formatNumber(ride.endOdometer), 'numeric'));
       row.appendChild(createCell(formatNumber(ride.distance), 'numeric'));
       row.appendChild(createCell(ride.notes || '—'));
-      row.appendChild(createCell('—'));
       ridesBody.appendChild(row);
     });
   }
@@ -342,16 +249,123 @@
     const visibleRides = filteredRides();
     const businessTotal = visibleRides.filter((ride) => ride.type === 'business').reduce((sum, ride) => sum + ride.distance, 0);
     const privateTotal = visibleRides.filter((ride) => ride.type === 'private').reduce((sum, ride) => sum + ride.distance, 0);
-    const lastVisibleRide = visibleRides.length ? visibleRides[visibleRides.length - 1] : null;
     totalRides.textContent = String(visibleRides.length);
     businessKm.textContent = `${formatNumber(businessTotal)} km`;
     privateKm.textContent = `${formatNumber(privateTotal)} km`;
-    lastOdometer.textContent = lastVisibleRide ? `${formatNumber(lastVisibleRide.endOdometer)} km` : '—';
+    const previous = latestRideForSelectedVehicle();
+    lastOdometer.textContent = previous ? `${formatNumber(previous.endOdometer)} km` : '—';
   }
 
   function render() {
     renderTable();
     renderSummary();
+  }
+
+  function validateRide() {
+    if (!form.reportValidity()) return null;
+    const vehicle = selectedVehicle();
+    if (!vehicle) {
+      setMessage('Kies eerst een kenteken.');
+      return null;
+    }
+    const start = numberValue(startOdometer);
+    const end = numberValue(endOdometer);
+    if (start === null || end === null || !Number.isInteger(start) || !Number.isInteger(end)) {
+      setMessage('Gebruik hele kilometers voor de kilometerstanden.');
+      return null;
+    }
+    if (end < start) {
+      setMessage('De eindkilometerstand kan niet lager zijn dan de beginstand.');
+      return null;
+    }
+    const previous = latestRideForSelectedVehicle();
+    if (previous && start !== previous.endOdometer) {
+      setMessage(`Niet sluitend voor ${vehicle.plate}: de vorige rit eindigde op ${formatNumber(previous.endOdometer)} km.`);
+      return null;
+    }
+    return {
+      vehicleId: vehicle.id,
+      date: rideDate.value,
+      type: rideType.value,
+      startOdometer: start,
+      endOdometer: end,
+      departureAddress: departureAddress.value.trim(),
+      arrivalAddress: arrivalAddress.value.trim(),
+      departureCoords: coordsFromInput(departureAddress),
+      arrivalCoords: coordsFromInput(arrivalAddress),
+      notes: notes.value.trim()
+    };
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setMessage('');
+    if (!apiAvailable) {
+      setMessage('Centrale opslag is niet bereikbaar.');
+      return;
+    }
+    const ride = validateRide();
+    if (!ride) return;
+
+    submitButton.disabled = true;
+    const oldText = submitButton.textContent;
+    submitButton.textContent = 'Opslaan…';
+    try {
+      const payload = await apiRequest('/rides', { method: 'POST', body: JSON.stringify(ride) });
+      rides.push(payload.ride);
+      selectedYear = String(payload.ride.date).slice(0, 4);
+      populateYearFilter();
+      render();
+      resetForm();
+      setMessage(`Rit voor ${payload.ride.vehiclePlate} opgeslagen: ${formatNumber(payload.ride.distance)} km.`, true);
+    } catch (error) {
+      setMessage(`Rit niet opgeslagen: ${error.message}`);
+    } finally {
+      submitButton.disabled = !apiAvailable || !selectedVehicle();
+      submitButton.textContent = oldText;
+    }
+  }
+
+  function showVehicleForm(show) {
+    vehicleForm.hidden = !show;
+    toggleVehicleForm.hidden = show;
+    if (show) {
+      vehicleForm.reset();
+      vehicleUseFrom.value = localDateValue();
+      setVehicleMessage('');
+      vehicleMake.focus();
+    }
+  }
+
+  async function handleVehicleSubmit(event) {
+    event.preventDefault();
+    if (!vehicleForm.reportValidity()) return;
+    saveVehicleButton.disabled = true;
+    const oldText = saveVehicleButton.textContent;
+    saveVehicleButton.textContent = 'Toevoegen…';
+    try {
+      const payload = await apiRequest('/vehicles', {
+        method: 'POST',
+        body: JSON.stringify({
+          make: vehicleMake.value.trim(),
+          model: vehicleModel.value.trim(),
+          plate: vehiclePlate.value.trim(),
+          useFrom: vehicleUseFrom.value,
+          useTo: vehicleUseTo.value || null
+        })
+      });
+      vehicles.push(payload.vehicle);
+      selectedVehicleId = payload.vehicle.id;
+      populateVehicleSelect();
+      showVehicleForm(false);
+      vehicleStatusMessage.textContent = `${payload.vehicle.plate} toegevoegd. Dit voertuig begint een eigen kilometerketen.`;
+      resetForm();
+    } catch (error) {
+      setVehicleMessage(`Voertuig niet toegevoegd: ${error.message}`);
+    } finally {
+      saveVehicleButton.disabled = false;
+      saveVehicleButton.textContent = oldText;
+    }
   }
 
   function formatDate(value) {
@@ -371,37 +385,28 @@
       setMessage(`Er zijn geen ritten voor ${selectedYear} om te exporteren.`);
       return;
     }
-    if (!vehicle) {
-      setMessage('Voertuiggegevens ontbreken; sla die eerst op voordat je exporteert.');
-      return;
-    }
-
     const businessTotal = visibleRides.filter((ride) => ride.type === 'business').reduce((sum, ride) => sum + ride.distance, 0);
     const privateTotal = visibleRides.filter((ride) => ride.type === 'private').reduce((sum, ride) => sum + ride.distance, 0);
-    const firstRide = visibleRides[0];
-    const lastRide = visibleRides[visibleRides.length - 1];
+    const usedVehicleIds = new Set(visibleRides.map((ride) => ride.vehicleId));
+    const usedVehicles = vehicles.filter((vehicle) => usedVehicleIds.has(vehicle.id));
 
     const rows = [
       ['Rittenregistratie', selectedYear],
       [],
-      ['Voertuig'],
-      ['Merk', vehicle.make],
-      ['Type / model', vehicle.model],
-      ['Kenteken', vehicle.plate],
-      ['In gebruik vanaf', vehicle.useFrom],
-      ['In gebruik tot', vehicle.useTo || 'doorlopend'],
+      ['Voertuigen in dit jaar'],
+      ['Kenteken', 'Merk', 'Type / model', 'In gebruik vanaf', 'In gebruik tot'],
+      ...usedVehicles.map((vehicle) => [vehicle.plate, vehicle.make, vehicle.model, vehicle.useFrom, vehicle.useTo || 'doorlopend']),
       [],
       ['Jaaroverzicht'],
       ['Aantal ritten', visibleRides.length],
-      ['Begin kilometerstand', firstRide.startOdometer],
-      ['Eind kilometerstand', lastRide.endOdometer],
       ['Zakelijke kilometers', businessTotal],
       ['Privékilometers', privateTotal],
       ['Totaal kilometers', businessTotal + privateTotal],
       [],
-      ['Datum', 'Type', 'Vertrekadres', 'Aankomstadres', 'Begin km-stand', 'Eind km-stand', 'Kilometers', 'Toelichting'],
+      ['Datum', 'Kenteken', 'Type', 'Vertrekadres', 'Aankomstadres', 'Begin km-stand', 'Eind km-stand', 'Kilometers', 'Toelichting'],
       ...visibleRides.map((ride) => [
         ride.date,
+        ride.vehiclePlate || '',
         ride.type === 'private' ? 'Privé' : 'Zakelijk',
         ride.departureAddress,
         ride.arrivalAddress,
@@ -417,12 +422,42 @@
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `rittenregistratie-${vehicle.plate}-${selectedYear}.csv`;
+    link.download = `rittenregistratie-${selectedYear}.csv`;
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    setMessage(`Jaaroverzicht ${selectedYear} geëxporteerd voor ${vehicle.plate}.`, 'success');
+    setMessage(`Jaaroverzicht ${selectedYear} geëxporteerd.`, true);
+  }
+
+  async function loadData() {
+    try {
+      const [ridesPayload, vehiclesPayload] = await Promise.all([
+        apiRequest('/rides'),
+        apiRequest('/vehicles')
+      ]);
+      rides = Array.isArray(ridesPayload.rides) ? ridesPayload.rides : [];
+      vehicles = Array.isArray(vehiclesPayload.vehicles) ? vehiclesPayload.vehicles : [];
+      apiAvailable = true;
+      selectedVehicleId = vehicles.length ? vehicles[vehicles.length - 1].id : null;
+      populateVehicleSelect();
+      populateYearFilter();
+      render();
+      resetForm();
+      if (!vehicles.length) {
+        vehicleStatusMessage.textContent = 'Voeg eerst een voertuig toe.';
+        showVehicleForm(true);
+      }
+    } catch (error) {
+      console.error('Kon centrale gegevens niet laden.', error);
+      rides = [];
+      vehicles = [];
+      apiAvailable = false;
+      submitButton.disabled = true;
+      saveVehicleButton.disabled = true;
+      render();
+      setMessage(`Centrale opslag niet bereikbaar: ${error.message}.`);
+    }
   }
 
   function setupThemeToggle() {
@@ -441,6 +476,13 @@
   endOdometer.addEventListener('input', calculateDistance);
   form.addEventListener('submit', handleSubmit);
   vehicleForm.addEventListener('submit', handleVehicleSubmit);
+  vehicleSelect.addEventListener('change', () => {
+    selectedVehicleId = vehicleSelect.value ? Number(vehicleSelect.value) : null;
+    updateSelectedVehicleUi();
+    render();
+  });
+  toggleVehicleForm.addEventListener('click', () => showVehicleForm(true));
+  cancelVehicle.addEventListener('click', () => showVehicleForm(false));
   document.getElementById('fillFromPrevious').addEventListener('click', fillPreviousOdometer);
   document.getElementById('resetForm').addEventListener('click', () => resetForm());
   document.getElementById('exportCsv').addEventListener('click', exportCsv);
