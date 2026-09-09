@@ -18,15 +18,25 @@
 <body>
   <main class="auth-card">
     <p class="auth-kicker">Rittenregistratie</p>
-    <h1>Inloggen met passkey</h1>
+    <h1>Inloggen</h1>
     <p id="authStatus">Authenticatie controleren…</p>
+
     <div class="auth-actions">
       <button class="primary" id="passkeyLogin" type="button" hidden>Inloggen met Face ID / vingerafdruk</button>
+
+      <form id="passwordLoginForm" class="password-login" hidden>
+        <label for="passwordInput">Wachtwoord</label>
+        <div class="password-row">
+          <input id="passwordInput" name="password" type="password" autocomplete="current-password" required>
+          <button class="secondary" type="submit">Inloggen met wachtwoord</button>
+        </div>
+      </form>
+
       <button class="secondary" id="passkeyRegister" type="button" hidden>Passkey registreren</button>
       <a class="secondary home-link" href="../../">Terug naar startpagina</a>
     </div>
     <p id="authMessage" role="status" aria-live="polite"></p>
-    <p class="auth-note">Je biometrische gegevens verlaten je telefoon of computer niet. De server bewaart alleen de publieke WebAuthn-credential.</p>
+    <p class="auth-note">Passkeys blijven de voorkeursmethode. Je biometrische gegevens verlaten je telefoon of computer niet. Wachtwoord-login gebruikt alleen een beveiligde hash op de Raspberry Pi.</p>
   </main>
   <script src="passkey.js"></script>
 </body>
