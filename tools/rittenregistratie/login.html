@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#4285f4">
+  <title>Inloggen – Rittenregistratie</title>
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('startpagina-theme') || 'dark';
+      document.documentElement.dataset.theme = savedTheme;
+    })();
+  </script>
+  <link rel="icon" href="icons/icon-192.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+  <main class="auth-card">
+    <p class="auth-kicker">Rittenregistratie</p>
+    <h1>Inloggen met passkey</h1>
+    <p id="authStatus">Authenticatie controleren…</p>
+    <div class="auth-actions">
+      <button class="primary" id="passkeyLogin" type="button" hidden>Inloggen met Face ID / vingerafdruk</button>
+      <button class="secondary" id="passkeyRegister" type="button" hidden>Passkey registreren</button>
+      <a class="secondary home-link" href="../../">Terug naar startpagina</a>
+    </div>
+    <p id="authMessage" role="status" aria-live="polite"></p>
+    <p class="auth-note">Je biometrische gegevens verlaten je telefoon of computer niet. De server bewaart alleen de publieke WebAuthn-credential.</p>
+  </main>
+  <script src="passkey.js"></script>
+</body>
+</html>
