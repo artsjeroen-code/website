@@ -25,19 +25,6 @@
     return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
   }
 
-  function creationOptionsFromJson(options) {
-    const publicKey = { ...options.publicKey };
-    publicKey.challenge = b64ToBytes(publicKey.challenge);
-    publicKey.user = { ...publicKey.user, id: b64ToBytes(publicKey.user.id) };
-    if (Array.isArray(publicKey.excludeCredentials)) {
-      publicKey.excludeCredentials = publicKey.excludeCredentials.map((item) => ({
-        ...item,
-        id: b64ToBytes(item.id)
-      }));
-    }
-    return publicKey;
-  }
-
   function requestOptionsFromJson(options) {
     const publicKey = { ...options.publicKey };
     publicKey.challenge = b64ToBytes(publicKey.challenge);
@@ -48,23 +35,6 @@
       }));
     }
     return publicKey;
-  }
-
-  function registrationToJson(credential) {
-    return {
-      id: credential.id,
-      rawId: bytesToB64(credential.rawId),
-      type: credential.type,
-      authenticatorAttachment: credential.authenticatorAttachment || undefined,
-      clientExtensionResults: credential.getClientExtensionResults(),
-      response: {
-        clientDataJSON: bytesToB64(credential.response.clientDataJSON),
-        attestationObject: bytesToB64(credential.response.attestationObject),
-        transports: typeof credential.response.getTransports === 'function'
-          ? credential.response.getTransports()
-          : undefined
-      }
-    };
   }
 
   function authenticationToJson(credential) {
@@ -135,33 +105,8 @@
     }
   }
 
-  async function register() {
-    loginButton.disabled = true;
-    registerButton.disabled = true;
-    setMessage('Je wachtwoord wordt alleen nu gevraagd om een passkey veilig te registreren.');
-    try {
-      const begin = await api('register/begin', { method: 'POST' });
-      const credential = await navigator.credentials.create({
-        publicKey: creationOptionsFromJson(begin.options)
-      });
-      if (!credential) throw new Error('Geen passkey aangemaakt');
-      await api('register/complete', {
-        method: 'POST',
-        body: JSON.stringify({
-          transaction: begin.transaction,
-          credential: registrationToJson(credential)
-        })
-      });
-      setMessage('Passkey geregistreerd.', true);
-      redirectToApp();
-    } catch (error) {
-      setMessage(error.name === 'NotAllowedError'
-        ? 'Passkey-registratie is geannuleerd of niet toegestaan.'
-        : `Registreren mislukt: ${error.message}`);
-    } finally {
-      loginButton.disabled = false;
-      registerButton.disabled = false;
-    }
+  function register() {
+    window.location.href = './register.html';
   }
 
   async function init() {
