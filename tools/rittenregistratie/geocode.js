@@ -14,6 +14,12 @@
     return document.getElementById(targetId === 'departureAddress' ? 'departureMeta' : 'arrivalMeta');
   }
 
+  function localTimeValue(date = new Date()) {
+    return [date.getHours(), date.getMinutes(), date.getSeconds()]
+      .map((value) => String(value).padStart(2, '0'))
+      .join(':');
+  }
+
   function formatAddress(result) {
     const address = result && result.address ? result.address : {};
     const road = address.road || address.pedestrian || address.residential || address.cycleway || address.footway || '';
@@ -67,6 +73,9 @@
     const meta = metaForTarget(targetId);
     if (!target || !meta) return;
 
+    const capturedTime = localTimeValue();
+    target.dataset.capturedTime = capturedTime;
+
     const originalText = button.textContent;
     button.disabled = true;
     button.textContent = 'Locatie bepalen…';
@@ -82,6 +91,7 @@
         const { latitude, longitude, accuracy } = position.coords;
         const lat = Number(latitude.toFixed(6));
         const lon = Number(longitude.toFixed(6));
+        const label = targetId === 'departureAddress' ? 'vertrek' : 'aankomst';
 
         try {
           button.textContent = 'Adres zoeken…';
@@ -89,14 +99,14 @@
           target.value = address;
           target.dataset.latitude = String(lat);
           target.dataset.longitude = String(lon);
-          meta.textContent = `GPS ±${Math.round(accuracy)} m · adres via OpenStreetMap`;
+          meta.textContent = `GPS ±${Math.round(accuracy)} m · ${label} ${capturedTime} · adres via OpenStreetMap`;
           setFormMessage(`Adres gevonden: ${address}`, true);
         } catch (error) {
           console.warn('Adresomzetting mislukt.', error);
           target.value = `GPS ${lat}, ${lon}`;
           target.dataset.latitude = String(lat);
           target.dataset.longitude = String(lon);
-          meta.textContent = `GPS ±${Math.round(accuracy)} m · adres kon niet automatisch worden bepaald`;
+          meta.textContent = `GPS ±${Math.round(accuracy)} m · ${label} ${capturedTime} · adres kon niet automatisch worden bepaald`;
           setFormMessage('Locatie gevonden, maar het straatadres kon niet worden opgehaald. Je kunt het adres handmatig aanpassen.');
         } finally {
           notifyLocationFilled(targetId);
@@ -104,6 +114,7 @@
         }
       },
       (error) => {
+        delete target.dataset.capturedTime;
         const messages = {
           1: 'Locatietoegang is geweigerd. Geef de website locatietoestemming of vul het adres handmatig in.',
           2: 'De telefoon kon de huidige locatie niet bepalen.',
