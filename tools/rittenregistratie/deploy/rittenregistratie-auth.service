@@ -1,5 +1,5 @@
 [Unit]
-Description=Rittenregistratie Passkey Auth
+Description=Rittenregistratie Auth
 After=network.target
 
 [Service]
@@ -15,6 +15,7 @@ Environment=RITTEN_RP_ID=artsjeroen.ddns.net
 Environment=RITTEN_RP_NAME=Rittenregistratie
 Environment=RITTEN_AUTH_USER=jeroen
 Environment=RITTEN_SESSION_DAYS=7
+EnvironmentFile=-/etc/rittenregistratie-auth.env
 ExecStart=/var/lib/rittenregistratie/auth-venv/bin/python /var/www/html/tools/rittenregistratie/auth_server.py
 Restart=on-failure
 RestartSec=3
