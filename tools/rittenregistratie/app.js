@@ -128,6 +128,7 @@
   function clearLocationDataset(input) {
     delete input.dataset.latitude;
     delete input.dataset.longitude;
+    delete input.dataset.capturedTime;
   }
 
   function coordsFromInput(input) {
@@ -255,7 +256,7 @@
 
   function updateSelectedVehicleUi() {
     const vehicle = selectedVehicle();
-    selectedVehicleLabel.textContent = vehicle ? `${vehicle.plate} · ${vehicle.make} ${vehicle.model}` : '—';
+    if (selectedVehicleLabel) selectedVehicleLabel.textContent = vehicle ? `${vehicle.plate} · ${vehicle.make} ${vehicle.model}` : '—';
     submitButton.disabled = !apiAvailable || !vehicle;
     const previous = latestRideForSelectedVehicle();
     lastOdometer.textContent = previous ? `${formatNumber(previous.endOdometer)} km` : vehicle && Number.isInteger(vehicle.initialOdometer) ? `${formatNumber(vehicle.initialOdometer)} km` : '—';
@@ -309,8 +310,8 @@
       pill.textContent = ride.type === 'private' ? 'Privé' : 'Zakelijk';
       typeCell.appendChild(pill);
       row.appendChild(typeCell);
-      row.appendChild(createCell(ride.departureAddress));
-      row.appendChild(createCell(ride.arrivalAddress));
+      row.appendChild(createCell(ride.departureTime ? `${ride.departureTime} · ${ride.departureAddress}` : ride.departureAddress));
+      row.appendChild(createCell(ride.arrivalTime ? `${ride.arrivalTime} · ${ride.arrivalAddress}` : ride.arrivalAddress));
       row.appendChild(createCell(formatNumber(ride.startOdometer), 'numeric'));
       row.appendChild(createCell(formatNumber(ride.endOdometer), 'numeric'));
       row.appendChild(createCell(formatNumber(ride.distance), 'numeric'));
@@ -368,6 +369,8 @@
       endOdometer: end,
       departureAddress: departureAddress.value.trim(),
       arrivalAddress: arrivalAddress.value.trim(),
+      departureTime: departureAddress.dataset.capturedTime || null,
+      arrivalTime: arrivalAddress.dataset.capturedTime || null,
       departureCoords: coordsFromInput(departureAddress),
       arrivalCoords: coordsFromInput(arrivalAddress),
       notes: notes.value.trim()
@@ -463,8 +466,8 @@
       ['Privékilometers', selectionTotals.private],
       ['Totaal kilometers', selectionTotals.business + selectionTotals.private],
       [],
-      ['Datum', 'Kenteken', 'Type', 'Vertrekadres', 'Aankomstadres', 'Begin km-stand', 'Eind km-stand', 'Kilometers', 'Toelichting'],
-      ...visibleRides.map((ride) => [ride.date, ride.vehiclePlate || '', ride.type === 'private' ? 'Privé' : 'Zakelijk', ride.departureAddress, ride.arrivalAddress, ride.startOdometer, ride.endOdometer, ride.distance, ride.notes])
+      ['Datum', 'Kenteken', 'Type', 'Vertrektijd', 'Vertrekadres', 'Aankomsttijd', 'Aankomstadres', 'Begin km-stand', 'Eind km-stand', 'Kilometers', 'Toelichting'],
+      ...visibleRides.map((ride) => [ride.date, ride.vehiclePlate || '', ride.type === 'private' ? 'Privé' : 'Zakelijk', ride.departureTime || '', ride.departureAddress, ride.arrivalTime || '', ride.arrivalAddress, ride.startOdometer, ride.endOdometer, ride.distance, ride.notes])
     ];
     const content = rows.map((row) => row.map(csvEscape).join(';')).join('\r\n');
     const blob = new Blob([`\uFEFF${content}`], { type: 'text/csv;charset=utf-8' });
