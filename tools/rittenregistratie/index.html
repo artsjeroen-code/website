@@ -37,6 +37,7 @@
     <div class="menu-footer">
       <button class="secondary-button" id="railTheme" type="button">Licht / donker</button>
       <a class="secondary-button menu-link" href="../../">Startpagina</a>
+      <button class="secondary-button" id="logoutButton" type="button">Uitloggen</button>
     </div>
   </aside>
 
@@ -162,5 +163,31 @@
   <script src="routecheck.js"></script>
   <script src="audit.js"></script>
   <script src="pwa.js"></script>
+  <script>
+  (function () {
+    const button = document.getElementById('logoutButton');
+    if (!button) return;
+
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      const oldText = button.textContent;
+      button.textContent = 'Uitloggen…';
+      try {
+        const response = await fetch('./api/auth/logout', {
+          method: 'POST',
+          cache: 'no-store',
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' }
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        window.location.replace('./login.html');
+      } catch (error) {
+        button.disabled = false;
+        button.textContent = oldText;
+        window.alert(`Uitloggen is niet gelukt: ${error.message}`);
+      }
+    });
+  })();
+  </script>
 </body>
 </html>
