@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rittenregistratie-shell-v10';
+const CACHE_NAME = 'rittenregistratie-shell-v11';
 const APP_SHELL = [
   './',
   './index.html',
@@ -12,6 +12,8 @@ const APP_SHELL = [
   './quick-capture.js',
   './address-presets.css',
   './address-presets.js',
+  './date-picker.css',
+  './date-picker.js',
   './registration-policy.js',
   './manifest.webmanifest',
   './icons/icon-192.svg',
@@ -62,6 +64,22 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
+  const isFrontendAsset = /\.(?:js|css)$/.test(url.pathname);
+  if (isFrontendAsset) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
     );
     return;
   }
