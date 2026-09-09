@@ -112,7 +112,7 @@ class Handler(BaseHTTPRequestHandler):
 
                 if action == "start":
                     if open_row is not None:
-                        self.send_json(409, {
+                        self.send_json(200, {
                             "status": "already_running",
                             "message": "Er loopt al een rit. Registreer eerst het eindpunt.",
                             "quickRide": quick.quick_to_dict(open_row),
@@ -136,7 +136,7 @@ class Handler(BaseHTTPRequestHandler):
                     return
 
                 if open_row is None:
-                    self.send_json(409, {
+                    self.send_json(200, {
                         "status": "no_active_ride",
                         "message": "Er is geen actieve rit. Registreer eerst het beginpunt.",
                     })
