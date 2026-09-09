@@ -40,7 +40,8 @@
   }
 
   function rideLabel(ride) {
-    return `${ride.date} · ${ride.startOdometer}-${ride.endOdometer} km · ${ride.departureAddress} → ${ride.arrivalAddress}`;
+    const plate = ride.vehiclePlate || 'zonder kenteken';
+    return `${ride.date} · ${plate} · ${ride.startOdometer}-${ride.endOdometer} km · ${ride.departureAddress} → ${ride.arrivalAddress}`;
   }
 
   function populateRideSelect() {
@@ -73,7 +74,7 @@
     correctionArrival.value = ride.arrivalAddress;
     correctionNotes.value = ride.notes || '';
     correctionReason.value = '';
-    setMessage('');
+    setMessage(`Correctie voor ${ride.vehiclePlate || 'dit voertuig'}; de kilometerketen wordt alleen binnen dit voertuig gecontroleerd.`);
   }
 
   function summaryChange(entry) {
@@ -95,9 +96,10 @@
     auditEmpty.hidden = audit.length > 0;
     audit.forEach((entry) => {
       const row = document.createElement('tr');
+      const plate = entry.new?.vehiclePlate || entry.old?.vehiclePlate || '—';
       const values = [
         new Date(entry.correctedAt).toLocaleString('nl-NL'),
-        `#${entry.rideId}`,
+        `#${entry.rideId} · ${plate}`,
         summaryChange(entry),
         entry.reason
       ];
@@ -112,10 +114,7 @@
 
   async function load() {
     try {
-      const [ridesPayload, auditPayload] = await Promise.all([
-        api('/rides'),
-        api('/audit')
-      ]);
+      const [ridesPayload, auditPayload] = await Promise.all([api('/rides'), api('/audit')]);
       rides = ridesPayload.rides || [];
       audit = auditPayload.audit || [];
       populateRideSelect();
