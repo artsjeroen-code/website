@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const ASSET_VERSION = 'v11';
+  const ASSET_VERSION = 'v12';
   const versioned = (path) => `${path}?${ASSET_VERSION}`;
 
   function simplifyPageHeader() {
@@ -50,6 +50,15 @@
     pointGrid.append(departurePoint, arrivalPoint);
     formGrid.replaceWith(metaGrid, pointGrid);
     addressGrid.remove();
+  }
+
+  function loadMenuLayoutFix() {
+    if (document.querySelector('link[data-menu-layout-fix]')) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = versioned('menu-layout-fix.css');
+    link.dataset.menuLayoutFix = 'true';
+    document.head.appendChild(link);
   }
 
   function loadQuickCaptureAssets() {
@@ -137,6 +146,7 @@
   simplifyPageHeader();
   arrangeRideForm();
   addQuickCapturePanel();
+  loadMenuLayoutFix();
   loadQuickCaptureAssets();
   loadAddressPresetAssets();
   loadDatePickerAssets();
