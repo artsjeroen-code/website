@@ -39,7 +39,7 @@ API:
 - `GET ./api/vehicles` — alle voertuigen;
 - `POST ./api/vehicles` — extra voertuig toevoegen;
 - `PUT ./api/vehicles/<id>` — voertuiggegevens wijzigen;
-- `GET ./api/rides` — ritten inclusief gekoppeld voertuig/kenteken;
+- `GET ./api/rides` — ritten inclusief gekoppeld voertuig/kenteken en beschikbare vertrek-/aankomsttijd;
 - `POST ./api/rides` — rit toevoegen;
 - `PATCH ./api/rides/<id>` — gecontroleerde correctie;
 - `GET ./api/audit` — auditlog.
@@ -54,6 +54,18 @@ Het dashboard toont voor het huidige kalenderjaar:
 
 Daarnaast kies je hier het actieve kenteken en voeg je een nieuwe rit toe. De laatste kilometerstand volgt altijd het gekozen voertuig.
 
+## Tijdregistratie
+
+Bij gebruik van de knop **Gebruik locatie** wordt naast de GPS-locatie ook het lokale tijdstip van de telefoon/browser vastgelegd.
+
+- bij het vertrekadres wordt `departureTime` opgeslagen;
+- bij het aankomstadres wordt `arrivalTime` opgeslagen;
+- de tijd wordt vastgelegd op het moment dat de locatie-opvraag wordt gestart;
+- bij een nieuwe locatie-opvraag wordt het tijdstip vervangen door het nieuwe tijdstip;
+- als locatiebepaling mislukt, wordt het bij die poging vastgelegde tijdstip niet gebruikt.
+
+De velden worden als `HH:MM:SS` in SQLite opgeslagen. Bestaande ritten van vóór deze wijziging houden lege tijdvelden. Het overzicht toont de tijd bij het vertrek- en aankomstadres en de CSV-export bevat aparte kolommen `Vertrektijd` en `Aankomsttijd`.
+
 ## Overzicht en export
 
 Het scherm **Overzicht** heeft twee filters:
@@ -67,13 +79,13 @@ Tabel en samenvatting volgen dezelfde selectie. De CSV-export exporteert eveneen
 
 De frontend wordt via HTTPS aangeboden zodat telefoongeolocatie kan worden gebruikt. Reverse geocoding gebeurt alleen wanneer de gebruiker bewust op de locatieknop drukt. De huidige versie gebruikt OpenStreetMap Nominatim.
 
-De knop `Controleer route` gebruikt GPS-coördinaten en vraagt via de backend een normale autoroute op bij OSRM. De controle is adviserend; de kilometerteller blijft leidend.
+Na het vastleggen van vertrek en aankomst wordt de routecontrole automatisch uitgevoerd zodra ook de begin- en eindkilometerstand bekend zijn. De controle is adviserend; de kilometerteller blijft leidend.
 
 ## Correcties en auditlog
 
 Bestaande ritten worden niet hard verwijderd. Een correctie vereist een reden van minimaal 5 tekens. SQLite bewaart in `ride_audit` de oude en nieuwe versie, reden en correctietijdstip.
 
-De kilometerketen wordt bij correcties alleen gecontroleerd binnen hetzelfde voertuig/kenteken.
+Vertrek- en aankomsttijd blijven bij een correctie behouden en maken deel uit van de snapshots in het auditlog. De kilometerketen wordt bij correcties alleen gecontroleerd binnen hetzelfde voertuig/kenteken.
 
 ## Dagelijkse back-up
 
