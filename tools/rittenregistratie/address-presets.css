@@ -1,0 +1,48 @@
+.address-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.address-preset-button {
+  min-height: 30px;
+  padding: 5px 8px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 999px;
+  background: rgba(255,255,255,.055);
+  color: inherit;
+  font-size: .68rem;
+  line-height: 1.1;
+}
+
+.address-preset-button:hover {
+  border-color: color-mix(in srgb, var(--google-blue, #4285f4) 45%, transparent);
+  background: color-mix(in srgb, var(--google-blue, #4285f4) 9%, transparent);
+}
+
+.address-preset-button:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+html[data-theme="light"] .address-preset-button {
+  border-color: rgba(60,64,67,.18);
+  background: #f8f9fa;
+  color: #202124;
+}
+
+@media (max-width: 640px) {
+  .address-presets {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .address-preset-button {
+    width: 100%;
+    min-height: 32px;
+    padding: 5px 6px;
+    font-size: .66rem;
+  }
+}
