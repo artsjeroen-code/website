@@ -17,11 +17,13 @@ CREATE TABLE IF NOT EXISTS quick_rides (
     start_lon REAL NOT NULL,
     start_accuracy REAL,
     start_address TEXT NOT NULL DEFAULT '',
+    start_odometer INTEGER,
     end_captured_at TEXT,
     end_lat REAL,
     end_lon REAL,
     end_accuracy REAL,
     end_address TEXT NOT NULL DEFAULT '',
+    end_odometer INTEGER,
     created_at TEXT NOT NULL,
     archived_at TEXT
 );
@@ -29,9 +31,19 @@ CREATE INDEX IF NOT EXISTS idx_quick_rides_open ON quick_rides(archived_at, end_
 """
 
 
+def ensure_quick_columns(db):
+    columns = {row["name"] for row in db.execute("PRAGMA table_info(quick_rides)").fetchall()}
+    if "start_odometer" not in columns:
+        db.execute("ALTER TABLE quick_rides ADD COLUMN start_odometer INTEGER")
+    if "end_odometer" not in columns:
+        db.execute("ALTER TABLE quick_rides ADD COLUMN end_odometer INTEGER")
+    db.commit()
+
+
 def db_connect():
     db = base.db_connect()
     db.executescript(QUICK_SCHEMA)
+    ensure_quick_columns(db)
     return db
 
 
@@ -46,15 +58,29 @@ def validate_policy_ride(payload):
     return start, end
 
 
+def validate_optional_odometer(value):
+    if value in (None, ""):
+        return None
+    try:
+        number = int(str(value).strip())
+    except (TypeError, ValueError):
+        raise ValueError("Kilometerstand moet een heel getal zijn")
+    if number < 0:
+        raise ValueError("Kilometerstand mag niet negatief zijn")
+    return number
+
+
 def quick_to_dict(row):
     return {
         "id": row["id"],
         "startCapturedAt": row["start_captured_at"],
         "startCoords": {"lat": row["start_lat"], "lon": row["start_lon"], "accuracy": row["start_accuracy"]},
         "startAddress": row["start_address"],
+        "startOdometer": row["start_odometer"],
         "endCapturedAt": row["end_captured_at"],
         "endCoords": None if row["end_lat"] is None else {"lat": row["end_lat"], "lon": row["end_lon"], "accuracy": row["end_accuracy"]},
         "endAddress": row["end_address"],
+        "endOdometer": row["end_odometer"],
         "complete": row["end_captured_at"] is not None,
     }
 
@@ -77,11 +103,12 @@ def capture_values(payload):
     address = str(payload.get("address") or "").strip()
     if len(address) > 300:
         raise ValueError("Adres is te lang")
-    return captured_at, lat, lon, accuracy, address
+    odometer = validate_optional_odometer(payload.get("odometer"))
+    return captured_at, lat, lon, accuracy, address, odometer
 
 
 class Handler(base.Handler):
-    server_version = "RittenregistratieAPI/0.9"
+    server_version = "RittenregistratieAPI/1.0"
 
     def do_GET(self):
         path = urlparse(self.path).path
@@ -176,7 +203,7 @@ class Handler(base.Handler):
         try:
             if path == "/api/quick-rides/start":
                 payload = self.read_json()
-                captured_at, lat, lon, accuracy, address = capture_values(payload)
+                captured_at, lat, lon, accuracy, address, odometer = capture_values(payload)
                 created_at = datetime.now(timezone.utc).isoformat()
                 with db_connect() as db:
                     open_row = db.execute(
@@ -187,10 +214,10 @@ class Handler(base.Handler):
                     cursor = db.execute(
                         """
                         INSERT INTO quick_rides (
-                            start_captured_at, start_lat, start_lon, start_accuracy, start_address, created_at
-                        ) VALUES (?, ?, ?, ?, ?, ?)
+                            start_captured_at, start_lat, start_lon, start_accuracy, start_address, start_odometer, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
                         """,
-                        (captured_at, lat, lon, accuracy, address, created_at),
+                        (captured_at, lat, lon, accuracy, address, odometer, created_at),
                     )
                     row = db.execute("SELECT * FROM quick_rides WHERE id=?", (cursor.lastrowid,)).fetchone()
                     db.commit()
@@ -199,20 +226,22 @@ class Handler(base.Handler):
 
             if path == "/api/quick-rides/end":
                 payload = self.read_json()
-                captured_at, lat, lon, accuracy, address = capture_values(payload)
+                captured_at, lat, lon, accuracy, address, odometer = capture_values(payload)
                 with db_connect() as db:
                     row = db.execute(
                         "SELECT * FROM quick_rides WHERE archived_at IS NULL AND end_captured_at IS NULL ORDER BY id DESC LIMIT 1"
                     ).fetchone()
                     if row is None:
                         raise ValueError("Er is geen open beginpunt. Registreer eerst het beginpunt.")
+                    if odometer is not None and row["start_odometer"] is not None and odometer < row["start_odometer"]:
+                        raise ValueError(f"Eindstand kan niet lager zijn dan beginstand {row['start_odometer']} km")
                     db.execute(
                         """
                         UPDATE quick_rides
-                        SET end_captured_at=?, end_lat=?, end_lon=?, end_accuracy=?, end_address=?
+                        SET end_captured_at=?, end_lat=?, end_lon=?, end_accuracy=?, end_address=?, end_odometer=?
                         WHERE id=?
                         """,
-                        (captured_at, lat, lon, accuracy, address, row["id"]),
+                        (captured_at, lat, lon, accuracy, address, odometer, row["id"]),
                     )
                     updated = db.execute("SELECT * FROM quick_rides WHERE id=?", (row["id"],)).fetchone()
                     db.commit()
