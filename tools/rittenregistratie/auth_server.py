@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import base64
 import hashlib
+import hmac
 import json
 import os
 import secrets
@@ -27,13 +28,18 @@ RP_ID = os.environ.get("RITTEN_RP_ID", "artsjeroen.ddns.net")
 RP_NAME = os.environ.get("RITTEN_RP_NAME", "Rittenregistratie")
 USER_NAME = os.environ.get("RITTEN_AUTH_USER", "jeroen")
 SESSION_DAYS = int(os.environ.get("RITTEN_SESSION_DAYS", "30"))
+PASSWORD_HASH = os.environ.get("RITTEN_AUTH_PASSWORD_HASH", "").strip()
 COOKIE_NAME = "ritten_session"
 COOKIE_PATH = "/tools/rittenregistratie/"
 TX_TTL_SECONDS = 300
+PASSWORD_MAX_FAILURES = 5
+PASSWORD_LOCK_SECONDS = 60
 
 SERVER = Fido2Server({"id": RP_ID, "name": RP_NAME})
 TX_LOCK = threading.Lock()
 TRANSACTIONS = {}
+PASSWORD_LOCK = threading.Lock()
+PASSWORD_FAILURES = {}
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS passkeys (
@@ -63,6 +69,11 @@ def db_connect():
 
 def b64url(data):
     return base64.urlsafe_b64encode(bytes(data)).rstrip(b"=").decode("ascii")
+
+
+def b64decode(value):
+    text = str(value or "")
+    return base64.urlsafe_b64decode(text + "=" * ((4 - len(text) % 4) % 4))
 
 
 def jsonable(value):
@@ -160,8 +171,47 @@ def user_entity():
     return {"id": user_id, "name": USER_NAME, "displayName": USER_NAME}
 
 
+def verify_password(password):
+    if not PASSWORD_HASH:
+        return False
+    try:
+        scheme, iterations_text, salt_text, digest_text = PASSWORD_HASH.split("$", 3)
+        if scheme != "pbkdf2_sha256":
+            return False
+        iterations = int(iterations_text)
+        if iterations < 100000:
+            return False
+        salt = b64decode(salt_text)
+        expected = b64decode(digest_text)
+        actual = hashlib.pbkdf2_hmac("sha256", str(password).encode("utf-8"), salt, iterations)
+        return hmac.compare_digest(actual, expected)
+    except (TypeError, ValueError, base64.binascii.Error):
+        return False
+
+
+def password_rate_limited(client_ip):
+    now = time.time()
+    with PASSWORD_LOCK:
+        failures = [stamp for stamp in PASSWORD_FAILURES.get(client_ip, []) if now - stamp < PASSWORD_LOCK_SECONDS]
+        PASSWORD_FAILURES[client_ip] = failures
+        return len(failures) >= PASSWORD_MAX_FAILURES
+
+
+def record_password_failure(client_ip):
+    now = time.time()
+    with PASSWORD_LOCK:
+        failures = [stamp for stamp in PASSWORD_FAILURES.get(client_ip, []) if now - stamp < PASSWORD_LOCK_SECONDS]
+        failures.append(now)
+        PASSWORD_FAILURES[client_ip] = failures
+
+
+def clear_password_failures(client_ip):
+    with PASSWORD_LOCK:
+        PASSWORD_FAILURES.pop(client_ip, None)
+
+
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RittenPasskey/1.2"
+    server_version = "RittenAuth/1.3"
 
     def log_message(self, fmt, *args):
         print(f"{self.address_string()} - {fmt % args}")
@@ -211,6 +261,7 @@ class Handler(BaseHTTPRequestHandler):
                 "authenticated": valid_session(self.headers),
                 "passkeyCount": count,
                 "webauthn": True,
+                "passwordEnabled": bool(PASSWORD_HASH),
             })
             return
 
@@ -283,6 +334,26 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(200, {"ok": True}, session_token=token)
                 return
 
+            if path == "/api/auth/password":
+                if not PASSWORD_HASH:
+                    self.send_json(404, {"error": "Wachtwoord-login is niet ingesteld"})
+                    return
+                client_ip = self.client_address[0]
+                if password_rate_limited(client_ip):
+                    self.send_json(429, {"error": "Te veel mislukte pogingen. Wacht een minuut en probeer opnieuw."})
+                    return
+                payload = self.read_json()
+                password = str(payload.get("password") or "")
+                if not verify_password(password):
+                    record_password_failure(client_ip)
+                    self.send_json(401, {"error": "Onjuist wachtwoord"})
+                    return
+                clear_password_failures(client_ip)
+                with db_connect() as db:
+                    token = create_session(db)
+                self.send_json(200, {"ok": True}, session_token=token)
+                return
+
             if path == "/api/auth/logout":
                 token = session_token_from_headers(self.headers)
                 if token:
@@ -296,13 +367,13 @@ class Handler(BaseHTTPRequestHandler):
         except ValueError as error:
             self.send_json(400, {"error": str(error)})
         except Exception as error:
-            print(f"Passkey-fout: {type(error).__name__}: {error}")
+            print(f"Authenticatiefout: {type(error).__name__}: {error}")
             traceback.print_exc()
-            self.send_json(500, {"error": "Passkey-verificatie is mislukt"})
+            self.send_json(500, {"error": "Authenticatie is mislukt"})
 
 
 if __name__ == "__main__":
     with db_connect():
         pass
-    print(f"Passkey-authenticatie luistert op http://{HOST}:{PORT}; RP={RP_ID}")
+    print(f"Authenticatieservice luistert op http://{HOST}:{PORT}; RP={RP_ID}; password={'on' if PASSWORD_HASH else 'off'}")
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
