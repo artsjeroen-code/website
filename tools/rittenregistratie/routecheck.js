@@ -4,12 +4,16 @@
   const API_ROUTE = './api/route';
   const button = document.getElementById('checkRoute');
   const result = document.getElementById('routeCheckResult');
+  const icon = document.getElementById('routeStatusIcon');
   const startInput = document.getElementById('startOdometer');
   const endInput = document.getElementById('endOdometer');
   const departureInput = document.getElementById('departureAddress');
   const arrivalInput = document.getElementById('arrivalAddress');
 
-  if (!button || !result || !startInput || !endInput || !departureInput || !arrivalInput) return;
+  if (!button || !result || !icon || !startInput || !endInput || !departureInput || !arrivalInput) return;
+
+  let running = false;
+  let lastSignature = '';
 
   function coords(input) {
     const lat = Number(input.dataset.latitude);
@@ -29,30 +33,46 @@
     return new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 1 }).format(value);
   }
 
-  function show(message, status = '') {
+  function show(message, status = 'idle', symbol = '?') {
     result.textContent = message;
     result.dataset.status = status;
+    icon.dataset.status = status;
+    icon.textContent = symbol;
   }
 
-  async function checkRoute() {
+  function signature() {
+    const departure = coords(departureInput);
+    const arrival = coords(arrivalInput);
+    const drivenKm = odometerDistance();
+    if (!departure || !arrival || drivenKm === null) return '';
+    return [departure.lat, departure.lon, arrival.lat, arrival.lon, drivenKm].join('|');
+  }
+
+  async function checkRoute({ silentIfIncomplete = false } = {}) {
+    if (running) return;
+
     const departure = coords(departureInput);
     const arrival = coords(arrivalInput);
     const drivenKm = odometerDistance();
 
     if (!departure || !arrival) {
-      show('Gebruik eerst bij vertrek én aankomst de knop “Gebruik locatie”, zodat GPS-coördinaten beschikbaar zijn.', 'warning');
+      if (!silentIfIncomplete) show('Gebruik voor vertrek en aankomst “Gebruik locatie” om de route automatisch te controleren.', 'question', '?');
       return;
     }
 
     if (drivenKm === null) {
-      show('Vul eerst een geldige begin- en eindkilometerstand in.', 'warning');
+      if (!silentIfIncomplete) show('Vul eerst een geldige begin- en eindkilometerstand in.', 'question', '?');
       return;
     }
 
+    const currentSignature = signature();
+    if (!currentSignature || currentSignature === lastSignature) return;
+
+    running = true;
     const original = button.textContent;
     button.disabled = true;
-    button.textContent = 'Route berekenen…';
-    show('Normale autoroute wordt berekend…');
+    button.textContent = 'Bezig…';
+    show('Normale autoroute wordt berekend…', 'checking', '…');
 
     try {
       const response = await fetch(API_ROUTE, {
@@ -73,32 +93,69 @@
 
       const difference = drivenKm - routeKm;
       const absoluteDifference = Math.abs(difference);
-      const threshold = Math.max(3, routeKm * 0.2);
+      const greenThreshold = Math.max(1, routeKm * 0.05);
+      const largeThreshold = Math.max(3, routeKm * 0.20);
+      const direction = difference > 0 ? 'meer' : 'minder';
 
-      if (absoluteDifference <= threshold) {
+      if (absoluteDifference <= greenThreshold) {
         show(
-          `Controle OK: teller ${formatKm(drivenKm)} km · normale route ${formatKm(routeKm)} km · verschil ${formatKm(absoluteDifference)} km.`,
-          'ok'
+          `Teller ${formatKm(drivenKm)} km · route ${formatKm(routeKm)} km · verschil ${formatKm(absoluteDifference)} km.`,
+          'ok',
+          '✓'
+        );
+      } else if (absoluteDifference <= largeThreshold) {
+        show(
+          `Kleine afwijking: teller ${formatKm(drivenKm)} km · route ${formatKm(routeKm)} km · ${formatKm(absoluteDifference)} km ${direction}.`,
+          'question',
+          '?'
         );
       } else {
-        const direction = difference > 0 ? 'meer' : 'minder';
         show(
-          `Let op: teller ${formatKm(drivenKm)} km · normale route ${formatKm(routeKm)} km. Je reed ${formatKm(absoluteDifference)} km ${direction} dan de berekende route. Controleer invoer of noteer een afwijkende route.`,
-          'warning'
+          `Flinke afwijking: teller ${formatKm(drivenKm)} km · route ${formatKm(routeKm)} km · ${formatKm(absoluteDifference)} km ${direction}. Controleer invoer of noteer de afwijkende route.`,
+          'warning',
+          '!'
         );
       }
+      lastSignature = currentSignature;
     } catch (error) {
       console.warn('Routecontrole mislukt.', error);
-      show(`Routecontrole tijdelijk niet beschikbaar: ${error.message}. De rit kan wel gewoon worden opgeslagen.`, 'warning');
+      show(`Routecontrole tijdelijk niet beschikbaar: ${error.message}.`, 'question', '?');
     } finally {
+      running = false;
       button.disabled = false;
       button.textContent = original;
     }
   }
 
-  button.addEventListener('click', checkRoute);
+  function resetAndMaybeCheck() {
+    lastSignature = '';
+    show('Wordt automatisch uitgevoerd zodra beide locaties en kilometerstanden bekend zijn.', 'idle', '?');
+    window.setTimeout(() => checkRoute({ silentIfIncomplete: true }), 0);
+  }
 
-  [startInput, endInput, departureInput, arrivalInput].forEach((input) => {
-    input.addEventListener('input', () => show('Nog niet gecontroleerd.'));
+  button.addEventListener('click', () => {
+    lastSignature = '';
+    checkRoute();
+  });
+
+  [startInput, endInput].forEach((input) => {
+    input.addEventListener('input', resetAndMaybeCheck);
+  });
+
+  [departureInput, arrivalInput].forEach((input) => {
+    input.addEventListener('input', () => {
+      delete input.dataset.latitude;
+      delete input.dataset.longitude;
+      resetAndMaybeCheck();
+    });
+  });
+
+  document.addEventListener('rittenregistratie:location-filled', (event) => {
+    lastSignature = '';
+    if (event.detail && event.detail.targetId === 'arrivalAddress') {
+      checkRoute({ silentIfIncomplete: true });
+    } else {
+      window.setTimeout(() => checkRoute({ silentIfIncomplete: true }), 0);
+    }
   });
 })();
