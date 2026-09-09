@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Releasenotes – Rittenregistratie</title>
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('startpagina-theme') || 'dark';
+      document.documentElement.dataset.theme = savedTheme;
+    })();
+  </script>
+  <link rel="stylesheet" href="../style_base.css" />
+  <meta name="color-scheme" content="dark light" />
+  <style>
+    body { min-height: 100vh; padding: 0; }
+    .page { width: min(980px, calc(100% - 24px)); margin: 0 auto; padding: 18px 0 40px; }
+    .top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+    .button { display: inline-flex; align-items: center; min-height: 32px; padding: 7px 11px; border: 1px solid var(--ring); border-radius: 9px; background: var(--panel); color: var(--text); text-decoration: none; font: inherit; }
+    .header, .card { padding: 12px; border: 1px solid var(--ring); border-radius: 15px; background: var(--panel); margin-bottom: 10px; }
+    h1 { margin: 0 0 6px; color: var(--blue); font-size: 19px; }
+    h2 { margin: 0; color: var(--orange); font-size: 14px; }
+    p { color: var(--muted); }
+    .head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    ul { padding-left: 20px; }
+    li + li { margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="top">
+      <a class="button" href="./">← Alle releasenotes</a>
+      <a class="button" href="../tools/rittenregistratie/">Rittenregistratie</a>
+    </div>
+    <header class="header">
+      <h1>Rittenregistratie – releasenotes</h1>
+      <p>Alleen wijzigingen aan de rittenregistratie. Startpagina en andere tools blijven apart.</p>
+    </header>
+
+    <article class="card">
+      <div class="head"><h2>Versie 2026.09.09</h2><span>9 september 2026</span></div>
+      <ul>
+        <li>Nieuwe app-indeling met hamburgermenu en aparte schermen voor Dashboard, Voertuigen, Ritcorrectie &amp; auditlog en Overzicht.</li>
+        <li>Dashboard compacter gemaakt en aangesloten op de monospace-/Google-kleurenstijl van de startpagina.</li>
+        <li>Meerdere voertuigen ondersteund met een eigen kilometerketen per kenteken.</li>
+        <li>Voertuiggegevens worden bij toevoegen automatisch opgehaald uit RDW Open Data; tellerstand bij ingebruikname wordt apart vastgelegd.</li>
+        <li>Routecontrole start automatisch zodra locaties en kilometerstanden beschikbaar zijn, met groen vinkje, geel vraagteken of rood uitroepteken afhankelijk van de afwijking.</li>
+        <li>Vertrek- en aankomsttijd worden automatisch geregistreerd bij de locatie-opvraag en opgeslagen in SQLite.</li>
+        <li>Overzicht kan per kalenderjaar of afzonderlijke maand worden gefilterd en als CSV worden geëxporteerd.</li>
+        <li>Gecontroleerde ritcorrecties met auditlog toegevoegd.</li>
+        <li>Dagelijkse consistente SQLite-back-up met integriteitscontrole en rotatie toegevoegd.</li>
+        <li>Rittenregistratie en API afgeschermd met Nginx Basic Auth over HTTPS.</li>
+        <li>Maandelijkse e-mailrapportage toegevoegd: op de eerste dag van de maand wordt het overzicht van de vorige maand met CSV-bijlage verzonden via de Raspberry Pi.</li>
+      </ul>
+    </article>
+
+    <article class="card">
+      <div class="head"><h2>Versie 2026.09.08</h2><span>8 september 2026</span></div>
+      <ul>
+        <li>Rittenregistratie opgezet onder <code>/tools/rittenregistratie/</code> met centrale Python API en SQLite-opslag op de Raspberry Pi.</li>
+        <li>GPS naar adres, kilometerketen, routecontrole en jaar-CSV als basisfunctionaliteit toegevoegd.</li>
+      </ul>
+    </article>
+  </main>
+</body>
+</html>
