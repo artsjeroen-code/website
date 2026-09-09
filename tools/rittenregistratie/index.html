@@ -117,8 +117,8 @@
             <label><span>Type rit</span><select id="correctionType" required><option value="business">Zakelijk</option><option value="private">Privé</option></select></label>
             <label><span>Begin km-stand</span><input id="correctionStart" type="number" min="0" step="1" required></label>
             <label><span>Eind km-stand</span><input id="correctionEnd" type="number" min="0" step="1" required></label>
-            <label><span>Vertrektijd <em>(optioneel)</em></span><input id="correctionDepartureTime" type="time" step="1"></label>
-            <label><span>Aankomsttijd <em>(optioneel)</em></span><input id="correctionArrivalTime" type="time" step="1"></label>
+            <label><span>Vertrektijd <em>(24 uur, optioneel)</em></span><input id="correctionDepartureTime" type="text" inputmode="numeric" maxlength="5" pattern="(?:[01][0-9]|2[0-3]):[0-5][0-9]" placeholder="08:30" aria-label="Vertrektijd in 24-uurs formaat UU:MM"></label>
+            <label><span>Aankomsttijd <em>(24 uur, optioneel)</em></span><input id="correctionArrivalTime" type="text" inputmode="numeric" maxlength="5" pattern="(?:[01][0-9]|2[0-3]):[0-5][0-9]" placeholder="17:45" aria-label="Aankomsttijd in 24-uurs formaat UU:MM"></label>
           </div>
           <div class="address-grid">
             <div class="address-block"><label for="correctionDeparture">Vertrekadres</label><input id="correctionDeparture" type="text" required></div>
