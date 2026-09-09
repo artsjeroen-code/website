@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rittenregistratie-shell-v1';
+const CACHE_NAME = 'rittenregistratie-shell-v2';
 const APP_SHELL = [
   './',
   './index.html',
@@ -36,20 +36,24 @@ self.addEventListener('fetch', (event) => {
 
   if (request.method !== 'GET') return;
 
-  if (url.origin === self.location.origin && url.pathname.includes('/tools/rittenregistratie/api/')) {
+  if (url.origin === self.location.origin && (
+    url.pathname.includes('/tools/rittenregistratie/api/') ||
+    url.pathname.endsWith('/tools/rittenregistratie/login.html') ||
+    url.pathname.endsWith('/tools/rittenregistratie/passkey.js')
+  )) {
     return;
   }
 
-  if (url.origin !== self.location.origin) {
-    return;
-  }
+  if (url.origin !== self.location.origin) return;
 
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', copy));
+          if (!response.redirected && response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', copy));
+          }
           return response;
         })
         .catch(() => caches.match('./index.html'))
