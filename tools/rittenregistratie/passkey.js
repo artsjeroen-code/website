@@ -5,6 +5,8 @@
   const loginButton = document.getElementById('passkeyLogin');
   const registerButton = document.getElementById('passkeyRegister');
   const statusText = document.getElementById('authStatus');
+  const passwordForm = document.getElementById('passwordLoginForm');
+  const passwordInput = document.getElementById('passwordInput');
 
   function setMessage(text, success = false) {
     message.textContent = text;
@@ -105,30 +107,62 @@
     }
   }
 
+  async function passwordLogin(event) {
+    event.preventDefault();
+    const password = passwordInput.value;
+    if (!password) return;
+
+    const submitButton = passwordForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    setMessage('Wachtwoord controleren…');
+    try {
+      await api('password', {
+        method: 'POST',
+        body: JSON.stringify({ password })
+      });
+      passwordInput.value = '';
+      setMessage('Inloggen gelukt.', true);
+      redirectToApp();
+    } catch (error) {
+      setMessage(`Inloggen mislukt: ${error.message}`);
+      passwordInput.select();
+    } finally {
+      submitButton.disabled = false;
+    }
+  }
+
   function register() {
     window.location.href = './register.html';
   }
 
   async function init() {
-    if (!window.PublicKeyCredential || !navigator.credentials) {
-      statusText.textContent = 'Deze browser ondersteunt geen passkeys/WebAuthn.';
-      loginButton.hidden = true;
-      registerButton.hidden = true;
-      return;
-    }
-
     try {
       const status = await api('status');
       if (status.authenticated) {
         redirectToApp();
         return;
       }
+
+      passwordForm.hidden = !status.passwordEnabled;
+
+      const webauthnSupported = Boolean(window.PublicKeyCredential && navigator.credentials);
+      if (!webauthnSupported) {
+        statusText.textContent = status.passwordEnabled
+          ? 'Passkeys worden door deze browser niet ondersteund. Gebruik je wachtwoord.'
+          : 'Deze browser ondersteunt geen passkeys/WebAuthn.';
+        loginButton.hidden = true;
+        registerButton.hidden = true;
+        return;
+      }
+
       if (status.passkeyCount > 0) {
         statusText.textContent = `${status.passkeyCount} passkey${status.passkeyCount === 1 ? '' : 's'} geregistreerd.`;
         loginButton.hidden = false;
         registerButton.textContent = 'Extra passkey registreren';
       } else {
-        statusText.textContent = 'Nog geen passkey geregistreerd. Stel eerst Face ID, Touch ID of vingerafdruk in.';
+        statusText.textContent = status.passwordEnabled
+          ? 'Nog geen passkey geregistreerd. Je kunt inloggen met je wachtwoord of eerst een passkey instellen.'
+          : 'Nog geen passkey geregistreerd. Stel eerst Face ID, Touch ID of vingerafdruk in.';
         loginButton.hidden = true;
         registerButton.textContent = 'Eerste passkey instellen';
       }
@@ -140,5 +174,6 @@
 
   loginButton.addEventListener('click', login);
   registerButton.addEventListener('click', register);
+  passwordForm.addEventListener('submit', passwordLogin);
   init();
 })();
