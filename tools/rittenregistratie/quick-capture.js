@@ -135,12 +135,22 @@
     const dateInput = document.getElementById('rideDate');
     const departure = document.getElementById('departureAddress');
     const arrival = document.getElementById('arrivalAddress');
+    const startOdometer = document.getElementById('startOdometer');
+    const endOdometer = document.getElementById('endOdometer');
     const form = document.getElementById('rideForm');
     if (!dateInput || !departure || !arrival || !form) return;
 
     dateInput.value = String(ride.startCapturedAt).slice(0, 10);
     departure.value = ride.startAddress || `GPS ${ride.startCoords.lat}, ${ride.startCoords.lon}`;
     arrival.value = ride.endAddress || `GPS ${ride.endCoords.lat}, ${ride.endCoords.lon}`;
+    if (startOdometer && ride.startOdometer !== null && ride.startOdometer !== undefined) {
+      startOdometer.value = String(ride.startOdometer);
+      startOdometer.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    if (endOdometer && ride.endOdometer !== null && ride.endOdometer !== undefined) {
+      endOdometer.value = String(ride.endOdometer);
+      endOdometer.dispatchEvent(new Event('input', { bubbles: true }));
+    }
     departure.dataset.latitude = String(ride.startCoords.lat);
     departure.dataset.longitude = String(ride.startCoords.lon);
     departure.dataset.capturedTime = String(ride.startCapturedAt).slice(11, 19);
@@ -156,7 +166,13 @@
     document.dispatchEvent(new CustomEvent('rittenregistratie:location-filled', { detail: { targetId: 'departureAddress' } }));
     document.dispatchEvent(new CustomEvent('rittenregistratie:location-filled', { detail: { targetId: 'arrivalAddress' } }));
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setMessage('Locaties en tijden zijn overgenomen. Kies nu het kenteken en vul de kilometerstanden in.', true);
+    const hasOdometers = ride.startOdometer !== null && ride.startOdometer !== undefined && ride.endOdometer !== null && ride.endOdometer !== undefined;
+    setMessage(
+      hasOdometers
+        ? 'Locaties, tijden en kilometerstanden zijn overgenomen. Kies nu het kenteken en controleer de rit.'
+        : 'Locaties en tijden zijn overgenomen. Kies nu het kenteken en vul de ontbrekende kilometerstanden in.',
+      true
+    );
   }
 
   async function abortQuickRide(id) {
@@ -188,9 +204,11 @@
       const title = document.createElement('strong');
       title.textContent = ride.complete ? `Concept-rit ${formatCaptured(ride.startCapturedAt)}` : `Open beginpunt ${formatCaptured(ride.startCapturedAt)}`;
       const details = document.createElement('span');
+      const startKm = ride.startOdometer === null || ride.startOdometer === undefined ? '' : ` · ${ride.startOdometer} km`;
+      const endKm = ride.endOdometer === null || ride.endOdometer === undefined ? '' : ` · ${ride.endOdometer} km`;
       details.textContent = ride.complete
-        ? `${ride.startAddress || 'Beginlocatie'} → ${ride.endAddress || 'Eindlocatie'} · aankomst ${formatCaptured(ride.endCapturedAt)}`
-        : `${ride.startAddress || 'Beginlocatie opgeslagen'} · wacht op eindpunt`;
+        ? `${ride.startAddress || 'Beginlocatie'}${startKm} → ${ride.endAddress || 'Eindlocatie'}${endKm} · aankomst ${formatCaptured(ride.endCapturedAt)}`
+        : `${ride.startAddress || 'Beginlocatie opgeslagen'}${startKm} · wacht op eindpunt`;
       copy.append(title, details);
 
       const actions = document.createElement('div');
