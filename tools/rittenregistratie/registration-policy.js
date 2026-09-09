@@ -6,40 +6,16 @@
   let fullRegistrationFrom = DEFAULT_FULL_FROM;
   let privateKmLimit = DEFAULT_PRIVATE_LIMIT;
 
-  const form = document.getElementById('rideForm');
   const rideDate = document.getElementById('rideDate');
   const rideType = document.getElementById('rideType');
   const vehicleSelect = document.getElementById('vehicleSelect');
-  const startOdometer = document.getElementById('startOdometer');
-  const endOdometer = document.getElementById('endOdometer');
-  const departureAddress = document.getElementById('departureAddress');
-  const arrivalAddress = document.getElementById('arrivalAddress');
-  const notes = document.getElementById('notes');
-  const formMessage = document.getElementById('formMessage');
   const privateKm = document.getElementById('privateKm');
   const fillPrevious = document.getElementById('fillFromPrevious');
 
-  if (!form || !rideDate || !rideType) return;
+  if (!rideDate || !rideType) return;
 
   function isFullRegistration(dateValue = rideDate.value) {
     return String(dateValue || '') >= fullRegistrationFrom;
-  }
-
-  function formatNumber(value) {
-    return new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 1 }).format(value);
-  }
-
-  function setMessage(text, success = false) {
-    if (!formMessage) return;
-    formMessage.textContent = text;
-    formMessage.classList.toggle('success', success);
-  }
-
-  function coordsFrom(input) {
-    const lat = Number(input.dataset.latitude);
-    const lon = Number(input.dataset.longitude);
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-    return { lat, lon };
   }
 
   function syncFormPolicy() {
@@ -58,91 +34,62 @@
     }
   }
 
-  function baselineForYear(vehicle, rides, year) {
-    if (String(vehicle.useFrom || '').startsWith(`${year}-`) && Number.isFinite(Number(vehicle.initialOdometer))) {
-      return Number(vehicle.initialOdometer);
-    }
-
-    const earlier = rides
-      .filter((ride) => ride.vehicleId === vehicle.id && String(ride.date) < `${year}-01-01`)
-      .map((ride) => Number(ride.endOdometer))
-      .filter(Number.isFinite);
-    if (earlier.length) return Math.max(...earlier);
-
-    return Number.isFinite(Number(vehicle.initialOdometer)) ? Number(vehicle.initialOdometer) : null;
+  async function fetchJson(path) {
+    const response = await fetch(path, {
+      cache: 'no-store',
+      credentials: 'same-origin',
+      headers: { Accept: 'application/json' }
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
   }
 
-  function inferredPrivateKm(year, rides, vehicles) {
-    return vehicles.reduce((sum, vehicle) => {
-      const yearRides = rides.filter((ride) => (
+  function derivedPrivateKm(rides, vehicles, year) {
+    let total = 0;
+    for (const vehicle of vehicles) {
+      const vehicleRides = rides.filter((ride) =>
         ride.vehicleId === vehicle.id &&
         String(ride.date).startsWith(`${year}-`) &&
         ride.type === 'business'
-      ));
-      if (!yearRides.length) return sum;
+      );
+      if (!vehicleRides.length || !Number.isFinite(Number(vehicle.initialOdometer))) continue;
 
-      const baseline = baselineForYear(vehicle, rides, year);
-      if (!Number.isFinite(baseline)) return sum;
-
-      const knownOdometers = yearRides.flatMap((ride) => [Number(ride.startOdometer), Number(ride.endOdometer)]).filter(Number.isFinite);
-      if (!knownOdometers.length) return sum;
-
-      const highestKnown = Math.max(...knownOdometers);
-      const business = yearRides.reduce((total, ride) => total + Number(ride.distance || 0), 0);
-      const totalDrivenSinceBaseline = Math.max(0, highestKnown - baseline);
-      return sum + Math.max(0, totalDrivenSinceBaseline - business);
-    }, 0);
+      const highest = Math.max(...vehicleRides.map((ride) => Number(ride.endOdometer)));
+      const business = vehicleRides.reduce((sum, ride) => sum + Number(ride.distance || 0), 0);
+      total += Math.max(0, highest - Number(vehicle.initialOdometer) - business);
+    }
+    return total;
   }
 
   async function refreshPrivateCounter() {
     if (!privateKm) return;
     const year = new Date().getFullYear();
     try {
-      const [ridesResponse, vehiclesResponse] = await Promise.all([
-        fetch('./api/rides', {
-          cache: 'no-store',
-          credentials: 'same-origin',
-          headers: { Accept: 'application/json' }
-        }),
-        fetch('./api/vehicles', {
-          cache: 'no-store',
-          credentials: 'same-origin',
-          headers: { Accept: 'application/json' }
-        })
+      const [ridesPayload, vehiclesPayload] = await Promise.all([
+        fetchJson('./api/rides'),
+        fetchJson('./api/vehicles')
       ]);
-      if (!ridesResponse.ok || !vehiclesResponse.ok) return;
-
-      const ridesPayload = await ridesResponse.json();
-      const vehiclesPayload = await vehiclesResponse.json();
       const rides = Array.isArray(ridesPayload.rides) ? ridesPayload.rides : [];
       const vehicles = Array.isArray(vehiclesPayload.vehicles) ? vehiclesPayload.vehicles : [];
 
       if (`${year}-01-01` < fullRegistrationFrom) {
-        const inferred = inferredPrivateKm(year, rides, vehicles);
-        privateKm.textContent = `${formatNumber(inferred)} km`;
-        privateKm.title = 'Afgeleid uit hoogste bekende tellerstand minus beginstand bij ingebruikname minus zakelijke kilometers';
+        const total = derivedPrivateKm(rides, vehicles, year);
+        privateKm.textContent = `${new Intl.NumberFormat('nl-NL').format(total)} km`;
         return;
       }
 
       const total = rides
         .filter((ride) => String(ride.date).startsWith(`${year}-`) && ride.type === 'private')
         .reduce((sum, ride) => sum + Number(ride.distance || 0), 0);
-      privateKm.textContent = `${formatNumber(total)} / ${privateKmLimit} km`;
-      privateKm.title = 'Geregistreerde privékilometers';
+      privateKm.textContent = `${new Intl.NumberFormat('nl-NL').format(total)} / ${privateKmLimit} km`;
     } catch {
-      // De normale app toont zijn eigen waarde als deze extra beleidsweergave niet kan laden.
+      // De normale app toont zijn eigen waarde als deze aanvullende beleidsweergave niet kan laden.
     }
   }
 
   async function loadPolicy() {
     try {
-      const response = await fetch('./api/policy', {
-        cache: 'no-store',
-        credentials: 'same-origin',
-        headers: { Accept: 'application/json' }
-      });
-      if (!response.ok) return;
-      const payload = await response.json();
+      const payload = await fetchJson('./api/policy');
       if (payload.fullRegistrationFrom) fullRegistrationFrom = String(payload.fullRegistrationFrom);
       if (Number.isFinite(Number(payload.privateKmLimit))) privateKmLimit = Number(payload.privateKmLimit);
     } catch {
@@ -152,98 +99,16 @@
     refreshPrivateCounter();
   }
 
-  async function submitRide(event) {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-
-    if (!form.reportValidity()) return;
-    const vehicleId = Number(vehicleSelect && vehicleSelect.value);
-    if (!Number.isInteger(vehicleId) || vehicleId <= 0) {
-      setMessage('Kies eerst een kenteken.');
-      return;
-    }
-
-    const start = Number(startOdometer.value);
-    const end = Number(endOdometer.value);
-    if (!Number.isInteger(start) || !Number.isInteger(end)) {
-      setMessage('Gebruik hele kilometers voor de kilometerstanden.');
-      return;
-    }
-    if (start < 0 || end < start) {
-      setMessage('De eindkilometerstand kan niet lager zijn dan de beginstand.');
-      return;
-    }
-
-    const full = isFullRegistration();
-    const type = full ? rideType.value : 'business';
-    const payload = {
-      vehicleId,
-      date: rideDate.value,
-      type,
-      startOdometer: start,
-      endOdometer: end,
-      departureAddress: departureAddress.value.trim(),
-      arrivalAddress: arrivalAddress.value.trim(),
-      departureTime: departureAddress.dataset.capturedTime || null,
-      arrivalTime: arrivalAddress.dataset.capturedTime || null,
-      departureCoords: coordsFrom(departureAddress),
-      arrivalCoords: coordsFrom(arrivalAddress),
-      notes: notes.value.trim()
-    };
-
-    const button = form.querySelector('button[type="submit"]');
-    const oldText = button ? button.textContent : '';
-    if (button) {
-      button.disabled = true;
-      button.textContent = 'Opslaan…';
-    }
-    setMessage('');
-
-    try {
-      const response = await fetch('./api/rides', {
-        method: 'POST',
-        cache: 'no-store',
-        credentials: 'same-origin',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      let result = {};
-      try { result = await response.json(); }
-      catch { throw new Error(`API gaf geen geldige JSON (HTTP ${response.status})`); }
-      if (!response.ok) throw new Error(result.error || `API-fout HTTP ${response.status}`);
-      setMessage(`Rit opgeslagen: ${result.ride.distance} km.`, true);
-      window.setTimeout(() => window.location.reload(), 450);
-    } catch (error) {
-      setMessage(`Rit niet opgeslagen: ${error.message}`);
-      if (button) {
-        button.disabled = false;
-        button.textContent = oldText;
-      }
-    }
-  }
-
-  rideDate.addEventListener('change', () => {
-    syncFormPolicy();
-    if (!isFullRegistration()) startOdometer.value = '';
-  });
+  rideDate.addEventListener('change', syncFormPolicy);
   rideDate.addEventListener('input', syncFormPolicy);
-  if (vehicleSelect) {
-    vehicleSelect.addEventListener('change', () => {
-      if (!isFullRegistration()) {
-        window.setTimeout(() => { startOdometer.value = ''; }, 0);
-      }
-    });
-  }
-  form.addEventListener('reset', () => window.setTimeout(syncFormPolicy, 0));
-  form.addEventListener('submit', submitRide, true);
+  if (vehicleSelect) vehicleSelect.addEventListener('change', syncFormPolicy);
 
   syncFormPolicy();
   loadPolicy();
   window.addEventListener('load', () => {
     window.setTimeout(() => {
       syncFormPolicy();
-      if (!isFullRegistration() && startOdometer.value) startOdometer.value = '';
       refreshPrivateCounter();
-    }, 900);
+    }, 700);
   });
 })();
