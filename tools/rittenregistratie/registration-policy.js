@@ -25,6 +25,10 @@
     return String(dateValue || '') >= fullRegistrationFrom;
   }
 
+  function formatNumber(value) {
+    return new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 1 }).format(value);
+  }
+
   function setMessage(text, success = false) {
     if (!formMessage) return;
     formMessage.textContent = text;
@@ -54,26 +58,77 @@
     }
   }
 
+  function baselineForYear(vehicle, rides, year) {
+    if (String(vehicle.useFrom || '').startsWith(`${year}-`) && Number.isFinite(Number(vehicle.initialOdometer))) {
+      return Number(vehicle.initialOdometer);
+    }
+
+    const earlier = rides
+      .filter((ride) => ride.vehicleId === vehicle.id && String(ride.date) < `${year}-01-01`)
+      .map((ride) => Number(ride.endOdometer))
+      .filter(Number.isFinite);
+    if (earlier.length) return Math.max(...earlier);
+
+    return Number.isFinite(Number(vehicle.initialOdometer)) ? Number(vehicle.initialOdometer) : null;
+  }
+
+  function inferredPrivateKm(year, rides, vehicles) {
+    return vehicles.reduce((sum, vehicle) => {
+      const yearRides = rides.filter((ride) => (
+        ride.vehicleId === vehicle.id &&
+        String(ride.date).startsWith(`${year}-`) &&
+        ride.type === 'business'
+      ));
+      if (!yearRides.length) return sum;
+
+      const baseline = baselineForYear(vehicle, rides, year);
+      if (!Number.isFinite(baseline)) return sum;
+
+      const knownOdometers = yearRides.flatMap((ride) => [Number(ride.startOdometer), Number(ride.endOdometer)]).filter(Number.isFinite);
+      if (!knownOdometers.length) return sum;
+
+      const highestKnown = Math.max(...knownOdometers);
+      const business = yearRides.reduce((total, ride) => total + Number(ride.distance || 0), 0);
+      const totalDrivenSinceBaseline = Math.max(0, highestKnown - baseline);
+      return sum + Math.max(0, totalDrivenSinceBaseline - business);
+    }, 0);
+  }
+
   async function refreshPrivateCounter() {
     if (!privateKm) return;
     const year = new Date().getFullYear();
-    if (`${year}-01-01` < fullRegistrationFrom) {
-      privateKm.textContent = 'n.v.t.';
-      return;
-    }
     try {
-      const response = await fetch('./api/rides', {
-        cache: 'no-store',
-        credentials: 'same-origin',
-        headers: { Accept: 'application/json' }
-      });
-      if (!response.ok) return;
-      const payload = await response.json();
-      const rides = Array.isArray(payload.rides) ? payload.rides : [];
+      const [ridesResponse, vehiclesResponse] = await Promise.all([
+        fetch('./api/rides', {
+          cache: 'no-store',
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' }
+        }),
+        fetch('./api/vehicles', {
+          cache: 'no-store',
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' }
+        })
+      ]);
+      if (!ridesResponse.ok || !vehiclesResponse.ok) return;
+
+      const ridesPayload = await ridesResponse.json();
+      const vehiclesPayload = await vehiclesResponse.json();
+      const rides = Array.isArray(ridesPayload.rides) ? ridesPayload.rides : [];
+      const vehicles = Array.isArray(vehiclesPayload.vehicles) ? vehiclesPayload.vehicles : [];
+
+      if (`${year}-01-01` < fullRegistrationFrom) {
+        const inferred = inferredPrivateKm(year, rides, vehicles);
+        privateKm.textContent = `${formatNumber(inferred)} km`;
+        privateKm.title = 'Afgeleid uit hoogste bekende tellerstand minus beginstand bij ingebruikname minus zakelijke kilometers';
+        return;
+      }
+
       const total = rides
         .filter((ride) => String(ride.date).startsWith(`${year}-`) && ride.type === 'private')
         .reduce((sum, ride) => sum + Number(ride.distance || 0), 0);
-      privateKm.textContent = `${new Intl.NumberFormat('nl-NL').format(total)} / ${privateKmLimit} km`;
+      privateKm.textContent = `${formatNumber(total)} / ${privateKmLimit} km`;
+      privateKm.title = 'Geregistreerde privékilometers';
     } catch {
       // De normale app toont zijn eigen waarde als deze extra beleidsweergave niet kan laden.
     }
@@ -167,7 +222,10 @@
     }
   }
 
-  rideDate.addEventListener('change', syncFormPolicy);
+  rideDate.addEventListener('change', () => {
+    syncFormPolicy();
+    if (!isFullRegistration()) startOdometer.value = '';
+  });
   rideDate.addEventListener('input', syncFormPolicy);
   if (vehicleSelect) {
     vehicleSelect.addEventListener('change', () => {
@@ -184,7 +242,8 @@
   window.addEventListener('load', () => {
     window.setTimeout(() => {
       syncFormPolicy();
+      if (!isFullRegistration() && startOdometer.value) startOdometer.value = '';
       refreshPrivateCounter();
-    }, 700);
+    }, 900);
   });
 })();
