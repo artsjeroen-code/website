@@ -86,6 +86,24 @@
     }
   }
 
+  function loadAddressPresetAssets() {
+    if (!document.querySelector('link[data-address-presets]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'address-presets.css';
+      link.dataset.addressPresets = 'true';
+      document.head.appendChild(link);
+    }
+
+    if (!document.querySelector('script[data-address-presets]')) {
+      const script = document.createElement('script');
+      script.src = 'address-presets.js';
+      script.defer = true;
+      script.dataset.addressPresets = 'true';
+      document.body.appendChild(script);
+    }
+  }
+
   function loadRegistrationPolicy() {
     if (document.querySelector('script[data-registration-policy]')) return;
     const script = document.createElement('script');
@@ -99,6 +117,7 @@
   arrangeRideForm();
   addQuickCapturePanel();
   loadQuickCaptureAssets();
+  loadAddressPresetAssets();
   loadRegistrationPolicy();
 
   if (!('serviceWorker' in navigator)) return;
