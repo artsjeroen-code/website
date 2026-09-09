@@ -7,6 +7,7 @@ const APP_SHELL = [
   './geocode.js',
   './routecheck.js',
   './audit.js',
+  './pwa.js',
   './manifest.webmanifest',
   './icons/icon-192.svg',
   './icons/icon-512.svg',
