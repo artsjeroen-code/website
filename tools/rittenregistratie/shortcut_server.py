@@ -47,7 +47,7 @@ def reverse_geocode(lat, lon):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RittenregistratieShortcut/1.0"
+    server_version = "RittenregistratieShortcut/1.1"
 
     def send_json(self, status, payload):
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -91,9 +91,13 @@ class Handler(BaseHTTPRequestHandler):
                 raise ValueError("Actie moet start of end zijn")
 
             coords = payload.get("coords") or {}
-            lat = quick.base.validate_coord(coords.get("lat"), -90, 90, "latitude")
-            lon = quick.base.validate_coord(coords.get("lon"), -180, 180, "longitude")
-            accuracy = coords.get("accuracy")
+            lat_value = payload.get("lat", coords.get("lat"))
+            lon_value = payload.get("lon", coords.get("lon"))
+            accuracy_value = payload.get("accuracy", coords.get("accuracy"))
+
+            lat = quick.base.validate_coord(lat_value, -90, 90, "latitude")
+            lon = quick.base.validate_coord(lon_value, -180, 180, "longitude")
+            accuracy = accuracy_value
             if accuracy in (None, ""):
                 accuracy = None
             else:
