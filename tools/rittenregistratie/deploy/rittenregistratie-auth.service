@@ -1,0 +1,27 @@
+[Unit]
+Description=Rittenregistratie Passkey Auth
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/html/tools/rittenregistratie
+Environment=PYTHONUNBUFFERED=1
+Environment=RITTEN_AUTH_HOST=127.0.0.1
+Environment=RITTEN_AUTH_PORT=8766
+Environment=RITTEN_AUTH_DB=/var/lib/rittenregistratie/auth.db
+Environment=RITTEN_RP_ID=artsjeroen.ddns.net
+Environment=RITTEN_RP_NAME=Rittenregistratie
+Environment=RITTEN_AUTH_USER=jeroen
+ExecStart=/var/lib/rittenregistratie/auth-venv/bin/python /var/www/html/tools/rittenregistratie/auth_server.py
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/rittenregistratie
+
+[Install]
+WantedBy=multi-user.target
