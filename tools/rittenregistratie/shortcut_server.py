@@ -47,7 +47,7 @@ def reverse_geocode(lat, lon):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RittenregistratieShortcut/1.1"
+    server_version = "RittenregistratieShortcut/1.2"
 
     def send_json(self, status, payload):
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -103,6 +103,10 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 accuracy = max(0.0, float(accuracy))
 
+            odometer = quick.validate_optional_odometer(payload.get("odometer"))
+            if odometer is None:
+                raise ValueError("Kilometerstand ontbreekt")
+
             captured_at = datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S")
             address = str(payload.get("address") or "").strip() or reverse_geocode(lat, lon)
             if not address:
@@ -125,16 +129,17 @@ class Handler(BaseHTTPRequestHandler):
                     cursor = db.execute(
                         """
                         INSERT INTO quick_rides (
-                            start_captured_at, start_lat, start_lon, start_accuracy, start_address, created_at
-                        ) VALUES (?, ?, ?, ?, ?, ?)
+                            start_captured_at, start_lat, start_lon, start_accuracy, start_address,
+                            start_odometer, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
                         """,
-                        (captured_at, lat, lon, accuracy, address, created_at),
+                        (captured_at, lat, lon, accuracy, address, odometer, created_at),
                     )
                     row = db.execute("SELECT * FROM quick_rides WHERE id=?", (cursor.lastrowid,)).fetchone()
                     db.commit()
                     self.send_json(201, {
                         "status": "started",
-                        "message": "Rit gestart.",
+                        "message": f"Rit gestart op {odometer} km.",
                         "quickRide": quick.quick_to_dict(row),
                     })
                     return
@@ -146,19 +151,26 @@ class Handler(BaseHTTPRequestHandler):
                     })
                     return
 
+                if open_row["start_odometer"] is not None and odometer < open_row["start_odometer"]:
+                    raise ValueError(
+                        f"Eindstand {odometer} km kan niet lager zijn dan beginstand {open_row['start_odometer']} km"
+                    )
+
                 db.execute(
                     """
                     UPDATE quick_rides
-                    SET end_captured_at=?, end_lat=?, end_lon=?, end_accuracy=?, end_address=?
+                    SET end_captured_at=?, end_lat=?, end_lon=?, end_accuracy=?, end_address=?, end_odometer=?
                     WHERE id=?
                     """,
-                    (captured_at, lat, lon, accuracy, address, open_row["id"]),
+                    (captured_at, lat, lon, accuracy, address, odometer, open_row["id"]),
                 )
                 row = db.execute("SELECT * FROM quick_rides WHERE id=?", (open_row["id"],)).fetchone()
                 db.commit()
+                distance = None if row["start_odometer"] is None else odometer - row["start_odometer"]
+                suffix = "" if distance is None else f" Afstand: {distance} km."
                 self.send_json(200, {
                     "status": "ended",
-                    "message": "Rit beëindigd. Concept-rit staat klaar om aan te vullen.",
+                    "message": f"Rit beëindigd op {odometer} km.{suffix} Concept-rit staat klaar om aan te vullen.",
                     "quickRide": quick.quick_to_dict(row),
                 })
         except (TypeError, ValueError) as error:
