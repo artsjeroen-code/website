@@ -11,7 +11,7 @@ DB_PATH = os.environ.get("RITTEN_DB", "/var/lib/rittenregistratie/ritten.db")
 SMTP_HOST = os.environ.get("RITTEN_SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.environ.get("RITTEN_SMTP_PORT", "465"))
 SMTP_USER = os.environ.get("RITTEN_SMTP_USER", "").strip()
-SMTP_PASSWORD = os.environ.get("RITTEN_SMTP_PASSWORD", "")
+SMTP_PASSWORD = os.environ.get("RITTEN_SMTP_PASSWORD", "").replace(" ", "")
 MAIL_TO = os.environ.get("RITTEN_MAIL_TO", SMTP_USER).strip()
 MAIL_FROM = os.environ.get("RITTEN_MAIL_FROM", SMTP_USER).strip()
 
