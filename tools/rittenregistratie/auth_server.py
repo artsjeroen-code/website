@@ -7,13 +7,14 @@ import secrets
 import sqlite3
 import threading
 import time
+import traceback
 from datetime import datetime, timedelta, timezone
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
 from fido2.server import Fido2Server
-from fido2.webauthn import AttestedCredentialData
+from fido2.webauthn import AttestedCredentialData, AuthenticationResponse, RegistrationResponse
 
 HOST = os.environ.get("RITTEN_AUTH_HOST", "127.0.0.1")
 PORT = int(os.environ.get("RITTEN_AUTH_PORT", "8766"))
@@ -156,7 +157,7 @@ def user_entity():
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RittenPasskey/1.0"
+    server_version = "RittenPasskey/1.1"
 
     def log_message(self, fmt, *args):
         print(f"{self.address_string()} - {fmt % args}")
@@ -230,7 +231,8 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/auth/register/complete":
                 payload = self.read_json()
                 state = pop_transaction(payload.get("transaction"), "register")
-                auth_data = SERVER.register_complete(state, payload.get("credential") or {})
+                response = RegistrationResponse.from_dict(payload.get("credential") or {})
+                auth_data = SERVER.register_complete(state, response)
                 credential = auth_data.credential_data
                 if credential is None:
                     raise ValueError("Passkey bevat geen bruikbare credential")
@@ -260,13 +262,14 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/auth/login/complete":
                 payload = self.read_json()
                 state = pop_transaction(payload.get("transaction"), "login")
+                response = AuthenticationResponse.from_dict(payload.get("credential") or {})
                 with db_connect() as db:
                     stored = load_credentials(db)
                     credentials = [credential for _, credential in stored]
                     credential = SERVER.authenticate_complete(
                         state,
                         credentials,
-                        payload.get("credential") or {},
+                        response,
                     )
                     db.execute(
                         "UPDATE passkeys SET last_used_at=? WHERE credential_id=?",
@@ -290,6 +293,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(400, {"error": str(error)})
         except Exception as error:
             print(f"Passkey-fout: {type(error).__name__}: {error}")
+            traceback.print_exc()
             self.send_json(500, {"error": "Passkey-verificatie is mislukt"})
 
 
