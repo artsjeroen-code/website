@@ -55,7 +55,7 @@
         <li>Passkey/WebAuthn-login toegevoegd via een aparte lokale authenticatieservice. Dagelijkse toegang kan daardoor met Face ID, Touch ID, vingerafdruk of de door het apparaat gekozen gebruikersverificatie plaatsvinden.</li>
         <li>De bestaande Basic Auth is teruggebracht tot bootstrap/herstel voor het registreren van een eerste of extra passkey; normale ritdata en API-toegang vereisen een geldige passkey-sessie.</li>
         <li>Passkey-private keys en biometrische gegevens worden niet op de Raspberry Pi opgeslagen; alleen publieke credentialdata en sessies staan lokaal in <code>/var/lib/rittenregistratie/auth.db</code>.</li>
-        <li>WebAuthn-response parsing gecorrigeerd voor <code>python-fido2</code>, zodat Base64URL-velden bij passkey-registratie en -login correct naar binaire WebAuthn-types worden omgezet.</li>
+        <li>JSON/WebAuthn-mapping voor <code>python-fido2 1.2</code> expliciet ingeschakeld, zodat Base64URL-velden uit de browser correct naar binaire WebAuthn-types worden gedecodeerd.</li>
       </ul>
     </article>
 
