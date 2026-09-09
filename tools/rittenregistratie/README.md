@@ -11,7 +11,7 @@ Deze tool draait onder:
 3. Raspberry Pi API + SQLite: centrale en duurzame opslag van ritten.
 4. Routecontrole: optionele routeafstand vergelijken met kilometertellerafstand.
 5. Jaaroverzicht + definitieve export.
-6. Voertuiggegevens.
+6. Meerdere voertuigen en kilometerketens per kenteken.
 7. Gecontroleerde correcties + auditlog.
 8. Dagelijkse SQLite-back-up + hersteltest.
 9. Toegangsbeveiliging via Nginx Basic Auth.
@@ -30,11 +30,22 @@ Deze tool draait onder:
 
 De frontend gebruikt geen lokale browseropslag voor ritten. Bij laden worden ritten via `GET ./api/rides` opgehaald en nieuwe ritten via `POST ./api/rides` centraal opgeslagen.
 
-De API controleert dat de beginstand van een nieuwe rit aansluit op de vorige eindstand.
+Iedere rit bevat een `vehicleId`. De kilometerketen wordt daardoor per voertuig gecontroleerd en niet meer over alle ritten heen.
 
-## Voertuiggegevens
+## Voertuigen en kentekens
 
-Merk, type/model, kenteken en gebruiksperiode worden centraal opgeslagen. Nieuwe ritten kunnen pas worden geregistreerd nadat voertuiggegevens aanwezig zijn. De jaar-CSV neemt deze gegevens mee.
+De interface toont standaard alleen een compacte kentekenkeuze. Het volledige formulier met merk, type/model, kenteken en gebruiksperiode verschijnt pas na `Voertuig toevoegen`.
+
+Voertuigen worden opgeslagen in de tabel `vehicles`. De bestaande oude tabel `vehicle` blijft alleen aanwezig voor migratie/compatibiliteit. Bij de eerste start na deze wijziging wordt het bestaande voertuig automatisch naar `vehicles` gemigreerd en worden bestaande ritten daaraan gekoppeld.
+
+Een nieuw voertuig begint een eigen kilometerketen. De eerste beginstand van een nieuw kenteken hoeft dus niet aan te sluiten op de eindstand van een ander voertuig. Voor volgende ritten van hetzelfde kenteken moet de beginstand wel aansluiten op de vorige eindstand van dat voertuig.
+
+API:
+
+- `GET ./api/vehicles` — alle voertuigen;
+- `POST ./api/vehicles` — extra voertuig toevoegen;
+- `PUT ./api/vehicles/<id>` — voertuiggegevens wijzigen;
+- `GET ./api/vehicle` — tijdelijke compatibiliteitsroute die het laatst toegevoegde voertuig teruggeeft.
 
 ## GPS en adressen
 
@@ -46,7 +57,9 @@ De knop `Controleer route` gebruikt de GPS-coördinaten van vertrek en aankomst 
 
 ## Jaaroverzicht en export
 
-De gebruiker kan per kalenderjaar filteren. De samenvattingskaarten, rittenlijst en CSV-export volgen het gekozen jaar. De jaar-CSV bevat voertuiggegevens, begin- en eindkilometerstand, zakelijke kilometers, privékilometers, totaal en de volledige rittenlijst.
+De gebruiker kan per kalenderjaar filteren. De samenvattingskaarten, rittenlijst en CSV-export volgen het gekozen jaar. De rittenlijst bevat ook het kenteken. De jaar-CSV bevat de voertuigen die in dat jaar voorkomen plus per rit het kenteken, type, adressen en kilometerstanden.
+
+Zakelijke en privékilometers worden over alle voertuigen in het gekozen jaar opgeteld. De kaart `Laatste km-stand gekozen auto` volgt het voertuig dat bovenaan geselecteerd is.
 
 ## Correcties en auditlog
 
@@ -60,7 +73,7 @@ Bij iedere correctie bewaart SQLite in `ride_audit`:
 - de volledige oude versie van de rit;
 - de volledige nieuwe versie van de rit.
 
-Voor een correctie wordt de kilometerketen opnieuw gecontroleerd. De nieuwe beginstand moet aansluiten op de vorige rit en de nieuwe eindstand op de volgende rit. Een correctie die de keten verbreekt wordt geweigerd.
+Voor een correctie wordt alleen de kilometerketen van hetzelfde voertuig opnieuw gecontroleerd. De nieuwe beginstand moet aansluiten op de vorige rit van hetzelfde kenteken en de nieuwe eindstand op de volgende rit van hetzelfde kenteken.
 
 De auditlog is leesbaar via `GET ./api/audit` en wordt in de webinterface getoond.
 
@@ -68,7 +81,7 @@ De auditlog is leesbaar via `GET ./api/audit` en wordt in de webinterface getoon
 
 `backup.py` maakt met de SQLite backup-API een consistente kopie van `/var/lib/rittenregistratie/ritten.db`. De tijdelijke kopie wordt met `PRAGMA integrity_check` gecontroleerd voordat deze als geldige back-up wordt gepubliceerd.
 
-Back-ups staan buiten Git in `/var/backups/rittenregistratie/` met bestandsnamen zoals `ritten-20260909T011500Z.db`. Standaard worden back-ups ouder dan 35 dagen verwijderd. Dit is instelbaar met `RITTEN_BACKUP_RETENTION_DAYS`.
+Back-ups staan buiten Git in `/var/backups/rittenregistratie/`. Standaard worden back-ups ouder dan 35 dagen verwijderd. Dit is instelbaar met `RITTEN_BACKUP_RETENTION_DAYS`.
 
 Systemd gebruikt:
 
@@ -83,8 +96,6 @@ De volledige map `/tools/rittenregistratie/` en de specifiekere API-location `/t
 
 Het wachtwoordbestand staat alleen op de Raspberry Pi in `/etc/nginx/rittenregistratie.htpasswd` en wordt niet in GitHub opgeslagen. De voorbeeldconfig staat in `deploy/nginx-location.conf`.
 
-Na activering moet een request zonder inloggegevens voor zowel de pagina als de API `401 Unauthorized` retourneren. Na geldige authenticatie moeten beide normaal bereikbaar zijn.
-
 ## Huidige status
 
-De kernregistratie is functioneel compleet: centrale opslag, voertuigcontext, GPS/adressen, routecontrole, jaaroverzicht/export en traceerbare correcties. Dagelijkse databaseback-up en Nginx-toegangsbeveiliging zijn in de bron opgenomen. Op de RPi moeten de timer en Basic Auth eenmalig worden geïnstalleerd en getest. Daarna kan de tool desgewenst vanaf de startpagina worden gekoppeld.
+De kernregistratie ondersteunt nu meerdere voertuigen met een eigen kilometerketen per kenteken. Daardoor kunnen voertuigen worden gewisseld zonder kunstmatige kilometerfouten tussen verschillende tellers. Centrale opslag, GPS/adressen, routecontrole, jaaroverzicht/export, auditlog, dagelijkse back-up en toegangsbeveiliging blijven behouden.
