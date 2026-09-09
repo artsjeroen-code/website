@@ -3,6 +3,7 @@
 
   const API_BASE = './api';
   const RDW_API = 'https://opendata.rdw.nl/resource/m9d7-ebf2.json';
+  const FULL_REGISTRATION_FROM = '2027-01-01';
   const form = document.getElementById('rideForm');
   const vehicleForm = document.getElementById('vehicleForm');
   const vehicleSelect = document.getElementById('vehicleSelect');
@@ -63,6 +64,10 @@
     return `${year}-${month}-${day}`;
   }
 
+  function isFullRegistration(dateValue = rideDate.value) {
+    return String(dateValue || '') >= FULL_REGISTRATION_FROM;
+  }
+
   function formatNumber(value) {
     return new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 1 }).format(value);
   }
@@ -97,6 +102,11 @@
 
   function latestRideForSelectedVehicle() {
     const matches = ridesForSelectedVehicle();
+    return matches.length ? matches[matches.length - 1] : null;
+  }
+
+  function latestFullRegistrationRideForSelectedVehicle() {
+    const matches = ridesForSelectedVehicle().filter((ride) => String(ride.date) >= FULL_REGISTRATION_FROM);
     return matches.length ? matches[matches.length - 1] : null;
   }
 
@@ -149,10 +159,15 @@
     clearLocationDataset(arrivalAddress);
     distancePreview.textContent = '— km';
     setMessage('');
-    const previous = latestRideForSelectedVehicle();
     const vehicle = selectedVehicle();
-    if (previous) startOdometer.value = previous.endOdometer;
-    else if (vehicle && Number.isInteger(vehicle.initialOdometer)) startOdometer.value = vehicle.initialOdometer;
+    if (isFullRegistration(rideDate.value)) {
+      const previous = latestFullRegistrationRideForSelectedVehicle();
+      if (previous) startOdometer.value = previous.endOdometer;
+    } else if (!ridesForSelectedVehicle().length && vehicle && Number.isInteger(vehicle.initialOdometer)) {
+      startOdometer.value = '';
+    } else {
+      startOdometer.value = '';
+    }
   }
 
   function resetVehicleForm() {
@@ -170,20 +185,18 @@
       setMessage('Kies eerst een kenteken.');
       return;
     }
-    const previous = latestRideForSelectedVehicle();
+    if (!isFullRegistration()) {
+      setMessage('Tot en met 2026 mag de beginstand afwijken door niet-geregistreerde privéritten.');
+      return;
+    }
+    const previous = latestFullRegistrationRideForSelectedVehicle();
     if (previous) {
       startOdometer.value = previous.endOdometer;
       calculateDistance();
       setMessage(`Beginstand voor ${vehicle.plate}: ${formatNumber(previous.endOdometer)} km.`, true);
       return;
     }
-    if (Number.isInteger(vehicle.initialOdometer)) {
-      startOdometer.value = vehicle.initialOdometer;
-      calculateDistance();
-      setMessage(`Beginstand bij ingebruikname: ${formatNumber(vehicle.initialOdometer)} km.`, true);
-      return;
-    }
-    setMessage(`${vehicle.plate} heeft nog geen eerdere rit.`);
+    setMessage('De eerste rit vanaf 2027 bepaalt zelf de beginstand van de sluitende kilometerketen.');
   }
 
   async function apiRequest(path, options = {}) {
@@ -261,14 +274,10 @@
     const previous = latestRideForSelectedVehicle();
     lastOdometer.textContent = previous ? `${formatNumber(previous.endOdometer)} km` : vehicle && Number.isInteger(vehicle.initialOdometer) ? `${formatNumber(vehicle.initialOdometer)} km` : '—';
     if (vehicle) {
-      vehicleStatusMessage.textContent = previous
-        ? `Kilometerketen actief voor ${vehicle.plate}; laatste stand ${formatNumber(previous.endOdometer)} km.`
-        : Number.isInteger(vehicle.initialOdometer)
-          ? `${vehicle.plate} start op ${formatNumber(vehicle.initialOdometer)} km per ${vehicle.useFrom}.`
-          : `${vehicle.plate} start een eigen kilometerketen.`;
+      vehicleStatusMessage.textContent = '';
       resetForm();
     } else {
-      vehicleStatusMessage.textContent = 'Kies een kenteken om een rit te registreren.';
+      vehicleStatusMessage.textContent = '';
     }
   }
 
@@ -358,13 +367,19 @@
     const end = numberValue(endOdometer);
     if (start === null || end === null || !Number.isInteger(start) || !Number.isInteger(end)) { setMessage('Gebruik hele kilometers voor de kilometerstanden.'); return null; }
     if (end < start) { setMessage('De eindkilometerstand kan niet lager zijn dan de beginstand.'); return null; }
-    const previous = latestRideForSelectedVehicle();
-    if (previous && start !== previous.endOdometer) { setMessage(`Niet sluitend voor ${vehicle.plate}: de vorige rit eindigde op ${formatNumber(previous.endOdometer)} km.`); return null; }
-    if (!previous && Number.isInteger(vehicle.initialOdometer) && start !== vehicle.initialOdometer) { setMessage(`De eerste rit van ${vehicle.plate} moet beginnen op ${formatNumber(vehicle.initialOdometer)} km.`); return null; }
+
+    if (isFullRegistration()) {
+      const previous = latestFullRegistrationRideForSelectedVehicle();
+      if (previous && start !== previous.endOdometer) {
+        setMessage(`Niet sluitend voor ${vehicle.plate}: de vorige rit vanaf 2027 eindigde op ${formatNumber(previous.endOdometer)} km.`);
+        return null;
+      }
+    }
+
     return {
       vehicleId: vehicle.id,
       date: rideDate.value,
-      type: rideType.value,
+      type: isFullRegistration() ? rideType.value : 'business',
       startOdometer: start,
       endOdometer: end,
       departureAddress: departureAddress.value.trim(),
@@ -428,7 +443,7 @@
       populateVehicleSelect();
       resetVehicleForm();
       switchView('dashboard');
-      vehicleStatusMessage.textContent = `${payload.vehicle.plate} toegevoegd met beginstand ${formatNumber(payload.vehicle.initialOdometer)} km.`;
+      vehicleStatusMessage.textContent = '';
     } catch (error) {
       setVehicleMessage(`Voertuig niet toegevoegd: ${error.message}`);
     } finally {
@@ -548,6 +563,7 @@
     updateSelectedVehicleUi();
     render();
   });
+  rideDate.addEventListener('change', () => resetForm());
   cancelVehicle.addEventListener('click', resetVehicleForm);
   lookupRdwButton.addEventListener('click', lookupRdwVehicle);
   vehiclePlate.addEventListener('blur', () => {
