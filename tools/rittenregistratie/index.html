@@ -46,19 +46,16 @@
         <article class="summary-card"><span>Privé</span><strong id="privateKm">0 km</strong></article>
       </section>
 
-      <section class="panel">
-        <div class="panel-heading">
-          <div><p class="eyebrow">Voertuig</p><h2>Actief kenteken</h2></div>
-        </div>
-        <div class="form-grid compact-grid dashboard-vehicle-row">
+      <section class="panel dashboard-vehicle-panel">
+        <div class="dashboard-vehicle-compact">
           <label><span>Kenteken</span><select id="vehicleSelect" aria-label="Selecteer voertuig"></select></label>
-          <div class="distance-preview"><span>Geselecteerd voertuig</span><strong id="selectedVehicleLabel">—</strong></div>
-          <div class="distance-preview"><span>Laatste km-stand</span><strong id="lastOdometer">—</strong></div>
+          <div class="compact-stat"><span>Voertuig</span><strong id="selectedVehicleLabel">—</strong></div>
+          <div class="compact-stat"><span>Laatste stand</span><strong id="lastOdometer">—</strong></div>
         </div>
-        <div id="vehicleStatusMessage" class="form-message" role="status" aria-live="polite"></div>
+        <div id="vehicleStatusMessage" class="form-message compact-message" role="status" aria-live="polite"></div>
       </section>
 
-      <section class="panel">
+      <section class="panel ride-entry-panel">
         <div class="panel-heading"><div><p class="eyebrow">Nieuwe rit</p><h2>Rit toevoegen</h2></div><button class="secondary-button" id="fillFromPrevious" type="button">Vorige eindstand overnemen</button></div>
         <form id="rideForm" novalidate>
           <div class="form-grid compact-grid">
@@ -67,12 +64,16 @@
             <label><span>Begin km-stand</span><input id="startOdometer" name="startOdometer" type="number" min="0" step="1" inputmode="numeric" required></label>
             <label><span>Eind km-stand</span><input id="endOdometer" name="endOdometer" type="number" min="0" step="1" inputmode="numeric" required></label>
           </div>
-          <div class="distance-preview" aria-live="polite"><span>Afstand volgens kilometerteller</span><strong id="distancePreview">— km</strong></div>
+          <div class="distance-preview compact-distance" aria-live="polite"><span>Afstand</span><strong id="distancePreview">— km</strong></div>
           <div class="address-grid">
             <div class="address-block"><label for="departureAddress">Vertrekadres</label><div class="address-row"><input id="departureAddress" name="departureAddress" type="text" autocomplete="street-address" placeholder="Straat, huisnummer, plaats" required><button class="location-button" type="button" data-location-target="departureAddress">Gebruik locatie</button></div><small id="departureMeta" class="field-meta"></small></div>
             <div class="address-block"><label for="arrivalAddress">Aankomstadres</label><div class="address-row"><input id="arrivalAddress" name="arrivalAddress" type="text" autocomplete="street-address" placeholder="Straat, huisnummer, plaats" required><button class="location-button" type="button" data-location-target="arrivalAddress">Gebruik locatie</button></div><small id="arrivalMeta" class="field-meta"></small></div>
           </div>
-          <div class="distance-preview" aria-live="polite"><span>Routecontrole</span><div><strong id="routeCheckResult">Nog niet gecontroleerd.</strong><button class="secondary-button" id="checkRoute" type="button">Controleer route</button></div></div>
+          <div class="route-check" aria-live="polite">
+            <span class="route-status-icon" id="routeStatusIcon" data-status="idle" aria-hidden="true">?</span>
+            <div class="route-status-copy"><span>Routecontrole</span><strong id="routeCheckResult">Wordt automatisch uitgevoerd zodra beide locaties en kilometerstanden bekend zijn.</strong></div>
+            <button class="secondary-button route-recheck" id="checkRoute" type="button">Opnieuw</button>
+          </div>
           <label class="notes-field"><span>Doel / toelichting <em>(optioneel)</em></span><input id="notes" name="notes" type="text" placeholder="Bijv. klantbezoek, kantoor, afwijkende route"></label>
           <div id="formMessage" class="form-message" role="status" aria-live="polite"></div>
           <div class="form-actions"><button class="primary-button" type="submit">Rit opslaan</button><button class="secondary-button" id="resetForm" type="button">Formulier wissen</button></div>
