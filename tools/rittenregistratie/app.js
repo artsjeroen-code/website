@@ -330,8 +330,37 @@
   }
 
   function totals(list) {
+    const business = list.filter((ride) => ride.type === 'business').reduce((sum, ride) => sum + ride.distance, 0);
+    const years = new Set(list.map((ride) => String(ride.date).slice(0, 4)));
+
+    if (years.size === 1 && years.has('2026')) {
+      let privateKm2026 = 0;
+      const vehicleIds = new Set(list.map((ride) => ride.vehicleId));
+
+      vehicleIds.forEach((vehicleId) => {
+        const vehicle = vehicles.find((item) => item.id === vehicleId);
+        if (!vehicle || !Number.isFinite(Number(vehicle.initialOdometer))) return;
+
+        const vehicleRides = list.filter((ride) => ride.vehicleId === vehicleId);
+        if (!vehicleRides.length) return;
+
+        const highestOdometer = Math.max(
+          ...vehicleRides.flatMap((ride) => [Number(ride.startOdometer), Number(ride.endOdometer)]).filter(Number.isFinite)
+        );
+        if (!Number.isFinite(highestOdometer)) return;
+
+        const vehicleBusinessKm = vehicleRides
+          .filter((ride) => ride.type === 'business')
+          .reduce((sum, ride) => sum + Number(ride.distance || 0), 0);
+
+        privateKm2026 += Math.max(0, highestOdometer - Number(vehicle.initialOdometer) - vehicleBusinessKm);
+      });
+
+      return { business, private: privateKm2026 };
+    }
+
     return {
-      business: list.filter((ride) => ride.type === 'business').reduce((sum, ride) => sum + ride.distance, 0),
+      business,
       private: list.filter((ride) => ride.type === 'private').reduce((sum, ride) => sum + ride.distance, 0)
     };
   }
