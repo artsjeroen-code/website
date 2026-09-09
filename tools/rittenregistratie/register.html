@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#4285f4">
+  <title>Passkey registreren – Rittenregistratie</title>
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('startpagina-theme') || 'dark';
+      document.documentElement.dataset.theme = savedTheme;
+    })();
+  </script>
+  <link rel="icon" href="icons/icon-192.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+  <main class="auth-card">
+    <p class="auth-kicker">Beveiligde registratie</p>
+    <h1>Nieuwe passkey</h1>
+    <p>Deze pagina is met je bestaande Basic Auth-wachtwoord beveiligd. Maak hierna een passkey aan op dit toestel of in je passkey-provider.</p>
+    <div class="auth-actions">
+      <button class="primary" id="registerPasskey" type="button">Passkey aanmaken</button>
+      <a class="secondary home-link" href="login.html">Annuleren</a>
+    </div>
+    <p id="registerMessage" role="status" aria-live="polite"></p>
+    <p class="auth-note">Face ID, Touch ID of vingerafdruk wordt door je apparaat afgehandeld. De server ontvangt geen biometrische gegevens.</p>
+  </main>
+  <script src="register-passkey.js"></script>
+</body>
+</html>
