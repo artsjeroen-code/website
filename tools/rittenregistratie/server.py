@@ -12,7 +12,7 @@ HOST = os.environ.get("RITTEN_HOST", "127.0.0.1")
 PORT = int(os.environ.get("RITTEN_PORT", "8765"))
 DB_PATH = os.environ.get("RITTEN_DB", "/var/lib/rittenregistratie/ritten.db")
 OSRM_BASE = os.environ.get("RITTEN_OSRM", "https://router.project-osrm.org")
-USER_AGENT = "artsjeroen-rittenregistratie/0.5 (+https://artsjeroen.ddns.net/tools/rittenregistratie/)"
+USER_AGENT = "artsjeroen-rittenregistratie/0.6 (+https://artsjeroen.ddns.net/tools/rittenregistratie/)"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS rides (
@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS vehicles (
     plate TEXT NOT NULL UNIQUE,
     use_from TEXT NOT NULL,
     use_to TEXT,
+    initial_odometer INTEGER,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
@@ -72,28 +73,49 @@ def table_columns(db, table):
 
 
 def migrate_schema(db):
-    columns = table_columns(db, "rides")
-    if "vehicle_id" not in columns:
+    ride_columns = table_columns(db, "rides")
+    if "vehicle_id" not in ride_columns:
         db.execute("ALTER TABLE rides ADD COLUMN vehicle_id INTEGER")
+
+    vehicle_columns = table_columns(db, "vehicles")
+    if "initial_odometer" not in vehicle_columns:
+        db.execute("ALTER TABLE vehicles ADD COLUMN initial_odometer INTEGER")
 
     legacy = db.execute("SELECT * FROM vehicle WHERE id = 1").fetchone()
     vehicle_count = db.execute("SELECT COUNT(*) FROM vehicles").fetchone()[0]
     if legacy is not None and vehicle_count == 0:
         created_at = legacy["updated_at"] or datetime.now(timezone.utc).isoformat()
+        first_ride = db.execute("SELECT start_odometer FROM rides ORDER BY id ASC LIMIT 1").fetchone()
+        initial_odometer = first_ride["start_odometer"] if first_ride else None
         cursor = db.execute(
             """
-            INSERT INTO vehicles (make, model, plate, use_from, use_to, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO vehicles (make, model, plate, use_from, use_to, initial_odometer, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 legacy["make"], legacy["model"], legacy["plate"], legacy["use_from"],
-                legacy["use_to"], created_at, created_at,
+                legacy["use_to"], initial_odometer, created_at, created_at,
             ),
         )
         db.execute("UPDATE rides SET vehicle_id = ? WHERE vehicle_id IS NULL", (cursor.lastrowid,))
     elif vehicle_count == 1:
         only_vehicle = db.execute("SELECT id FROM vehicles LIMIT 1").fetchone()
         db.execute("UPDATE rides SET vehicle_id = ? WHERE vehicle_id IS NULL", (only_vehicle["id"],))
+
+    db.execute(
+        """
+        UPDATE vehicles
+        SET initial_odometer = (
+            SELECT r.start_odometer
+            FROM rides r
+            WHERE r.vehicle_id = vehicles.id
+            ORDER BY r.id ASC
+            LIMIT 1
+        )
+        WHERE initial_odometer IS NULL
+          AND EXISTS (SELECT 1 FROM rides r2 WHERE r2.vehicle_id = vehicles.id)
+        """
+    )
 
     db.execute("CREATE INDEX IF NOT EXISTS idx_rides_vehicle_id ON rides(vehicle_id, id)")
     db.commit()
@@ -144,6 +166,7 @@ def vehicle_to_dict(row):
         "plate": row["plate"],
         "useFrom": row["use_from"],
         "useTo": row["use_to"],
+        "initialOdometer": row["initial_odometer"],
         "createdAt": row["created_at"],
         "updatedAt": row["updated_at"],
     }
@@ -178,6 +201,12 @@ def validate_vehicle(payload):
     plate = str(payload.get("plate") or "").strip().upper()
     use_from = validate_date(payload.get("useFrom"), "Begindatum gebruik")
     use_to = validate_date(payload.get("useTo"), "Einddatum gebruik", required=False)
+    try:
+        initial_odometer = int(payload.get("initialOdometer"))
+    except (TypeError, ValueError):
+        raise ValueError("Kilometerstand bij ingebruikname is verplicht")
+    if initial_odometer < 0:
+        raise ValueError("Kilometerstand bij ingebruikname kan niet negatief zijn")
     if not make:
         raise ValueError("Merk is verplicht")
     if not model:
@@ -188,7 +217,7 @@ def validate_vehicle(payload):
         raise ValueError("Voertuiggegevens zijn te lang")
     if use_to and use_to < use_from:
         raise ValueError("Einddatum gebruik kan niet vóór de begindatum liggen")
-    return make, model, plate, use_from, use_to
+    return make, model, plate, use_from, use_to, initial_odometer
 
 
 def validate_ride(payload):
@@ -286,7 +315,7 @@ def ride_select_sql(where=""):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RittenregistratieAPI/0.5"
+    server_version = "RittenregistratieAPI/0.6"
 
     def log_message(self, fmt, *args):
         print(f"{self.address_string()} - {fmt % args}")
@@ -330,7 +359,6 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(200, {"vehicles": [vehicle_to_dict(row) for row in rows]})
                 return
 
-            # Tijdelijke compatibiliteit voor oudere frontend tijdens deployment.
             if path == "/api/vehicle":
                 with db_connect() as db:
                     row = db.execute("SELECT * FROM vehicles ORDER BY id DESC LIMIT 1").fetchone()
@@ -374,7 +402,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/vehicles":
             try:
                 payload = self.read_json()
-                make, model, plate, use_from, use_to = validate_vehicle(payload)
+                make, model, plate, use_from, use_to, initial_odometer = validate_vehicle(payload)
                 now = datetime.now(timezone.utc).isoformat()
                 with db_connect() as db:
                     existing = db.execute("SELECT id FROM vehicles WHERE UPPER(plate) = UPPER(?)", (plate,)).fetchone()
@@ -382,10 +410,10 @@ class Handler(BaseHTTPRequestHandler):
                         raise ValueError("Dit kenteken bestaat al")
                     cursor = db.execute(
                         """
-                        INSERT INTO vehicles (make, model, plate, use_from, use_to, created_at, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO vehicles (make, model, plate, use_from, use_to, initial_odometer, created_at, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                         """,
-                        (make, model, plate, use_from, use_to, now, now),
+                        (make, model, plate, use_from, use_to, initial_odometer, now, now),
                     )
                     row = db.execute("SELECT * FROM vehicles WHERE id = ?", (cursor.lastrowid,)).fetchone()
                     db.commit()
@@ -427,6 +455,11 @@ class Handler(BaseHTTPRequestHandler):
                     raise ValueError(
                         f"Niet sluitend voor {vehicle['plate']}: vorige eindstand is {previous['end_odometer']} km"
                     )
+                if previous is None and vehicle["initial_odometer"] is not None and start != vehicle["initial_odometer"]:
+                    raise ValueError(
+                        f"Eerste rit van {vehicle['plate']} moet beginnen op {vehicle['initial_odometer']} km, "
+                        "de vastgelegde stand bij ingebruikname"
+                    )
 
                 cursor = db.execute(
                     """
@@ -443,9 +476,7 @@ class Handler(BaseHTTPRequestHandler):
                         str(payload.get("notes") or "").strip(), created_at,
                     ),
                 )
-                row = db.execute(
-                    ride_select_sql("WHERE r.id = ?"), (cursor.lastrowid,)
-                ).fetchone()
+                row = db.execute(ride_select_sql("WHERE r.id = ?"), (cursor.lastrowid,)).fetchone()
                 db.commit()
             self.send_json(201, {"ride": row_to_dict(row)})
         except ValueError as error:
@@ -462,7 +493,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             vehicle_id = int(parts[2])
             payload = self.read_json()
-            make, model, plate, use_from, use_to = validate_vehicle(payload)
+            make, model, plate, use_from, use_to, initial_odometer = validate_vehicle(payload)
             now = datetime.now(timezone.utc).isoformat()
             with db_connect() as db:
                 current = db.execute("SELECT id FROM vehicles WHERE id = ?", (vehicle_id,)).fetchone()
@@ -473,9 +504,16 @@ class Handler(BaseHTTPRequestHandler):
                 ).fetchone()
                 if duplicate:
                     raise ValueError("Dit kenteken bestaat al")
+                first_ride = db.execute(
+                    "SELECT start_odometer FROM rides WHERE vehicle_id = ? ORDER BY id ASC LIMIT 1", (vehicle_id,)
+                ).fetchone()
+                if first_ride and initial_odometer != first_ride["start_odometer"]:
+                    raise ValueError(
+                        f"Beginstand kan niet worden gewijzigd: eerste rit begint op {first_ride['start_odometer']} km"
+                    )
                 db.execute(
-                    "UPDATE vehicles SET make=?, model=?, plate=?, use_from=?, use_to=?, updated_at=? WHERE id=?",
-                    (make, model, plate, use_from, use_to, now, vehicle_id),
+                    "UPDATE vehicles SET make=?, model=?, plate=?, use_from=?, use_to=?, initial_odometer=?, updated_at=? WHERE id=?",
+                    (make, model, plate, use_from, use_to, initial_odometer, now, vehicle_id),
                 )
                 row = db.execute("SELECT * FROM vehicles WHERE id = ?", (vehicle_id,)).fetchone()
                 db.commit()
@@ -516,10 +554,15 @@ class Handler(BaseHTTPRequestHandler):
                     "SELECT start_odometer FROM rides WHERE vehicle_id = ? AND id > ? ORDER BY id ASC LIMIT 1",
                     (vehicle_id, ride_id),
                 ).fetchone()
+                vehicle = db.execute("SELECT * FROM vehicles WHERE id = ?", (vehicle_id,)).fetchone()
                 plate = current["vehicle_plate"] or "dit voertuig"
                 if prev is not None and start != prev["end_odometer"]:
                     raise ValueError(
                         f"Correctie verbreekt de kilometerketen van {plate}: vorige rit eindigt op {prev['end_odometer']} km"
+                    )
+                if prev is None and vehicle and vehicle["initial_odometer"] is not None and start != vehicle["initial_odometer"]:
+                    raise ValueError(
+                        f"Eerste rit van {plate} moet beginnen op de vastgelegde beginstand {vehicle['initial_odometer']} km"
                     )
                 if nxt is not None and end != nxt["start_odometer"]:
                     raise ValueError(
