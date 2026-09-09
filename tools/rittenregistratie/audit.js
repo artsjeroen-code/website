@@ -41,6 +41,15 @@
     correctionMessage.classList.toggle('success', success);
   }
 
+  function editableTime(value) {
+    return value ? String(value).slice(0, 5) : '';
+  }
+
+  function normalizeTimeField(input) {
+    const raw = input.value.trim();
+    if (/^\d{4}$/.test(raw)) input.value = `${raw.slice(0, 2)}:${raw.slice(2)}`;
+  }
+
   function rideLabel(ride) {
     const plate = ride.vehiclePlate || 'zonder kenteken';
     return `${ride.date} · ${plate} · ${ride.startOdometer}-${ride.endOdometer} km · ${ride.departureAddress} → ${ride.arrivalAddress}`;
@@ -72,8 +81,8 @@
     correctionType.value = ride.type;
     correctionStart.value = ride.startOdometer;
     correctionEnd.value = ride.endOdometer;
-    correctionDepartureTime.value = ride.departureTime || '';
-    correctionArrivalTime.value = ride.arrivalTime || '';
+    correctionDepartureTime.value = editableTime(ride.departureTime);
+    correctionArrivalTime.value = editableTime(ride.arrivalTime);
     correctionDeparture.value = ride.departureAddress;
     correctionArrival.value = ride.arrivalAddress;
     correctionNotes.value = ride.notes || '';
@@ -136,7 +145,13 @@
       setMessage('Kies eerst een rit om te corrigeren.');
       return;
     }
-    if (!correctionForm.reportValidity()) return;
+
+    normalizeTimeField(correctionDepartureTime);
+    normalizeTimeField(correctionArrivalTime);
+    if (!correctionForm.reportValidity()) {
+      setMessage('Gebruik voor tijden het 24-uurs formaat UU:MM, bijvoorbeeld 08:30 of 17:45.');
+      return;
+    }
 
     saveCorrection.disabled = true;
     const oldText = saveCorrection.textContent;
@@ -149,8 +164,8 @@
           type: correctionType.value,
           startOdometer: Number(correctionStart.value),
           endOdometer: Number(correctionEnd.value),
-          departureTime: correctionDepartureTime.value || null,
-          arrivalTime: correctionArrivalTime.value || null,
+          departureTime: correctionDepartureTime.value.trim() || null,
+          arrivalTime: correctionArrivalTime.value.trim() || null,
           departureAddress: correctionDeparture.value.trim(),
           arrivalAddress: correctionArrival.value.trim(),
           notes: correctionNotes.value.trim(),
@@ -167,6 +182,9 @@
     }
   }
 
+  [correctionDepartureTime, correctionArrivalTime].forEach((input) => {
+    input.addEventListener('blur', () => normalizeTimeField(input));
+  });
   rideSelect.addEventListener('change', fillCorrectionForm);
   correctionForm.addEventListener('submit', submitCorrection);
   load();
