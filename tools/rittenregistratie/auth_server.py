@@ -13,6 +13,10 @@ from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
+import fido2.features
+
+fido2.features.webauthn_json_mapping.enabled = True
+
 from fido2.server import Fido2Server
 from fido2.webauthn import AttestedCredentialData, AuthenticationResponse, RegistrationResponse
 
@@ -157,7 +161,7 @@ def user_entity():
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RittenPasskey/1.1"
+    server_version = "RittenPasskey/1.2"
 
     def log_message(self, fmt, *args):
         print(f"{self.address_string()} - {fmt % args}")
