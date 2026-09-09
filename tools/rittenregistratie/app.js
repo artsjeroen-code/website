@@ -8,7 +8,6 @@
   const vehicleSelect = document.getElementById('vehicleSelect');
   const selectedVehicleLabel = document.getElementById('selectedVehicleLabel');
   const vehicleStatusMessage = document.getElementById('vehicleStatusMessage');
-  const toggleVehicleForm = document.getElementById('toggleVehicleForm');
   const cancelVehicle = document.getElementById('cancelVehicle');
   const saveVehicleButton = document.getElementById('saveVehicle');
   const vehicleMessage = document.getElementById('vehicleMessage');
@@ -36,16 +35,26 @@
   const businessKm = document.getElementById('businessKm');
   const privateKm = document.getElementById('privateKm');
   const lastOdometer = document.getElementById('lastOdometer');
+  const overviewTotalRides = document.getElementById('overviewTotalRides');
+  const overviewBusinessKm = document.getElementById('overviewBusinessKm');
+  const overviewPrivateKm = document.getElementById('overviewPrivateKm');
   const departureMeta = document.getElementById('departureMeta');
   const arrivalMeta = document.getElementById('arrivalMeta');
   const yearFilter = document.getElementById('yearFilter');
+  const monthFilter = document.getElementById('monthFilter');
   const submitButton = form.querySelector('button[type="submit"]');
+
+  const menuButton = document.getElementById('menuButton');
+  const appMenu = document.getElementById('appMenu');
+  const menuBackdrop = document.getElementById('menuBackdrop');
+  const viewTitle = document.getElementById('viewTitle');
 
   let rides = [];
   let vehicles = [];
   let selectedVehicleId = null;
   let apiAvailable = false;
   let selectedYear = String(new Date().getFullYear());
+  let selectedMonth = 'all';
 
   function localDateValue(date = new Date()) {
     const year = date.getFullYear();
@@ -91,8 +100,17 @@
     return matches.length ? matches[matches.length - 1] : null;
   }
 
-  function filteredRides() {
-    return rides.filter((ride) => String(ride.date).startsWith(`${selectedYear}-`));
+  function overviewRides() {
+    return rides.filter((ride) => {
+      const date = String(ride.date);
+      if (!date.startsWith(`${selectedYear}-`)) return false;
+      return selectedMonth === 'all' || date.slice(5, 7) === selectedMonth;
+    });
+  }
+
+  function dashboardRides() {
+    const year = String(new Date().getFullYear());
+    return rides.filter((ride) => String(ride.date).startsWith(`${year}-`));
   }
 
   function calculateDistance() {
@@ -132,11 +150,17 @@
     setMessage('');
     const previous = latestRideForSelectedVehicle();
     const vehicle = selectedVehicle();
-    if (previous) {
-      startOdometer.value = previous.endOdometer;
-    } else if (vehicle && Number.isInteger(vehicle.initialOdometer)) {
-      startOdometer.value = vehicle.initialOdometer;
-    }
+    if (previous) startOdometer.value = previous.endOdometer;
+    else if (vehicle && Number.isInteger(vehicle.initialOdometer)) startOdometer.value = vehicle.initialOdometer;
+  }
+
+  function resetVehicleForm() {
+    vehicleForm.reset();
+    vehicleMake.value = '';
+    vehicleModel.value = '';
+    rdwStatus.textContent = '';
+    vehicleUseFrom.value = localDateValue();
+    setVehicleMessage('');
   }
 
   function fillPreviousOdometer() {
@@ -146,19 +170,19 @@
       return;
     }
     const previous = latestRideForSelectedVehicle();
-    if (!previous) {
-      if (Number.isInteger(vehicle.initialOdometer)) {
-        startOdometer.value = vehicle.initialOdometer;
-        calculateDistance();
-        setMessage(`Beginstand voor ${vehicle.plate} is de vastgelegde stand bij ingebruikname: ${formatNumber(vehicle.initialOdometer)} km.`, true);
-      } else {
-        setMessage(`${vehicle.plate} heeft nog geen eerdere rit. Vul de beginstand van dit voertuig in.`);
-      }
+    if (previous) {
+      startOdometer.value = previous.endOdometer;
+      calculateDistance();
+      setMessage(`Beginstand voor ${vehicle.plate}: ${formatNumber(previous.endOdometer)} km.`, true);
       return;
     }
-    startOdometer.value = previous.endOdometer;
-    calculateDistance();
-    setMessage(`Beginstand voor ${vehicle.plate}: ${formatNumber(previous.endOdometer)} km.`, true);
+    if (Number.isInteger(vehicle.initialOdometer)) {
+      startOdometer.value = vehicle.initialOdometer;
+      calculateDistance();
+      setMessage(`Beginstand bij ingebruikname: ${formatNumber(vehicle.initialOdometer)} km.`, true);
+      return;
+    }
+    setMessage(`${vehicle.plate} heeft nog geen eerdere rit.`);
   }
 
   async function apiRequest(path, options = {}) {
@@ -172,11 +196,8 @@
       ...options
     });
     let payload = {};
-    try {
-      payload = await response.json();
-    } catch (error) {
-      throw new Error(`API gaf geen geldige JSON (HTTP ${response.status})`);
-    }
+    try { payload = await response.json(); }
+    catch { throw new Error(`API gaf geen geldige JSON (HTTP ${response.status})`); }
     if (!response.ok) throw new Error(payload.error || `API-fout HTTP ${response.status}`);
     return payload;
   }
@@ -188,7 +209,6 @@
       vehiclePlate.focus();
       return;
     }
-
     lookupRdwButton.disabled = true;
     const oldText = lookupRdwButton.textContent;
     lookupRdwButton.textContent = 'Ophalen…';
@@ -196,21 +216,13 @@
     setVehicleMessage('');
     vehicleMake.value = '';
     vehicleModel.value = '';
-
     try {
-      const response = await fetch(`${RDW_API}?kenteken=${encodeURIComponent(plate)}`, {
-        headers: { Accept: 'application/json' },
-        cache: 'no-store'
-      });
+      const response = await fetch(`${RDW_API}?kenteken=${encodeURIComponent(plate)}`, { headers: { Accept: 'application/json' }, cache: 'no-store' });
       if (!response.ok) throw new Error(`RDW gaf HTTP ${response.status}`);
       const rows = await response.json();
-      if (!Array.isArray(rows) || !rows.length) {
-        throw new Error('Kenteken niet gevonden in RDW Open Data');
-      }
+      if (!Array.isArray(rows) || !rows.length) throw new Error('Kenteken niet gevonden in RDW Open Data');
       const item = rows[0];
-      if (!item.merk || !item.handelsbenaming) {
-        throw new Error('RDW gaf geen bruikbaar merk/type terug');
-      }
+      if (!item.merk || !item.handelsbenaming) throw new Error('RDW gaf geen bruikbaar merk/type terug');
       vehiclePlate.value = plate;
       vehicleMake.value = item.merk;
       vehicleModel.value = item.handelsbenaming;
@@ -230,7 +242,6 @@
     placeholder.value = '';
     placeholder.textContent = vehicles.length ? 'Kies kenteken…' : 'Nog geen voertuigen';
     vehicleSelect.appendChild(placeholder);
-
     vehicles.forEach((vehicle) => {
       const option = document.createElement('option');
       option.value = String(vehicle.id);
@@ -238,7 +249,6 @@
       option.selected = vehicle.id === selectedVehicleId;
       vehicleSelect.appendChild(option);
     });
-
     if (selectedVehicleId) vehicleSelect.value = String(selectedVehicleId);
     updateSelectedVehicleUi();
   }
@@ -248,7 +258,7 @@
     selectedVehicleLabel.textContent = vehicle ? `${vehicle.plate} · ${vehicle.make} ${vehicle.model}` : '—';
     submitButton.disabled = !apiAvailable || !vehicle;
     const previous = latestRideForSelectedVehicle();
-    lastOdometer.textContent = previous ? `${formatNumber(previous.endOdometer)} km` : '—';
+    lastOdometer.textContent = previous ? `${formatNumber(previous.endOdometer)} km` : vehicle && Number.isInteger(vehicle.initialOdometer) ? `${formatNumber(vehicle.initialOdometer)} km` : '—';
     if (vehicle) {
       vehicleStatusMessage.textContent = previous
         ? `Kilometerketen actief voor ${vehicle.plate}; laatste stand ${formatNumber(previous.endOdometer)} km.`
@@ -284,11 +294,11 @@
   }
 
   function renderTable() {
-    const visibleRides = filteredRides();
+    const visibleRides = overviewRides();
     ridesBody.replaceChildren();
     emptyState.hidden = visibleRides.length > 0;
-    emptyState.textContent = `Nog geen ritten opgeslagen voor ${selectedYear}.`;
-
+    const period = selectedMonth === 'all' ? selectedYear : `${monthFilter.options[monthFilter.selectedIndex].text} ${selectedYear}`;
+    emptyState.textContent = `Nog geen ritten opgeslagen voor ${period}.`;
     visibleRides.forEach((ride) => {
       const row = document.createElement('tr');
       row.appendChild(createCell(formatDate(ride.date)));
@@ -309,15 +319,29 @@
     });
   }
 
+  function totals(list) {
+    return {
+      business: list.filter((ride) => ride.type === 'business').reduce((sum, ride) => sum + ride.distance, 0),
+      private: list.filter((ride) => ride.type === 'private').reduce((sum, ride) => sum + ride.distance, 0)
+    };
+  }
+
   function renderSummary() {
-    const visibleRides = filteredRides();
-    const businessTotal = visibleRides.filter((ride) => ride.type === 'business').reduce((sum, ride) => sum + ride.distance, 0);
-    const privateTotal = visibleRides.filter((ride) => ride.type === 'private').reduce((sum, ride) => sum + ride.distance, 0);
-    totalRides.textContent = String(visibleRides.length);
-    businessKm.textContent = `${formatNumber(businessTotal)} km`;
-    privateKm.textContent = `${formatNumber(privateTotal)} km`;
+    const dash = dashboardRides();
+    const dashTotals = totals(dash);
+    totalRides.textContent = String(dash.length);
+    businessKm.textContent = `${formatNumber(dashTotals.business)} km`;
+    privateKm.textContent = `${formatNumber(dashTotals.private)} km`;
+
+    const overview = overviewRides();
+    const overviewTotals = totals(overview);
+    overviewTotalRides.textContent = String(overview.length);
+    overviewBusinessKm.textContent = `${formatNumber(overviewTotals.business)} km`;
+    overviewPrivateKm.textContent = `${formatNumber(overviewTotals.private)} km`;
+
     const previous = latestRideForSelectedVehicle();
-    lastOdometer.textContent = previous ? `${formatNumber(previous.endOdometer)} km` : '—';
+    const vehicle = selectedVehicle();
+    lastOdometer.textContent = previous ? `${formatNumber(previous.endOdometer)} km` : vehicle && Number.isInteger(vehicle.initialOdometer) ? `${formatNumber(vehicle.initialOdometer)} km` : '—';
   }
 
   function render() {
@@ -328,29 +352,14 @@
   function validateRide() {
     if (!form.reportValidity()) return null;
     const vehicle = selectedVehicle();
-    if (!vehicle) {
-      setMessage('Kies eerst een kenteken.');
-      return null;
-    }
+    if (!vehicle) { setMessage('Kies eerst een kenteken.'); return null; }
     const start = numberValue(startOdometer);
     const end = numberValue(endOdometer);
-    if (start === null || end === null || !Number.isInteger(start) || !Number.isInteger(end)) {
-      setMessage('Gebruik hele kilometers voor de kilometerstanden.');
-      return null;
-    }
-    if (end < start) {
-      setMessage('De eindkilometerstand kan niet lager zijn dan de beginstand.');
-      return null;
-    }
+    if (start === null || end === null || !Number.isInteger(start) || !Number.isInteger(end)) { setMessage('Gebruik hele kilometers voor de kilometerstanden.'); return null; }
+    if (end < start) { setMessage('De eindkilometerstand kan niet lager zijn dan de beginstand.'); return null; }
     const previous = latestRideForSelectedVehicle();
-    if (previous && start !== previous.endOdometer) {
-      setMessage(`Niet sluitend voor ${vehicle.plate}: de vorige rit eindigde op ${formatNumber(previous.endOdometer)} km.`);
-      return null;
-    }
-    if (!previous && Number.isInteger(vehicle.initialOdometer) && start !== vehicle.initialOdometer) {
-      setMessage(`De eerste rit van ${vehicle.plate} moet beginnen op de vastgelegde stand bij ingebruikname: ${formatNumber(vehicle.initialOdometer)} km.`);
-      return null;
-    }
+    if (previous && start !== previous.endOdometer) { setMessage(`Niet sluitend voor ${vehicle.plate}: de vorige rit eindigde op ${formatNumber(previous.endOdometer)} km.`); return null; }
+    if (!previous && Number.isInteger(vehicle.initialOdometer) && start !== vehicle.initialOdometer) { setMessage(`De eerste rit van ${vehicle.plate} moet beginnen op ${formatNumber(vehicle.initialOdometer)} km.`); return null; }
     return {
       vehicleId: vehicle.id,
       date: rideDate.value,
@@ -368,13 +377,9 @@
   async function handleSubmit(event) {
     event.preventDefault();
     setMessage('');
-    if (!apiAvailable) {
-      setMessage('Centrale opslag is niet bereikbaar.');
-      return;
-    }
+    if (!apiAvailable) { setMessage('Centrale opslag is niet bereikbaar.'); return; }
     const ride = validateRide();
     if (!ride) return;
-
     submitButton.disabled = true;
     const oldText = submitButton.textContent;
     submitButton.textContent = 'Opslaan…';
@@ -394,33 +399,12 @@
     }
   }
 
-  function showVehicleForm(show) {
-    vehicleForm.hidden = !show;
-    toggleVehicleForm.hidden = show;
-    if (show) {
-      vehicleForm.reset();
-      vehicleMake.value = '';
-      vehicleModel.value = '';
-      rdwStatus.textContent = '';
-      vehicleUseFrom.value = localDateValue();
-      setVehicleMessage('');
-      vehiclePlate.focus();
-    }
-  }
-
   async function handleVehicleSubmit(event) {
     event.preventDefault();
     if (!vehicleForm.reportValidity()) return;
     const initialOdometer = Number(vehicleInitialOdometer.value);
-    if (!Number.isInteger(initialOdometer) || initialOdometer < 0) {
-      setVehicleMessage('Vul een geldige kilometerstand bij ingebruikname in.');
-      return;
-    }
-    if (!vehicleMake.value || !vehicleModel.value) {
-      setVehicleMessage('Haal eerst de voertuiggegevens bij RDW op.');
-      return;
-    }
-
+    if (!Number.isInteger(initialOdometer) || initialOdometer < 0) { setVehicleMessage('Vul een geldige kilometerstand bij ingebruikname in.'); return; }
+    if (!vehicleMake.value || !vehicleModel.value) { setVehicleMessage('Haal eerst de voertuiggegevens bij RDW op.'); return; }
     saveVehicleButton.disabled = true;
     const oldText = saveVehicleButton.textContent;
     saveVehicleButton.textContent = 'Toevoegen…';
@@ -439,9 +423,9 @@
       vehicles.push(payload.vehicle);
       selectedVehicleId = payload.vehicle.id;
       populateVehicleSelect();
-      showVehicleForm(false);
-      vehicleStatusMessage.textContent = `${payload.vehicle.plate} toegevoegd met beginstand ${formatNumber(payload.vehicle.initialOdometer)} km per ${payload.vehicle.useFrom}.`;
-      resetForm();
+      resetVehicleForm();
+      switchView('dashboard');
+      vehicleStatusMessage.textContent = `${payload.vehicle.plate} toegevoegd met beginstand ${formatNumber(payload.vehicle.initialOdometer)} km.`;
     } catch (error) {
       setVehicleMessage(`Voertuig niet toegevoegd: ${error.message}`);
     } finally {
@@ -462,62 +446,63 @@
   }
 
   function exportCsv() {
-    const visibleRides = filteredRides();
-    if (!visibleRides.length) {
-      setMessage(`Er zijn geen ritten voor ${selectedYear} om te exporteren.`);
-      return;
-    }
-    const businessTotal = visibleRides.filter((ride) => ride.type === 'business').reduce((sum, ride) => sum + ride.distance, 0);
-    const privateTotal = visibleRides.filter((ride) => ride.type === 'private').reduce((sum, ride) => sum + ride.distance, 0);
+    const visibleRides = overviewRides();
+    if (!visibleRides.length) { setMessage('Er zijn geen ritten in deze selectie om te exporteren.'); return; }
+    const selectionTotals = totals(visibleRides);
     const usedVehicleIds = new Set(visibleRides.map((ride) => ride.vehicleId));
     const usedVehicles = vehicles.filter((vehicle) => usedVehicleIds.has(vehicle.id));
-
+    const monthName = selectedMonth === 'all' ? 'heel jaar' : monthFilter.options[monthFilter.selectedIndex].text;
     const rows = [
-      ['Rittenregistratie', selectedYear],
-      [],
-      ['Voertuigen in dit jaar'],
+      ['Rittenregistratie', selectedYear, monthName], [],
+      ['Voertuigen in selectie'],
       ['Kenteken', 'Merk', 'Type / model', 'In gebruik vanaf', 'Beginstand bij ingebruikname', 'In gebruik tot'],
       ...usedVehicles.map((vehicle) => [vehicle.plate, vehicle.make, vehicle.model, vehicle.useFrom, vehicle.initialOdometer ?? '', vehicle.useTo || 'doorlopend']),
-      [],
-      ['Jaaroverzicht'],
+      [], ['Overzicht'],
       ['Aantal ritten', visibleRides.length],
-      ['Zakelijke kilometers', businessTotal],
-      ['Privékilometers', privateTotal],
-      ['Totaal kilometers', businessTotal + privateTotal],
+      ['Zakelijke kilometers', selectionTotals.business],
+      ['Privékilometers', selectionTotals.private],
+      ['Totaal kilometers', selectionTotals.business + selectionTotals.private],
       [],
       ['Datum', 'Kenteken', 'Type', 'Vertrekadres', 'Aankomstadres', 'Begin km-stand', 'Eind km-stand', 'Kilometers', 'Toelichting'],
-      ...visibleRides.map((ride) => [
-        ride.date,
-        ride.vehiclePlate || '',
-        ride.type === 'private' ? 'Privé' : 'Zakelijk',
-        ride.departureAddress,
-        ride.arrivalAddress,
-        ride.startOdometer,
-        ride.endOdometer,
-        ride.distance,
-        ride.notes
-      ])
+      ...visibleRides.map((ride) => [ride.date, ride.vehiclePlate || '', ride.type === 'private' ? 'Privé' : 'Zakelijk', ride.departureAddress, ride.arrivalAddress, ride.startOdometer, ride.endOdometer, ride.distance, ride.notes])
     ];
-
     const content = rows.map((row) => row.map(csvEscape).join(';')).join('\r\n');
     const blob = new Blob([`\uFEFF${content}`], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `rittenregistratie-${selectedYear}.csv`;
+    link.download = selectedMonth === 'all' ? `rittenregistratie-${selectedYear}.csv` : `rittenregistratie-${selectedYear}-${selectedMonth}.csv`;
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    setMessage(`Jaaroverzicht ${selectedYear} geëxporteerd.`, true);
+  }
+
+  function openMenu(open) {
+    appMenu.classList.toggle('open', open);
+    appMenu.setAttribute('aria-hidden', String(!open));
+    menuButton.setAttribute('aria-expanded', String(open));
+    menuBackdrop.hidden = !open;
+    document.body.classList.toggle('menu-open', open);
+  }
+
+  function switchView(name) {
+    const titles = { dashboard: 'Dashboard', vehicle: 'Voertuig toevoegen', corrections: 'Ritcorrectie & auditlog', overview: 'Overzicht' };
+    document.querySelectorAll('[data-view-panel]').forEach((panel) => {
+      const active = panel.dataset.viewPanel === name;
+      panel.hidden = !active;
+      panel.classList.toggle('active', active);
+    });
+    document.querySelectorAll('.menu-item').forEach((item) => item.classList.toggle('active', item.dataset.view === name));
+    viewTitle.textContent = titles[name] || 'Rittenregistratie';
+    openMenu(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (name === 'vehicle') vehiclePlate.focus();
   }
 
   async function loadData() {
     try {
-      const [ridesPayload, vehiclesPayload] = await Promise.all([
-        apiRequest('/rides'),
-        apiRequest('/vehicles')
-      ]);
+      const [ridesPayload, vehiclesPayload] = await Promise.all([apiRequest('/rides'), apiRequest('/vehicles')]);
       rides = Array.isArray(ridesPayload.rides) ? ridesPayload.rides : [];
       vehicles = Array.isArray(vehiclesPayload.vehicles) ? vehiclesPayload.vehicles : [];
       apiAvailable = true;
@@ -526,10 +511,8 @@
       populateYearFilter();
       render();
       resetForm();
-      if (!vehicles.length) {
-        vehicleStatusMessage.textContent = 'Voeg eerst een voertuig toe.';
-        showVehicleForm(true);
-      }
+      resetVehicleForm();
+      if (!vehicles.length) switchView('vehicle');
     } catch (error) {
       console.error('Kon centrale gegevens niet laden.', error);
       rides = [];
@@ -544,7 +527,6 @@
 
   function setupThemeToggle() {
     const button = document.getElementById('railTheme');
-    if (!button) return;
     button.addEventListener('click', () => {
       const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
       document.documentElement.dataset.theme = next;
@@ -563,8 +545,7 @@
     updateSelectedVehicleUi();
     render();
   });
-  toggleVehicleForm.addEventListener('click', () => showVehicleForm(true));
-  cancelVehicle.addEventListener('click', () => showVehicleForm(false));
+  cancelVehicle.addEventListener('click', resetVehicleForm);
   lookupRdwButton.addEventListener('click', lookupRdwVehicle);
   vehiclePlate.addEventListener('blur', () => {
     if (normalizePlate(vehiclePlate.value) && !vehicleMake.value) lookupRdwVehicle();
@@ -572,10 +553,12 @@
   document.getElementById('fillFromPrevious').addEventListener('click', fillPreviousOdometer);
   document.getElementById('resetForm').addEventListener('click', () => resetForm());
   document.getElementById('exportCsv').addEventListener('click', exportCsv);
-  yearFilter.addEventListener('change', () => {
-    selectedYear = yearFilter.value;
-    render();
-  });
+  yearFilter.addEventListener('change', () => { selectedYear = yearFilter.value; render(); });
+  monthFilter.addEventListener('change', () => { selectedMonth = monthFilter.value; render(); });
+  menuButton.addEventListener('click', () => openMenu(!appMenu.classList.contains('open')));
+  menuBackdrop.addEventListener('click', () => openMenu(false));
+  document.querySelectorAll('.menu-item').forEach((item) => item.addEventListener('click', () => switchView(item.dataset.view)));
+  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') openMenu(false); });
 
   setupThemeToggle();
   populateYearFilter();
