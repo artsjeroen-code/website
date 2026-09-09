@@ -2,6 +2,7 @@
   'use strict';
 
   const API_ROUTE = './api/route';
+  const NOMINATIM_SEARCH_URL = 'https://nominatim.openstreetmap.org/search';
   const button = document.getElementById('checkRoute');
   const result = document.getElementById('routeCheckResult');
   const icon = document.getElementById('routeStatusIcon');
@@ -48,33 +49,87 @@
     return [departure.lat, departure.lon, arrival.lat, arrival.lon, drivenKm].join('|');
   }
 
-  async function checkRoute({ silentIfIncomplete = false } = {}) {
+  async function forwardGeocode(input, label) {
+    const address = input.value.trim();
+    if (!address) throw new Error(`Vul eerst het ${label}adres in`);
+
+    const params = new URLSearchParams({
+      format: 'jsonv2',
+      q: address,
+      limit: '1',
+      addressdetails: '0',
+      countrycodes: 'nl',
+      'accept-language': 'nl'
+    });
+
+    const response = await fetch(`${NOMINATIM_SEARCH_URL}?${params.toString()}`, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: { Accept: 'application/json' }
+    });
+
+    if (!response.ok) throw new Error(`Adres zoeken gaf HTTP ${response.status}`);
+    const rows = await response.json();
+    if (!Array.isArray(rows) || !rows.length) throw new Error(`${label === 'vertrek' ? 'Vertrek' : 'Aankomst'}adres niet gevonden`);
+
+    const lat = Number(rows[0].lat);
+    const lon = Number(rows[0].lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) throw new Error(`Geen geldige coördinaten voor het ${label}adres`);
+
+    input.dataset.latitude = String(lat);
+    input.dataset.longitude = String(lon);
+    return { lat, lon };
+  }
+
+  async function ensureCoordsForManualAddresses() {
+    let departure = coords(departureInput);
+    let arrival = coords(arrivalInput);
+
+    if (!departure) {
+      show('Vertrekadres wordt opgezocht…', 'checking', '…');
+      departure = await forwardGeocode(departureInput, 'vertrek');
+    }
+
+    if (!arrival) {
+      show('Aankomstadres wordt opgezocht…', 'checking', '…');
+      arrival = await forwardGeocode(arrivalInput, 'aankomst');
+    }
+
+    return { departure, arrival };
+  }
+
+  async function checkRoute({ silentIfIncomplete = false, geocodeManual = false } = {}) {
     if (running) return;
 
-    const departure = coords(departureInput);
-    const arrival = coords(arrivalInput);
+    let departure = coords(departureInput);
+    let arrival = coords(arrivalInput);
     const drivenKm = odometerDistance();
-
-    if (!departure || !arrival) {
-      if (!silentIfIncomplete) show('Gebruik voor vertrek en aankomst “Gebruik locatie” om de route automatisch te controleren.', 'question', '?');
-      return;
-    }
 
     if (drivenKm === null) {
       if (!silentIfIncomplete) show('Vul eerst een geldige begin- en eindkilometerstand in.', 'question', '?');
       return;
     }
 
-    const currentSignature = signature();
-    if (!currentSignature || currentSignature === lastSignature) return;
-
     running = true;
     const original = button.textContent;
     button.disabled = true;
     button.textContent = 'Bezig…';
-    show('Normale autoroute wordt berekend…', 'checking', '…');
 
     try {
+      if ((!departure || !arrival) && geocodeManual) {
+        ({ departure, arrival } = await ensureCoordsForManualAddresses());
+      }
+
+      if (!departure || !arrival) {
+        if (!silentIfIncomplete) show('Gebruik “Gebruik locatie”, een snelkeuze of klik op “Opnieuw” bij handmatig ingevoerde adressen.', 'question', '?');
+        return;
+      }
+
+      const currentSignature = [departure.lat, departure.lon, arrival.lat, arrival.lon, drivenKm].join('|');
+      if (!currentSignature || currentSignature === lastSignature) return;
+
+      show('Normale autoroute wordt berekend…', 'checking', '…');
+
       const response = await fetch(API_ROUTE, {
         method: 'POST',
         cache: 'no-store',
@@ -129,13 +184,13 @@
 
   function resetAndMaybeCheck() {
     lastSignature = '';
-    show('Wordt automatisch uitgevoerd zodra beide locaties en kilometerstanden bekend zijn.', 'idle', '?');
+    show('Wordt automatisch uitgevoerd zodra beide locaties en kilometerstanden bekend zijn. Bij handmatige adressen: klik op “Opnieuw”.', 'idle', '?');
     window.setTimeout(() => checkRoute({ silentIfIncomplete: true }), 0);
   }
 
   button.addEventListener('click', () => {
     lastSignature = '';
-    checkRoute();
+    checkRoute({ geocodeManual: true });
   });
 
   [startInput, endInput].forEach((input) => {
