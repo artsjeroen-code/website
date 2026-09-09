@@ -1,6 +1,9 @@
 (() => {
   'use strict';
 
+  const ASSET_VERSION = 'v11';
+  const versioned = (path) => `${path}?${ASSET_VERSION}`;
+
   function simplifyPageHeader() {
     const header = document.querySelector('.page-header');
     if (!header) return;
@@ -49,6 +52,69 @@
     addressGrid.remove();
   }
 
+  function loadQuickCaptureAssets() {
+    if (!document.querySelector('link[data-quick-capture]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = versioned('quick-capture.css');
+      link.dataset.quickCapture = 'true';
+      document.head.appendChild(link);
+    }
+
+    if (!document.querySelector('script[data-quick-capture]')) {
+      const script = document.createElement('script');
+      script.src = versioned('quick-capture.js');
+      script.defer = true;
+      script.dataset.quickCapture = 'true';
+      document.body.appendChild(script);
+    }
+  }
+
+  function loadAddressPresetAssets() {
+    if (!document.querySelector('link[data-address-presets]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = versioned('address-presets.css');
+      link.dataset.addressPresets = 'true';
+      document.head.appendChild(link);
+    }
+
+    if (!document.querySelector('script[data-address-presets]')) {
+      const script = document.createElement('script');
+      script.src = versioned('address-presets.js');
+      script.defer = true;
+      script.dataset.addressPresets = 'true';
+      document.body.appendChild(script);
+    }
+  }
+
+  function loadDatePickerAssets() {
+    if (!document.querySelector('link[data-date-picker]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = versioned('date-picker.css');
+      link.dataset.datePicker = 'true';
+      document.head.appendChild(link);
+    }
+
+    if (!document.querySelector('script[data-date-picker]')) {
+      const script = document.createElement('script');
+      script.src = versioned('date-picker.js');
+      script.defer = true;
+      script.dataset.datePicker = 'true';
+      document.body.appendChild(script);
+    }
+  }
+
+  function loadRegistrationPolicy() {
+    if (document.querySelector('script[data-registration-policy]')) return;
+    const script = document.createElement('script');
+    script.src = versioned('registration-policy.js');
+    script.defer = true;
+    script.dataset.registrationPolicy = 'true';
+    document.body.appendChild(script);
+  }
+
   function addQuickCapturePanel() {
     const dashboard = document.querySelector('[data-view-panel="dashboard"]');
     const vehiclePanel = dashboard && dashboard.querySelector('.dashboard-vehicle-panel');
@@ -68,61 +134,17 @@
     dashboard.insertBefore(panel, vehiclePanel);
   }
 
-  function loadQuickCaptureAssets() {
-    if (!document.querySelector('link[data-quick-capture]')) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'quick-capture.css';
-      link.dataset.quickCapture = 'true';
-      document.head.appendChild(link);
-    }
-
-    if (!document.querySelector('script[data-quick-capture]')) {
-      const script = document.createElement('script');
-      script.src = 'quick-capture.js';
-      script.defer = true;
-      script.dataset.quickCapture = 'true';
-      document.body.appendChild(script);
-    }
-  }
-
-  function loadAddressPresetAssets() {
-    if (!document.querySelector('link[data-address-presets]')) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'address-presets.css';
-      link.dataset.addressPresets = 'true';
-      document.head.appendChild(link);
-    }
-
-    if (!document.querySelector('script[data-address-presets]')) {
-      const script = document.createElement('script');
-      script.src = 'address-presets.js';
-      script.defer = true;
-      script.dataset.addressPresets = 'true';
-      document.body.appendChild(script);
-    }
-  }
-
-  function loadRegistrationPolicy() {
-    if (document.querySelector('script[data-registration-policy]')) return;
-    const script = document.createElement('script');
-    script.src = 'registration-policy.js';
-    script.defer = true;
-    script.dataset.registrationPolicy = 'true';
-    document.body.appendChild(script);
-  }
-
   simplifyPageHeader();
   arrangeRideForm();
   addQuickCapturePanel();
   loadQuickCaptureAssets();
   loadAddressPresetAssets();
+  loadDatePickerAssets();
   loadRegistrationPolicy();
 
   if (!('serviceWorker' in navigator)) return;
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+    navigator.serviceWorker.register(versioned('./service-worker.js'), { scope: './' })
       .catch((error) => console.warn('PWA service worker kon niet worden geregistreerd.', error));
   });
 })();
