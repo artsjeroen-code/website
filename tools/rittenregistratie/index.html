@@ -45,12 +45,20 @@
       </div>
       <form id="vehicleForm" hidden>
         <div class="form-grid compact-grid">
-          <label><span>Merk</span><input id="vehicleMake" type="text" maxlength="80" placeholder="Bijv. Volkswagen" required></label>
-          <label><span>Type / model</span><input id="vehicleModel" type="text" maxlength="120" placeholder="Bijv. Golf" required></label>
-          <label><span>Kenteken</span><input id="vehiclePlate" type="text" maxlength="20" autocapitalize="characters" placeholder="AB-12-CD" required></label>
+          <label>
+            <span>Kenteken</span>
+            <div class="address-row">
+              <input id="vehiclePlate" type="text" maxlength="20" autocapitalize="characters" placeholder="AB-12-CD" required>
+              <button class="secondary-button" id="lookupRdw" type="button">Gegevens ophalen</button>
+            </div>
+          </label>
+          <label><span>Merk <em>(via RDW)</em></span><input id="vehicleMake" type="text" maxlength="80" readonly required></label>
+          <label><span>Type / model <em>(via RDW)</em></span><input id="vehicleModel" type="text" maxlength="120" readonly required></label>
           <label><span>In gebruik vanaf</span><input id="vehicleUseFrom" type="date" required></label>
+          <label><span>Km-stand op datum in gebruik</span><input id="vehicleInitialOdometer" type="number" min="0" step="1" inputmode="numeric" placeholder="Bijv. 42500" required></label>
           <label><span>In gebruik tot <em>(optioneel)</em></span><input id="vehicleUseTo" type="date"></label>
         </div>
+        <div id="rdwStatus" class="field-meta" role="status" aria-live="polite"></div>
         <div id="vehicleMessage" class="form-message" role="status" aria-live="polite"></div>
         <div class="form-actions">
           <button class="primary-button" id="saveVehicle" type="submit">Voertuig toevoegen</button>
@@ -114,7 +122,7 @@
       <p id="auditEmpty" class="empty-state">Nog geen correcties vastgelegd.</p>
     </section>
 
-    <section class="notice"><strong>Voertuigketens:</strong> iedere rit is gekoppeld aan een kenteken. De beginstand hoeft alleen aan te sluiten op de vorige rit van hetzelfde voertuig. Daardoor mag een nieuw voertuig met een totaal andere kilometerstand gewoon een nieuwe, eigen keten starten. Correcties worden per voertuigketen gecontroleerd en blijven via het auditlog traceerbaar.</section>
+    <section class="notice"><strong>Voertuigketens:</strong> bij een nieuw kenteken worden merk en handelsbenaming opgehaald uit RDW Open Data. De kilometerstand op de datum van ingebruikname leg je zelf vast; die vormt het startpunt van de eigen kilometerketen van dat voertuig. Daardoor mag een ander voertuig een totaal andere tellerstand hebben.</section>
   </main>
 
   <script src="app.js"></script>
