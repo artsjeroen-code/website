@@ -54,6 +54,24 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 10px;
+  align-items: start;
+}
+.ride-meta-grid > label {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto 40px;
+  align-content: start;
+}
+.ride-meta-grid > label > span {
+  min-height: 22px;
+  margin-bottom: 5px;
+}
+.ride-meta-grid input,
+.ride-meta-grid select {
+  width: 100%;
+  height: 40px;
+  min-height: 40px;
+  margin: 0;
 }
 .ride-point-grid {
   display: grid;
