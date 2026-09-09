@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rittenregistratie-shell-v2';
+const CACHE_NAME = 'rittenregistratie-shell-v3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -8,6 +8,8 @@ const APP_SHELL = [
   './routecheck.js',
   './audit.js',
   './pwa.js',
+  './quick-capture.css',
+  './quick-capture.js',
   './manifest.webmanifest',
   './icons/icon-192.svg',
   './icons/icon-512.svg',
