@@ -50,9 +50,19 @@
     }
   }
 
+  function loadRegistrationPolicy() {
+    if (document.querySelector('script[data-registration-policy]')) return;
+    const script = document.createElement('script');
+    script.src = 'registration-policy.js';
+    script.defer = true;
+    script.dataset.registrationPolicy = 'true';
+    document.body.appendChild(script);
+  }
+
   simplifyPageHeader();
   addQuickCapturePanel();
   loadQuickCaptureAssets();
+  loadRegistrationPolicy();
 
   if (!('serviceWorker' in navigator)) return;
   window.addEventListener('load', () => {
