@@ -12,10 +12,11 @@ Deze tool draait onder:
 4. Routecontrole: optionele routeafstand vergelijken met kilometertellerafstand.
 5. Jaaroverzicht + definitieve export.
 6. Meerdere voertuigen en kilometerketens per kenteken.
-7. Gecontroleerde correcties + auditlog.
-8. Dagelijkse SQLite-back-up + hersteltest.
-9. Toegangsbeveiliging via Nginx Basic Auth.
-10. Koppeling vanaf de startpagina.
+7. RDW-lookup + beginstand per voertuig.
+8. Gecontroleerde correcties + auditlog.
+9. Dagelijkse SQLite-back-up + hersteltest.
+10. Toegangsbeveiliging via Nginx Basic Auth.
+11. Koppeling vanaf de startpagina.
 
 ## Architectuur
 
@@ -34,16 +35,20 @@ Iedere rit bevat een `vehicleId`. De kilometerketen wordt daardoor per voertuig 
 
 ## Voertuigen en kentekens
 
-De interface toont standaard alleen een compacte kentekenkeuze. Het volledige formulier met merk, type/model, kenteken en gebruiksperiode verschijnt pas na `Voertuig toevoegen`.
+De interface toont standaard alleen een compacte kentekenkeuze. Het volledige formulier verschijnt pas na `Voertuig toevoegen`.
 
-Voertuigen worden opgeslagen in de tabel `vehicles`. De bestaande oude tabel `vehicle` blijft alleen aanwezig voor migratie/compatibiliteit. Bij de eerste start na deze wijziging wordt het bestaande voertuig automatisch naar `vehicles` gemigreerd en worden bestaande ritten daaraan gekoppeld.
+Bij een nieuw voertuig wordt eerst het kenteken ingevoerd. De frontend vraagt vervolgens de officiële RDW Open Data-dataset `Gekentekende_voertuigen` (`m9d7-ebf2`) op en vult `merk` en `handelsbenaming` automatisch in. De RDW levert geen persoonlijke tellerstand voor deze administratie; de gebruiker legt daarom zelf verplicht de kilometerstand vast die hoort bij `In gebruik vanaf`.
 
-Een nieuw voertuig begint een eigen kilometerketen. De eerste beginstand van een nieuw kenteken hoeft dus niet aan te sluiten op de eindstand van een ander voertuig. Voor volgende ritten van hetzelfde kenteken moet de beginstand wel aansluiten op de vorige eindstand van dat voertuig.
+Die kilometerstand wordt centraal opgeslagen als `initial_odometer` en vormt het startpunt van de kilometerketen van dat voertuig. De eerste rit van het voertuig moet op die stand beginnen. Daarna moet iedere volgende rit aansluiten op de vorige eindstand van hetzelfde kenteken.
+
+Voertuigen worden opgeslagen in de tabel `vehicles`. De bestaande oude tabel `vehicle` blijft alleen aanwezig voor migratie/compatibiliteit. Bij de eerste start na de meervoertuigenmigratie wordt het bestaande voertuig automatisch naar `vehicles` gemigreerd en worden bestaande ritten daaraan gekoppeld. Voor bestaande voertuigen wordt de beginstand waar mogelijk afgeleid uit de eerste reeds opgeslagen rit.
+
+Een nieuw voertuig begint altijd een eigen kilometerketen. De beginstand van een nieuw kenteken hoeft dus niet aan te sluiten op de eindstand van een ander voertuig.
 
 API:
 
 - `GET ./api/vehicles` — alle voertuigen;
-- `POST ./api/vehicles` — extra voertuig toevoegen;
+- `POST ./api/vehicles` — extra voertuig toevoegen inclusief beginstand;
 - `PUT ./api/vehicles/<id>` — voertuiggegevens wijzigen;
 - `GET ./api/vehicle` — tijdelijke compatibiliteitsroute die het laatst toegevoegde voertuig teruggeeft.
 
@@ -57,7 +62,7 @@ De knop `Controleer route` gebruikt de GPS-coördinaten van vertrek en aankomst 
 
 ## Jaaroverzicht en export
 
-De gebruiker kan per kalenderjaar filteren. De samenvattingskaarten, rittenlijst en CSV-export volgen het gekozen jaar. De rittenlijst bevat ook het kenteken. De jaar-CSV bevat de voertuigen die in dat jaar voorkomen plus per rit het kenteken, type, adressen en kilometerstanden.
+De gebruiker kan per kalenderjaar filteren. De samenvattingskaarten, rittenlijst en CSV-export volgen het gekozen jaar. De rittenlijst bevat ook het kenteken. De jaar-CSV bevat de voertuigen die in dat jaar voorkomen, inclusief beginstand bij ingebruikname, plus per rit het kenteken, type, adressen en kilometerstanden.
 
 Zakelijke en privékilometers worden over alle voertuigen in het gekozen jaar opgeteld. De kaart `Laatste km-stand gekozen auto` volgt het voertuig dat bovenaan geselecteerd is.
 
@@ -65,15 +70,9 @@ Zakelijke en privékilometers worden over alle voertuigen in het gekozen jaar op
 
 Bestaande ritten worden niet hard verwijderd. Een fout wordt gecorrigeerd via `PATCH ./api/rides/<id>` en vereist altijd een reden van minimaal 5 tekens.
 
-Bij iedere correctie bewaart SQLite in `ride_audit`:
+Bij iedere correctie bewaart SQLite in `ride_audit` het ritnummer, tijdstip, reden en de volledige oude en nieuwe versie van de rit.
 
-- het ritnummer;
-- tijdstip van correctie;
-- reden;
-- de volledige oude versie van de rit;
-- de volledige nieuwe versie van de rit.
-
-Voor een correctie wordt alleen de kilometerketen van hetzelfde voertuig opnieuw gecontroleerd. De nieuwe beginstand moet aansluiten op de vorige rit van hetzelfde kenteken en de nieuwe eindstand op de volgende rit van hetzelfde kenteken.
+Voor een correctie wordt alleen de kilometerketen van hetzelfde voertuig opnieuw gecontroleerd. Bij de eerste rit van een voertuig wordt ook de vastgelegde beginstand bij ingebruikname gecontroleerd.
 
 De auditlog is leesbaar via `GET ./api/audit` en wordt in de webinterface getoond.
 
@@ -98,4 +97,4 @@ Het wachtwoordbestand staat alleen op de Raspberry Pi in `/etc/nginx/rittenregis
 
 ## Huidige status
 
-De kernregistratie ondersteunt nu meerdere voertuigen met een eigen kilometerketen per kenteken. Daardoor kunnen voertuigen worden gewisseld zonder kunstmatige kilometerfouten tussen verschillende tellers. Centrale opslag, GPS/adressen, routecontrole, jaaroverzicht/export, auditlog, dagelijkse back-up en toegangsbeveiliging blijven behouden.
+De kernregistratie ondersteunt meerdere voertuigen met een eigen kilometerketen per kenteken. Nieuwe voertuigen kunnen via RDW Open Data automatisch met merk/type worden aangevuld en krijgen een expliciete tellerstand bij ingebruikname als startpunt van hun keten. Centrale opslag, GPS/adressen, routecontrole, jaaroverzicht/export, auditlog, dagelijkse back-up en toegangsbeveiliging blijven behouden.
