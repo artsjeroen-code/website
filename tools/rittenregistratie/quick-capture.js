@@ -159,13 +159,13 @@
     setMessage('Locaties en tijden zijn overgenomen. Kies nu het kenteken en vul de kilometerstanden in.', true);
   }
 
-  async function deleteQuickRide(id) {
+  async function abortQuickRide(id) {
     try {
-      await api(`/quick-rides/${id}/delete`, { method: 'POST', body: '{}' });
+      await api(`/quick-rides/${id}/archive`, { method: 'POST', body: '{}' });
       await loadQuickRides();
-      setMessage('Snelle registratie verwijderd.', true);
+      setMessage('Snelle registratie afgebroken.', true);
     } catch (error) {
-      setMessage(`Verwijderen mislukt: ${error.message}`);
+      setMessage(`Afbreken mislukt: ${error.message}`);
     }
   }
 
@@ -203,12 +203,12 @@
         use.addEventListener('click', () => applyQuickRide(ride));
         actions.appendChild(use);
       }
-      const remove = document.createElement('button');
-      remove.type = 'button';
-      remove.className = 'secondary-button';
-      remove.textContent = 'Verwijderen';
-      remove.addEventListener('click', () => deleteQuickRide(ride.id));
-      actions.appendChild(remove);
+      const abort = document.createElement('button');
+      abort.type = 'button';
+      abort.className = 'secondary-button';
+      abort.textContent = 'Afbreken';
+      abort.addEventListener('click', () => abortQuickRide(ride.id));
+      actions.appendChild(abort);
 
       item.append(copy, actions);
       list.appendChild(item);
