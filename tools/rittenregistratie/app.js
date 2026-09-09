@@ -325,6 +325,20 @@
       row.appendChild(createCell(formatNumber(ride.endOdometer), 'numeric'));
       row.appendChild(createCell(formatNumber(ride.distance), 'numeric'));
       row.appendChild(createCell(ride.notes || '—'));
+
+      const actionCell = document.createElement('td');
+      const editButton = document.createElement('button');
+      editButton.type = 'button';
+      editButton.className = 'secondary-button';
+      editButton.textContent = 'Aanpassen';
+      editButton.addEventListener('click', () => {
+        document.dispatchEvent(new CustomEvent('rittenregistratie:edit-ride', {
+          detail: { rideId: ride.id }
+        }));
+      });
+      actionCell.appendChild(editButton);
+      row.appendChild(actionCell);
+
       ridesBody.appendChild(row);
     });
   }
@@ -553,7 +567,9 @@
       rides = Array.isArray(ridesPayload.rides) ? ridesPayload.rides : [];
       vehicles = Array.isArray(vehiclesPayload.vehicles) ? vehiclesPayload.vehicles : [];
       apiAvailable = true;
-      selectedVehicleId = vehicles.length ? vehicles[vehicles.length - 1].id : null;
+      if (!selectedVehicleId || !vehicles.some((vehicle) => vehicle.id === selectedVehicleId)) {
+        selectedVehicleId = vehicles.length ? vehicles[vehicles.length - 1].id : null;
+      }
       populateVehicleSelect();
       populateYearFilter();
       render();
@@ -606,6 +622,8 @@
   menuButton.addEventListener('click', () => openMenu(!appMenu.classList.contains('open')));
   menuBackdrop.addEventListener('click', () => openMenu(false));
   document.querySelectorAll('.menu-item').forEach((item) => item.addEventListener('click', () => switchView(item.dataset.view)));
+  document.addEventListener('rittenregistratie:edit-ride', () => switchView('corrections'));
+  document.addEventListener('rittenregistratie:data-changed', () => { loadData(); });
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') openMenu(false); });
 
   setupThemeToggle();
