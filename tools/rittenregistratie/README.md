@@ -22,6 +22,21 @@ De interface is opgebouwd als compacte webapp met een hamburgermenu linksboven e
 - De SQLite-database staat buiten Git in `/var/lib/rittenregistratie/ritten.db`.
 - Ritdata, back-ups, mailwachtwoorden en wachtwoordbestanden horen niet in GitHub.
 
+## PWA
+
+De rittenregistratie is een online-first Progressive Web App.
+
+Bestanden:
+
+- `manifest.webmanifest` — appnaam, standalone weergave, kleuren en iconen;
+- `service-worker.js` — cachet alleen de statische app-shell;
+- `pwa.js` — registreert de service worker;
+- `icons/` — app-iconen.
+
+Belangrijk: `/tools/rittenregistratie/api/` wordt expliciet niet door de service worker onderschept of gecachet. Ritdata, voertuigen en auditgegevens blijven daardoor uitsluitend via de centrale API/SQLite-opslag lopen.
+
+Als de verbinding wegvalt kan een eerder geladen app-shell nog openen, maar gegevens ophalen, ritten opslaan, RDW, reverse geocoding en routecontrole vereisen een werkende netwerkverbinding. Er is bewust nog geen offline synchronisatiewachtrij om dubbele ritten of conflicten in de kilometerketen te voorkomen.
+
 ## Voertuigen en kilometerketens
 
 Iedere rit bevat een `vehicleId`. De kilometerketen wordt daardoor per voertuig gecontroleerd en niet over verschillende kentekens heen.
