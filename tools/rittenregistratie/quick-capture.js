@@ -11,6 +11,39 @@
   if (!startButton || !endButton || !message || !list || !empty) return;
 
   let quickRides = [];
+  let appliedQuickRideId = null;
+
+  const nativeFetch = window.fetch.bind(window);
+  window.fetch = async (...args) => {
+    const response = await nativeFetch(...args);
+    const request = args[0];
+    const options = args[1] || {};
+    const url = typeof request === 'string' ? request : request?.url || '';
+    const method = String(options.method || request?.method || 'GET').toUpperCase();
+
+    if (response.ok && method === 'POST' && url.endsWith('/api/rides') && appliedQuickRideId !== null) {
+      const quickRideId = appliedQuickRideId;
+      try {
+        const archiveResponse = await nativeFetch(`${API_BASE}/quick-rides/${quickRideId}/archive`, {
+          method: 'POST',
+          cache: 'no-store',
+          credentials: 'same-origin',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: '{}'
+        });
+        if (!archiveResponse.ok) throw new Error(`HTTP ${archiveResponse.status}`);
+        appliedQuickRideId = null;
+        await loadQuickRides();
+      } catch (error) {
+        setMessage(`Rit is opgeslagen, maar de concept-rit kon niet worden verwijderd: ${error.message}`);
+      }
+    }
+
+    return response;
+  };
 
   function localCapturedAt(date = new Date()) {
     const parts = [
@@ -140,6 +173,7 @@
     const form = document.getElementById('rideForm');
     if (!dateInput || !departure || !arrival || !form) return;
 
+    appliedQuickRideId = ride.id;
     dateInput.value = String(ride.startCapturedAt).slice(0, 10);
     departure.value = ride.startAddress || `GPS ${ride.startCoords.lat}, ${ride.startCoords.lon}`;
     arrival.value = ride.endAddress || `GPS ${ride.endCoords.lat}, ${ride.endCoords.lon}`;
@@ -178,6 +212,7 @@
   async function abortQuickRide(id) {
     try {
       await api(`/quick-rides/${id}/archive`, { method: 'POST', body: '{}' });
+      if (appliedQuickRideId === id) appliedQuickRideId = null;
       await loadQuickRides();
       setMessage('Snelle registratie afgebroken.', true);
     } catch (error) {
@@ -244,6 +279,13 @@
       quickRides = [];
       render();
     }
+  }
+
+  const resetButton = document.getElementById('resetForm');
+  if (resetButton) {
+    resetButton.addEventListener('click', () => {
+      appliedQuickRideId = null;
+    });
   }
 
   startButton.addEventListener('click', () => capture('start'));
