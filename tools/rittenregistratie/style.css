@@ -345,7 +345,7 @@ html[data-theme="light"] .route-status-copy span { color: #5f6368; }
 }
 
 @media (max-width: 640px) {
-  .page-shell { width: min(100% - 20px, 1180px); padding: 9px 0 32px; }
+  .page-shell { width: min(100% - 20px, 1180px); padding: 54px 0 32px; }
   .page-header { height: 0; margin: 0; padding: 0; }
   .subtitle { font-size: .68rem; }
   .mode-badge { padding: 4px 7px; font-size: .62rem; }
