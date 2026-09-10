@@ -30,6 +30,7 @@
     <div class="menu-title">Rittenregistratie</div>
     <nav>
       <button class="menu-item active" type="button" data-view="dashboard">Dashboard</button>
+      <button class="menu-item" type="button" data-view="vehicles">Voertuigen</button>
       <button class="menu-item" type="button" data-view="vehicle">Voertuig toevoegen</button>
       <button class="menu-item" type="button" data-view="corrections">Ritcorrectie & auditlog</button>
       <button class="menu-item" type="button" data-view="overview">Overzicht</button>
@@ -86,6 +87,19 @@
           <div id="formMessage" class="form-message" role="status" aria-live="polite"></div>
           <div class="form-actions"><button class="primary-button" type="submit">Rit opslaan</button><button class="secondary-button" id="resetForm" type="button">Formulier wissen</button></div>
         </form>
+      </section>
+    </section>
+
+    <section class="app-view" data-view-panel="vehicles" hidden>
+      <section class="panel first-panel">
+        <div class="panel-heading"><div><p class="eyebrow">Voertuigen</p><h2>Geregistreerde auto's</h2></div></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Kenteken</th><th>Merk / model</th><th>In gebruik vanaf</th><th>Beginstand</th><th>In gebruik tot</th><th>Ritten</th><th>Laatste stand</th></tr></thead>
+            <tbody id="vehiclesOverviewBody"></tbody>
+          </table>
+        </div>
+        <p id="vehiclesOverviewEmpty" class="empty-state">Nog geen voertuigen geregistreerd.</p>
       </section>
     </section>
 
@@ -159,6 +173,7 @@
   </main>
 
   <script src="app.js"></script>
+  <script src="vehicles-overview.js"></script>
   <script src="geocode.js"></script>
   <script src="routecheck.js"></script>
   <script src="audit.js"></script>
