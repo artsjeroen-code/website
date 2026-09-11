@@ -7,7 +7,7 @@
 
 .quick-capture-panel { margin-top: 8px; }
 .quick-capture-actions {
-  display: grid;
+  display: none;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
@@ -85,7 +85,7 @@
 }
 
 @media (max-width: 760px) {
-  .quick-capture-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .quick-capture-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
   .quick-capture-button { min-height: 42px; padding: 6px 5px; font-size: .76rem; line-height: 1.2; }
   .quick-ride-item { align-items: stretch; flex-direction: column; }
   .quick-ride-actions { width: 100%; }
