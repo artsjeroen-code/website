@@ -46,6 +46,10 @@
     return `<c r="${colName(col)}${row}" s="${style}"><v>${Number(value)}</v></c>`;
   }
 
+  function blankCell(row, col, style = 0) {
+    return `<c r="${colName(col)}${row}" s="${style}"/>`;
+  }
+
   function rowXml(row, cells, height = null) {
     const heightAttrs = height ? ` ht="${height}" customHeight="1"` : '';
     return `<row r="${row}"${heightAttrs}>${cells.join('')}</row>`;
@@ -139,9 +143,9 @@
       numberCell(6, 11, stats.privateKm, 9)
     ]));
     rows.push(rowXml(7, [
-      textCell(7, 0, ' ', 5),
-      textCell(7, 2, ' ', 5),
-      textCell(7, 5, ' ', 5)
+      blankCell(7, 0, 5),
+      blankCell(7, 2, 5),
+      blankCell(7, 5, 5)
     ]));
 
     rows.push(rowXml(8, [
@@ -173,9 +177,9 @@
     const minimumLastRow = 58;
     while (row <= minimumLastRow) {
       rows.push(rowXml(row, [
-        textCell(row, 0, ' ', 5), textCell(row, 1, ' ', 5), textCell(row, 2, ' ', 5),
-        textCell(row, 3, ' ', 5), textCell(row, 4, ' ', 5), textCell(row, 5, ' ', 5),
-        textCell(row, 6, ' ', 5), textCell(row, 7, ' ', 5)
+        blankCell(row, 0, 5), blankCell(row, 1, 5), blankCell(row, 2, 5),
+        blankCell(row, 3, 5), blankCell(row, 4, 5), blankCell(row, 5, 5),
+        blankCell(row, 6, 5), blankCell(row, 7, 5)
       ], 22));
       row += 1;
     }
