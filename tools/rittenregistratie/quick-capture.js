@@ -170,6 +170,7 @@
     const arrival = document.getElementById('arrivalAddress');
     const startOdometer = document.getElementById('startOdometer');
     const endOdometer = document.getElementById('endOdometer');
+    const notes = document.getElementById('notes');
     const form = document.getElementById('rideForm');
     if (!dateInput || !departure || !arrival || !form) return;
 
@@ -185,6 +186,7 @@
       endOdometer.value = String(ride.endOdometer);
       endOdometer.dispatchEvent(new Event('input', { bubbles: true }));
     }
+    if (notes) notes.value = ride.notes || '';
     departure.dataset.latitude = String(ride.startCoords.lat);
     departure.dataset.longitude = String(ride.startCoords.lon);
     departure.dataset.capturedTime = String(ride.startCapturedAt).slice(11, 19);
@@ -203,8 +205,8 @@
     const hasOdometers = ride.startOdometer !== null && ride.startOdometer !== undefined && ride.endOdometer !== null && ride.endOdometer !== undefined;
     setMessage(
       hasOdometers
-        ? 'Locaties, tijden en kilometerstanden zijn overgenomen. Kies nu het kenteken en controleer de rit.'
-        : 'Locaties en tijden zijn overgenomen. Kies nu het kenteken en vul de ontbrekende kilometerstanden in.',
+        ? 'Locaties, tijden, kilometerstanden en omschrijving zijn overgenomen. Kies nu het kenteken en controleer de rit.'
+        : 'Locaties, tijden en omschrijving zijn overgenomen. Kies nu het kenteken en vul de ontbrekende kilometerstanden in.',
       true
     );
   }
@@ -245,6 +247,11 @@
         ? `${ride.startAddress || 'Beginlocatie'}${startKm} → ${ride.endAddress || 'Eindlocatie'}${endKm} · aankomst ${formatCaptured(ride.endCapturedAt)}`
         : `${ride.startAddress || 'Beginlocatie opgeslagen'}${startKm} · wacht op eindpunt`;
       copy.append(title, details);
+      if (ride.notes) {
+        const note = document.createElement('span');
+        note.textContent = `Doel: ${ride.notes}`;
+        copy.appendChild(note);
+      }
 
       const actions = document.createElement('div');
       actions.className = 'quick-ride-actions';
