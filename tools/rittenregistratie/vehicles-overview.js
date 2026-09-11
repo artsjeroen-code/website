@@ -11,10 +11,7 @@
     const totalHeader = document.createElement('th');
     totalHeader.textContent = 'Totaal km';
     totalHeader.dataset.vehiclesTotalKm = 'true';
-    const actionHeader = document.createElement('th');
-    actionHeader.textContent = 'Actie';
-    actionHeader.dataset.vehiclesAction = 'true';
-    headerRow.append(totalHeader, actionHeader);
+    headerRow.appendChild(totalHeader);
   }
 
   function formatDate(value) {
@@ -30,15 +27,11 @@
     return new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 0 }).format(number);
   }
 
-  async function api(path, options = {}) {
+  async function api(path) {
     const response = await fetch(`${API_BASE}${path}`, {
       cache: 'no-store',
       credentials: 'same-origin',
-      headers: {
-        Accept: 'application/json',
-        ...(options.body ? { 'Content-Type': 'application/json' } : {})
-      },
-      ...options
+      headers: { Accept: 'application/json' }
     });
     let payload = {};
     try { payload = await response.json(); }
@@ -70,89 +63,7 @@
     return Math.max(0, last - initial);
   }
 
-  function dateInput(value, label) {
-    const input = document.createElement('input');
-    input.type = 'date';
-    input.value = value || '';
-    input.setAttribute('aria-label', label);
-    return input;
-  }
-
-  function numberInput(value, label) {
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.min = '0';
-    input.step = '1';
-    input.inputMode = 'numeric';
-    input.value = value ?? '';
-    input.setAttribute('aria-label', label);
-    return input;
-  }
-
-  function renderEditRow(row, vehicle, rides, reload) {
-    const cells = row.children;
-    const useFromInput = dateInput(vehicle.useFrom, 'In gebruik vanaf');
-    const initialInput = numberInput(vehicle.initialOdometer, 'Beginstand');
-    const useToInput = dateInput(vehicle.useTo, 'In gebruik tot');
-
-    cells[2].replaceChildren(useFromInput);
-    cells[3].replaceChildren(initialInput);
-    cells[4].replaceChildren(useToInput);
-
-    const actionCell = cells[cells.length - 1];
-    const save = document.createElement('button');
-    save.type = 'button';
-    save.className = 'primary-button';
-    save.textContent = 'Opslaan';
-
-    const cancel = document.createElement('button');
-    cancel.type = 'button';
-    cancel.className = 'secondary-button';
-    cancel.textContent = 'Annuleren';
-
-    const message = document.createElement('div');
-    message.className = 'field-meta';
-
-    save.addEventListener('click', async () => {
-      const initialOdometer = Number(initialInput.value);
-      if (!useFromInput.value) {
-        message.textContent = 'Begindatum is verplicht.';
-        return;
-      }
-      if (!Number.isInteger(initialOdometer) || initialOdometer < 0) {
-        message.textContent = 'Vul een geldige beginstand in.';
-        return;
-      }
-
-      save.disabled = true;
-      cancel.disabled = true;
-      message.textContent = 'Opslaan…';
-      try {
-        await api(`/vehicles/${vehicle.id}`, {
-          method: 'PUT',
-          body: JSON.stringify({
-            make: vehicle.make,
-            model: vehicle.model,
-            plate: vehicle.plate,
-            useFrom: useFromInput.value,
-            useTo: useToInput.value || null,
-            initialOdometer
-          })
-        });
-        document.dispatchEvent(new CustomEvent('rittenregistratie:data-changed'));
-        await reload();
-      } catch (error) {
-        message.textContent = `Niet opgeslagen: ${error.message}`;
-        save.disabled = false;
-        cancel.disabled = false;
-      }
-    });
-
-    cancel.addEventListener('click', reload);
-    actionCell.replaceChildren(save, cancel, message);
-  }
-
-  function render(vehicles, rides, reload) {
+  function render(vehicles, rides) {
     body.replaceChildren();
     empty.hidden = vehicles.length > 0;
 
@@ -172,15 +83,6 @@
       const total = totalKmFor(vehicle, rides);
       row.appendChild(createCell(total === null ? '—' : `${formatNumber(total)} km`, 'numeric'));
 
-      const actionCell = document.createElement('td');
-      const edit = document.createElement('button');
-      edit.type = 'button';
-      edit.className = 'secondary-button';
-      edit.textContent = 'Aanpassen';
-      edit.addEventListener('click', () => renderEditRow(row, vehicle, rides, reload));
-      actionCell.appendChild(edit);
-      row.appendChild(actionCell);
-
       body.appendChild(row);
     });
   }
@@ -190,7 +92,7 @@
       const [vehiclesPayload, ridesPayload] = await Promise.all([api('/vehicles'), api('/rides')]);
       const vehicles = Array.isArray(vehiclesPayload.vehicles) ? vehiclesPayload.vehicles : [];
       const rides = Array.isArray(ridesPayload.rides) ? ridesPayload.rides : [];
-      render(vehicles, rides, load);
+      render(vehicles, rides);
     } catch (error) {
       body.replaceChildren();
       empty.hidden = false;
