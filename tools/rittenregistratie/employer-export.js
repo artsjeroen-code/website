@@ -13,7 +13,6 @@
     ['05', 'Mei'], ['06', 'Juni'], ['07', 'Juli'], ['08', 'Augustus'],
     ['09', 'September'], ['10', 'Oktober'], ['11', 'November'], ['12', 'December']
   ];
-
   const encoder = new TextEncoder();
 
   function xmlEscape(value) {
@@ -111,47 +110,68 @@
     const stats = monthStats(allVehicleRides, monthRides, vehicle, year, month);
     const rows = [];
 
-    rows.push(rowXml(1, [textCell(1, 0, 'Rittenregistratie', 1), textCell(1, 9, 'Eind kilometerstand', 3)], 22));
-    rows.push(rowXml(2, [textCell(2, 0, 'Jaartal', 2), textCell(2, 2, year, 5), numberCell(2, 9, stats.endOdometer, 9)]));
+    // Indeling volgt het aangeleverde werkgeversformat: gegevensblok links,
+    // maandtotalen rechts en de rittenlijst vanaf rij 8/9.
+    rows.push(rowXml(1, [textCell(1, 0, 'Rittenregistratie', 1)], 22));
+    rows.push(rowXml(2, [
+      textCell(2, 0, 'Jaartal', 2),
+      textCell(2, 2, year, 5),
+      textCell(2, 9, 'Eind kilometerstand', 3)
+    ]));
+    rows.push(rowXml(3, [numberCell(3, 9, stats.endOdometer ?? 0, 9)]));
     rows.push(rowXml(4, [
-      textCell(4, 0, 'Merk', 2), textCell(4, 2, vehicle.make || '', 5),
-      textCell(4, 4, 'Type', 2), textCell(4, 6, vehicle.model || '', 5),
-      textCell(4, 9, 'Totaal zakelijk gereden', 3)
+      textCell(4, 0, 'Merk', 2),
+      textCell(4, 2, 'Type', 2),
+      textCell(4, 5, 'Kenteken', 2)
     ]));
-    rows.push(rowXml(5, [textCell(5, 0, 'Kenteken', 2), textCell(5, 2, vehicle.plate || '', 5), numberCell(5, 9, stats.business, 9)]));
+    rows.push(rowXml(5, [
+      textCell(5, 0, vehicle.make || '', 5),
+      textCell(5, 2, vehicle.model || '', 5),
+      textCell(5, 5, vehicle.plate || '', 5),
+      textCell(5, 9, 'Totaal zakelijk gereden', 3),
+      textCell(5, 11, 'Prive', 3)
+    ]));
+    rows.push(rowXml(6, [
+      textCell(6, 0, 'Personeelsnummer', 2),
+      textCell(6, 2, 'Naam', 2),
+      textCell(6, 5, 'Team manager', 2),
+      numberCell(6, 9, stats.business, 9),
+      numberCell(6, 11, stats.privateKm, 9)
+    ]));
     rows.push(rowXml(7, [
-      textCell(7, 0, 'Personeelsnummer', 2), textCell(7, 2, ' ', 5),
-      textCell(7, 4, 'Naam', 2), textCell(7, 6, ' ', 5), textCell(7, 9, 'Prive', 3)
+      textCell(7, 0, ' ', 5),
+      textCell(7, 2, ' ', 5),
+      textCell(7, 5, ' ', 5)
     ]));
-    rows.push(rowXml(8, [textCell(8, 0, 'Team manager', 2), textCell(8, 2, ' ', 5), numberCell(8, 9, stats.privateKm, 9)]));
 
-    rows.push(rowXml(10, [
-      textCell(10, 0, 'Datum', 4),
-      textCell(10, 1, 'Tijd dienstrit', 4),
-      textCell(10, 2, 'Begin kilometerstand', 4),
-      textCell(10, 3, 'Eind kilometerstand', 4),
-      textCell(10, 4, 'Gereden zakelijke kilometers', 4),
-      textCell(10, 5, 'Adres van vertrek', 4),
-      textCell(10, 6, 'Adres van aankomst', 4),
-      textCell(10, 7, 'Opmerking', 4)
-    ], 52));
+    rows.push(rowXml(8, [
+      textCell(8, 0, 'Datum', 4),
+      textCell(8, 1, 'Tijd dienstrit', 4),
+      textCell(8, 2, 'Begin kilometerstand', 4),
+      textCell(8, 3, 'Eind kilometerstand', 4),
+      textCell(8, 4, 'Gereden zakelijke kilometers', 4),
+      textCell(8, 5, 'Adres van vertrek', 4),
+      textCell(8, 6, 'Adres van aankomst', 4),
+      textCell(8, 7, 'Opmerking', 4)
+    ], 58));
 
-    let row = 11;
+    let row = 9;
     for (const ride of stats.businessRides) {
       rows.push(rowXml(row, [
         textCell(row, 0, formatDate(ride.date), 5),
-        textCell(row, 1, ride.departureTime || '', 8),
+        textCell(row, 1, ride.departureTime ? String(ride.departureTime).slice(0, 5) : '', 8),
         numberCell(row, 2, ride.startOdometer, 6),
         numberCell(row, 3, ride.endOdometer, 6),
         numberCell(row, 4, ride.distance, 6),
         textCell(row, 5, ride.departureAddress || '', 5),
         textCell(row, 6, ride.arrivalAddress || '', 5),
         textCell(row, 7, ride.notes || '', 5)
-      ], 24));
+      ], 22));
       row += 1;
     }
 
-    while (row <= 35) {
+    const minimumLastRow = 58;
+    while (row <= minimumLastRow) {
       rows.push(rowXml(row, [
         textCell(row, 0, ' ', 5), textCell(row, 1, ' ', 5), textCell(row, 2, ' ', 5),
         textCell(row, 3, ' ', 5), textCell(row, 4, ' ', 5), textCell(row, 5, ' ', 5),
@@ -160,30 +180,35 @@
       row += 1;
     }
 
-    const dimensionEnd = `K${Math.max(35, row - 1)}`;
+    const dimensionEnd = `L${Math.max(minimumLastRow, row - 1)}`;
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
       `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">` +
       `<dimension ref="A1:${dimensionEnd}"/>` +
-      `<sheetViews><sheetView workbookViewId="0" showGridLines="1"><pane ySplit="10" topLeftCell="A11" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>` +
+      `<sheetViews><sheetView workbookViewId="0" showGridLines="1"><pane ySplit="8" topLeftCell="A9" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>` +
       `<sheetFormatPr defaultRowHeight="15"/>` +
       `<cols>` +
-      `<col min="1" max="1" width="14" customWidth="1"/>` +
-      `<col min="2" max="2" width="14" customWidth="1"/>` +
-      `<col min="3" max="5" width="18" customWidth="1"/>` +
-      `<col min="6" max="7" width="34" customWidth="1"/>` +
-      `<col min="8" max="8" width="24" customWidth="1"/>` +
+      `<col min="1" max="1" width="24" customWidth="1"/>` +
+      `<col min="2" max="2" width="17" customWidth="1"/>` +
+      `<col min="3" max="3" width="18" customWidth="1"/>` +
+      `<col min="4" max="4" width="17" customWidth="1"/>` +
+      `<col min="5" max="5" width="18" customWidth="1"/>` +
+      `<col min="6" max="6" width="14" customWidth="1"/>` +
+      `<col min="7" max="7" width="32" customWidth="1"/>` +
+      `<col min="8" max="8" width="18" customWidth="1"/>` +
       `<col min="9" max="9" width="4" customWidth="1"/>` +
-      `<col min="10" max="10" width="24" customWidth="1"/>` +
+      `<col min="10" max="10" width="20" customWidth="1"/>` +
       `<col min="11" max="11" width="4" customWidth="1"/>` +
+      `<col min="12" max="12" width="13" customWidth="1"/>` +
       `</cols>` +
       `<sheetData>${rows.join('')}</sheetData>` +
-      `<mergeCells count="21">` +
-      `<mergeCell ref="A1:H1"/><mergeCell ref="A2:B2"/><mergeCell ref="C2:D2"/>` +
-      `<mergeCell ref="A4:B4"/><mergeCell ref="C4:D4"/><mergeCell ref="E4:F4"/><mergeCell ref="G4:H4"/>` +
-      `<mergeCell ref="A5:B5"/><mergeCell ref="C5:D5"/>` +
-      `<mergeCell ref="A7:B7"/><mergeCell ref="C7:D7"/><mergeCell ref="E7:F7"/><mergeCell ref="G7:H7"/>` +
-      `<mergeCell ref="A8:B8"/><mergeCell ref="C8:H8"/>` +
-      `<mergeCell ref="J1:K1"/><mergeCell ref="J2:K2"/><mergeCell ref="J4:K4"/><mergeCell ref="J5:K5"/><mergeCell ref="J7:K7"/><mergeCell ref="J8:K8"/>` +
+      `<mergeCells count="18">` +
+      `<mergeCell ref="A1:H1"/>` +
+      `<mergeCell ref="A2:B2"/><mergeCell ref="C2:D2"/>` +
+      `<mergeCell ref="A4:B4"/><mergeCell ref="C4:E4"/><mergeCell ref="F4:G4"/>` +
+      `<mergeCell ref="A5:B5"/><mergeCell ref="C5:E5"/><mergeCell ref="F5:G5"/>` +
+      `<mergeCell ref="A6:B6"/><mergeCell ref="C6:E6"/><mergeCell ref="F6:G6"/>` +
+      `<mergeCell ref="A7:B7"/><mergeCell ref="C7:E7"/><mergeCell ref="F7:G7"/>` +
+      `<mergeCell ref="J2:K2"/><mergeCell ref="J3:K3"/><mergeCell ref="J5:K5"/><mergeCell ref="J6:K6"/>` +
       `</mergeCells>` +
       `<pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/>` +
       `<pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0" paperSize="9"/>` +
@@ -193,10 +218,11 @@
   function stylesXml() {
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-  <fonts count="3">
-    <font><sz val="11"/><name val="Calibri"/><family val="2"/></font>
-    <font><b/><sz val="12"/><name val="Calibri"/><family val="2"/></font>
-    <font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Calibri"/><family val="2"/></font>
+  <fonts count="4">
+    <font><sz val="11"/><name val="Aptos Narrow"/><family val="2"/></font>
+    <font><b/><sz val="14"/><name val="Aptos Narrow"/><family val="2"/></font>
+    <font><b/><sz val="11"/><name val="Aptos Narrow"/><family val="2"/></font>
+    <font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Aptos Narrow"/><family val="2"/></font>
   </fonts>
   <fills count="4">
     <fill><patternFill patternType="none"/></fill>
@@ -212,9 +238,9 @@
   <cellXfs count="10">
     <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
     <xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="center"/></xf>
-    <xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="center"/></xf>
-    <xf numFmtId="0" fontId="2" fillId="3" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="center"/></xf>
-    <xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyAlignment="1"><alignment wrapText="1" vertical="bottom"/></xf>
+    <xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="center"/></xf>
+    <xf numFmtId="0" fontId="3" fillId="3" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="center"/></xf>
+    <xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyAlignment="1"><alignment wrapText="1" vertical="bottom"/></xf>
     <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="center"/></xf>
     <xf numFmtId="1" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>
     <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
@@ -334,10 +360,7 @@
       { name: 'xl/styles.xml', data: stylesXml() }
     ];
     MONTHS.forEach(([month], index) => {
-      files.push({
-        name: `xl/worksheets/sheet${index + 1}.xml`,
-        data: sheetXml(vehicle, rides, year, month)
-      });
+      files.push({ name: `xl/worksheets/sheet${index + 1}.xml`, data: sheetXml(vehicle, rides, year, month) });
     });
     return createZip(files);
   }
