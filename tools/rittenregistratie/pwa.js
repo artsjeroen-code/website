@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const ASSET_VERSION = 'v15';
+  const ASSET_VERSION = 'v16';
   const versioned = (path) => `${path}?${ASSET_VERSION}`;
 
   function simplifyPageHeader() {
@@ -169,7 +169,7 @@
       </div>
       <div id="quickMessage" class="form-message" role="status" aria-live="polite"></div>
       <div class="quick-ride-list" id="quickRideList"></div>
-      <p class="empty-state" id="quickRideEmpty">Nog geen snelle registraties.</p>
+      <p class="empty-state" id="quickRideEmpty">Nog geen concept ritten opgeslagen</p>
     `;
     dashboard.insertBefore(panel, vehiclePanel);
   }
