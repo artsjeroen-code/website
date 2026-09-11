@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const ASSET_VERSION = 'v16';
+  const ASSET_VERSION = 'v17';
   const versioned = (path) => `${path}?${ASSET_VERSION}`;
 
   function simplifyPageHeader() {
@@ -21,8 +21,19 @@
     }
 
     const nav = document.querySelector('.app-menu nav');
+    const vehicles = nav?.querySelector('[data-view="vehicles"]');
+    const addVehicle = nav?.querySelector('[data-view="vehicle"]');
     const overview = nav?.querySelector('[data-view="overview"]');
     const corrections = nav?.querySelector('[data-view="corrections"]');
+
+    if (nav && vehicles && addVehicle && !nav.querySelector('.vehicle-menu-group')) {
+      const group = document.createElement('div');
+      group.className = 'menu-group vehicle-menu-group';
+      nav.insertBefore(group, vehicles);
+      addVehicle.classList.add('menu-subitem');
+      group.append(vehicles, addVehicle);
+    }
+
     if (nav && overview && corrections) nav.insertBefore(overview, corrections);
   }
 
