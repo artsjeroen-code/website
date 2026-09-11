@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS quick_rides (
     end_accuracy REAL,
     end_address TEXT NOT NULL DEFAULT '',
     end_odometer INTEGER,
+    notes TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL,
     archived_at TEXT
 );
@@ -37,6 +38,8 @@ def ensure_quick_columns(db):
         db.execute("ALTER TABLE quick_rides ADD COLUMN start_odometer INTEGER")
     if "end_odometer" not in columns:
         db.execute("ALTER TABLE quick_rides ADD COLUMN end_odometer INTEGER")
+    if "notes" not in columns:
+        db.execute("ALTER TABLE quick_rides ADD COLUMN notes TEXT NOT NULL DEFAULT ''")
     db.commit()
 
 
@@ -70,6 +73,13 @@ def validate_optional_odometer(value):
     return number
 
 
+def validate_notes(value):
+    notes = str(value or "").strip()
+    if len(notes) > 500:
+        raise ValueError("Omschrijving is te lang")
+    return notes
+
+
 def quick_to_dict(row):
     return {
         "id": row["id"],
@@ -81,6 +91,7 @@ def quick_to_dict(row):
         "endCoords": None if row["end_lat"] is None else {"lat": row["end_lat"], "lon": row["end_lon"], "accuracy": row["end_accuracy"]},
         "endAddress": row["end_address"],
         "endOdometer": row["end_odometer"],
+        "notes": row["notes"],
         "complete": row["end_captured_at"] is not None,
     }
 
@@ -204,6 +215,7 @@ class Handler(base.Handler):
             if path == "/api/quick-rides/start":
                 payload = self.read_json()
                 captured_at, lat, lon, accuracy, address, odometer = capture_values(payload)
+                notes = validate_notes(payload.get("notes"))
                 created_at = datetime.now(timezone.utc).isoformat()
                 with db_connect() as db:
                     open_row = db.execute(
@@ -214,10 +226,11 @@ class Handler(base.Handler):
                     cursor = db.execute(
                         """
                         INSERT INTO quick_rides (
-                            start_captured_at, start_lat, start_lon, start_accuracy, start_address, start_odometer, created_at
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                            start_captured_at, start_lat, start_lon, start_accuracy, start_address,
+                            start_odometer, notes, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                         """,
-                        (captured_at, lat, lon, accuracy, address, odometer, created_at),
+                        (captured_at, lat, lon, accuracy, address, odometer, notes, created_at),
                     )
                     row = db.execute("SELECT * FROM quick_rides WHERE id=?", (cursor.lastrowid,)).fetchone()
                     db.commit()
