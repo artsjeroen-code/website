@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const ASSET_VERSION = 'v14';
+  const ASSET_VERSION = 'v15';
   const versioned = (path) => `${path}?${ASSET_VERSION}`;
 
   function simplifyPageHeader() {
