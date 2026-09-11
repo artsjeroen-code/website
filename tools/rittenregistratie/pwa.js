@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const ASSET_VERSION = 'v13';
+  const ASSET_VERSION = 'v14';
   const versioned = (path) => `${path}?${ASSET_VERSION}`;
 
   function simplifyPageHeader() {
@@ -11,6 +11,19 @@
     const subtitle = header.querySelector('.subtitle');
     if (eyebrow) eyebrow.remove();
     if (subtitle) subtitle.remove();
+  }
+
+  function customizeShell() {
+    const favicon = document.querySelector('link[rel="icon"]');
+    if (favicon) {
+      favicon.href = '../../icons/rittenregistratie.svg';
+      favicon.type = 'image/svg+xml';
+    }
+
+    const nav = document.querySelector('.app-menu nav');
+    const overview = nav?.querySelector('[data-view="overview"]');
+    const corrections = nav?.querySelector('[data-view="corrections"]');
+    if (nav && overview && corrections) nav.insertBefore(overview, corrections);
   }
 
   function arrangeRideForm() {
@@ -162,6 +175,7 @@
   }
 
   simplifyPageHeader();
+  customizeShell();
   arrangeRideForm();
   addQuickCapturePanel();
   loadMenuLayoutFix();
