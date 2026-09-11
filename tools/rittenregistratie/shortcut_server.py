@@ -47,7 +47,7 @@ def reverse_geocode(lat, lon):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RittenregistratieShortcut/1.2"
+    server_version = "RittenregistratieShortcut/1.3"
 
     def send_json(self, status, payload):
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -107,6 +107,7 @@ class Handler(BaseHTTPRequestHandler):
             if odometer is None:
                 raise ValueError("Kilometerstand ontbreekt")
 
+            notes = quick.validate_notes(payload.get("notes")) if action == "start" else ""
             captured_at = datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S")
             address = str(payload.get("address") or "").strip() or reverse_geocode(lat, lon)
             if not address:
@@ -130,10 +131,10 @@ class Handler(BaseHTTPRequestHandler):
                         """
                         INSERT INTO quick_rides (
                             start_captured_at, start_lat, start_lon, start_accuracy, start_address,
-                            start_odometer, created_at
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                            start_odometer, notes, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                         """,
-                        (captured_at, lat, lon, accuracy, address, odometer, created_at),
+                        (captured_at, lat, lon, accuracy, address, odometer, notes, created_at),
                     )
                     row = db.execute("SELECT * FROM quick_rides WHERE id=?", (cursor.lastrowid,)).fetchone()
                     db.commit()
