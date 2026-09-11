@@ -41,6 +41,30 @@
     correctionMessage.classList.toggle('success', success);
   }
 
+  function showCorrectionToast(ride) {
+    document.getElementById('correctionSuccessToast')?.remove();
+    const toast = document.createElement('div');
+    toast.id = 'correctionSuccessToast';
+    toast.setAttribute('role', 'status');
+    toast.textContent = `Rit gecorrigeerd${ride.vehiclePlate ? ` · ${ride.vehiclePlate}` : ''}`;
+    Object.assign(toast.style, {
+      position: 'fixed',
+      left: '50%',
+      top: '18px',
+      transform: 'translateX(-50%)',
+      zIndex: '3000',
+      padding: '10px 14px',
+      borderRadius: '10px',
+      background: 'var(--panel)',
+      color: 'var(--text)',
+      border: '1px solid var(--green, #34a853)',
+      boxShadow: '0 8px 24px rgba(0,0,0,.25)',
+      fontWeight: '700'
+    });
+    document.body.appendChild(toast);
+    window.setTimeout(() => toast.remove(), 3200);
+  }
+
   function editableTime(value) {
     return value ? String(value).slice(0, 5) : '';
   }
@@ -143,6 +167,56 @@
     }
   }
 
+  function overviewRowMatches(row, ride) {
+    const cells = row.cells;
+    if (!cells || cells.length < 8) return false;
+    const plate = ride.vehiclePlate || '—';
+    const start = String(ride.startOdometer);
+    const end = String(ride.endOdometer);
+    return cells[1].textContent.trim() === plate
+      && cells[5].textContent.trim().replaceAll('.', '') === start
+      && cells[6].textContent.trim().replaceAll('.', '') === end
+      && cells[3].textContent.includes(ride.departureAddress)
+      && cells[4].textContent.includes(ride.arrivalAddress);
+  }
+
+  function focusCorrectedRide(ride, attempts = 0) {
+    const row = [...document.querySelectorAll('#ridesBody tr')].find((candidate) => overviewRowMatches(candidate, ride));
+    if (!row) {
+      if (attempts < 20) window.setTimeout(() => focusCorrectedRide(ride, attempts + 1), 100);
+      return;
+    }
+
+    row.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    const previousBackground = row.style.backgroundColor;
+    const previousTransition = row.style.transition;
+    row.style.transition = 'background-color .45s ease';
+    row.style.backgroundColor = 'rgba(251, 188, 4, .30)';
+    window.setTimeout(() => {
+      row.style.backgroundColor = previousBackground;
+      window.setTimeout(() => { row.style.transition = previousTransition; }, 500);
+    }, 1800);
+  }
+
+  function showCorrectedRideInOverview(ride) {
+    const yearFilter = document.getElementById('yearFilter');
+    const monthFilter = document.getElementById('monthFilter');
+    const overviewButton = document.querySelector('.menu-item[data-view="overview"]');
+    const rideYear = String(ride.date || '').slice(0, 4);
+
+    if (yearFilter && rideYear) {
+      yearFilter.value = rideYear;
+      yearFilter.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    if (monthFilter) {
+      monthFilter.value = 'all';
+      monthFilter.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    overviewButton?.click();
+    showCorrectionToast(ride);
+    window.setTimeout(() => focusCorrectedRide(ride), 120);
+  }
+
   async function submitCorrection(event) {
     event.preventDefault();
     const id = rideSelect.value;
@@ -162,7 +236,7 @@
     const oldText = saveCorrection.textContent;
     saveCorrection.textContent = 'Correctie opslaan…';
     try {
-      await api(`/rides/${id}`, {
+      const payload = await api(`/rides/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({
           date: correctionDate.value,
@@ -178,10 +252,12 @@
         })
       });
 
+      const correctedRide = payload.ride;
       await load(id);
       correctionReason.value = '';
       setMessage('Rit is gecorrigeerd en de wijziging is in de auditlog vastgelegd.', true);
       document.dispatchEvent(new CustomEvent('rittenregistratie:data-changed'));
+      window.setTimeout(() => showCorrectedRideInOverview(correctedRide), 120);
     } catch (error) {
       setMessage(`Correctie niet opgeslagen: ${error.message}`);
     } finally {
