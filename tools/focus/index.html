@@ -56,9 +56,10 @@
           <p class="eyebrow" id="modeLabel">Focus</p>
           <p class="subtle" id="modeDescription">Tijd voor ongestoord werken</p>
         </div>
-        <button class="icon-button" id="soundToggle" type="button" aria-pressed="true" aria-label="Geluid uitschakelen" title="Geluid">
-          <span aria-hidden="true">🔊</span>
-        </button>
+        <label class="sound-toggle" title="Geluid">
+          <input id="soundEnabled" type="checkbox" checked>
+          <span>Geluid</span>
+        </label>
       </header>
 
       <div class="timer-ring" id="timerRing" style="--progress: 0deg">
