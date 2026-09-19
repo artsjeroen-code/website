@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Focus Timer</title>
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('startpagina-theme') || 'dark';
+      document.documentElement.dataset.theme = savedTheme;
+    })();
+  </script>
+  <link rel="stylesheet" href="../../google_palette.css">
+  <link rel="stylesheet" href="../../utility-rail.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <aside class="utility-rail" aria-label="Snelkoppelingen">
+    <button class="rail-button rail-theme" id="railTheme" type="button" aria-label="Wissel licht/donker thema" title="Thema">
+      <span class="rail-icon icon-theme" aria-hidden="true"></span>
+    </button>
+
+    <a class="rail-button" href="../../" aria-label="Terug naar startpagina" title="Startpagina">
+      <span class="rail-icon icon-home" aria-hidden="true"></span>
+    </a>
+    <a class="rail-button" href="../ademhaling/" aria-label="Ademhalingstool" title="Ademhalingstool">
+      <span class="rail-icon icon-lotus" aria-hidden="true"></span>
+    </a>
+    <a class="rail-button" href="../rittenregistratie/" aria-label="Rittenregistratie" title="Rittenregistratie"><span class="rail-icon" aria-hidden="true" style="background-image:url('../../icons/rittenregistratie.svg')"></span></a>
+
+    <div class="rail-separator" aria-hidden="true"></div>
+
+    <a class="rail-button" href="https://chatgpt.com/" target="_blank" rel="noopener" aria-label="ChatGPT" title="ChatGPT"><span class="rail-icon icon-chatgpt" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://web.whatsapp.com/" target="_blank" rel="noopener" aria-label="WhatsApp Web" title="WhatsApp Web"><span class="rail-icon icon-whatsapp" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://mail.google.com/" target="_blank" rel="noopener" aria-label="Gmail" title="Gmail"><span class="rail-icon icon-mail" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://calendar.google.com/" target="_blank" rel="noopener" aria-label="Google Calendar" title="Google Calendar"><span class="rail-icon icon-calendar" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://drive.google.com/" target="_blank" rel="noopener" aria-label="Google Drive" title="Google Drive"><span class="rail-icon icon-drive" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://photos.google.com/" target="_blank" rel="noopener" aria-label="Google Foto's" title="Google Foto's"><span class="rail-icon icon-photos" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://www.google.com/maps" target="_blank" rel="noopener" aria-label="Google Maps" title="Google Maps"><span class="rail-icon icon-map" aria-hidden="true"></span></a>
+
+    <div class="rail-separator" aria-hidden="true"></div>
+
+    <a class="rail-button" href="https://www.rabobank.nl/" target="_blank" rel="noopener" aria-label="Rabobank" title="Rabobank"><span class="rail-icon icon-bank" aria-hidden="true"></span></a>
+    <a class="rail-button" href="https://www.marktplaats.nl/" target="_blank" rel="noopener" aria-label="Marktplaats" title="Marktplaats"><span class="rail-icon icon-market" aria-hidden="true"></span></a>
+  </aside>
+
+  <a class="floating-edit" href="https://github.com/artsjeroen-code/website/blob/staging/tools/focus/index.html" target="_blank" rel="noopener" aria-label="Focus Timer bewerken op GitHub" title="GitHub bewerken">
+    <span class="rail-icon icon-edit" aria-hidden="true"></span>
+  </a>
+
+  <main class="focus-shell">
+    <section class="timer-card">
+      <header class="timer-header">
+        <div>
+          <p class="eyebrow" id="modeLabel">Focus</p>
+          <p class="subtle" id="modeDescription">Tijd voor ongestoord werken</p>
+        </div>
+        <button class="icon-button" id="soundToggle" type="button" aria-pressed="true" aria-label="Geluid uitschakelen" title="Geluid">
+          <span aria-hidden="true">🔊</span>
+        </button>
+      </header>
+
+      <div class="timer-ring" id="timerRing" style="--progress: 0deg">
+        <div class="timer-ring-inner">
+          <strong class="timer-time" id="timerDisplay">25:00</strong>
+          <span class="timer-state" id="timerState">Klaar om te starten</span>
+        </div>
+      </div>
+
+      <div class="mode-switcher" role="group" aria-label="Timer kiezen">
+        <button class="mode-button mode-focus active" type="button" data-mode="focus"><b>Focus</b><span>25 min</span></button>
+        <button class="mode-button mode-short" type="button" data-mode="short"><b>Korte pauze</b><span>5 min</span></button>
+        <button class="mode-button mode-long" type="button" data-mode="long"><b>Lange pauze</b><span>15 min</span></button>
+      </div>
+
+      <button class="primary-button" id="startPauseButton" type="button">Start</button>
+
+      <section class="extend-panel" aria-label="Extra tijd">
+        <span>Extra tijd toevoegen</span>
+        <div class="extend-actions">
+          <button type="button" data-add-minutes="5">+ 5 min</button>
+          <button type="button" data-add-minutes="10">+ 10 min</button>
+        </div>
+      </section>
+
+      <button class="task-done-button" id="taskDoneButton" type="button" disabled>✓ Taak af</button>
+
+      <div class="secondary-actions">
+        <button id="resetButton" type="button">↻ Reset</button>
+        <button id="skipButton" type="button">▷ Overslaan</button>
+      </div>
+
+      <footer class="focus-progress">
+        <div class="progress-dots" id="progressDots" aria-label="Focusblokken">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div><strong id="blockCount">0 / 4 focusblokken</strong><small>Daarna een lange pauze</small></div>
+      </footer>
+    </section>
+
+    <section class="todo-card">
+      <header class="todo-header">
+        <div>
+          <h1>Vandaag</h1>
+          <p>Kies een taak en start je focusblok.</p>
+        </div>
+      </header>
+
+      <form class="task-form" id="taskForm">
+        <input id="taskInput" type="text" maxlength="120" autocomplete="off" placeholder="Taak toevoegen..." aria-label="Nieuwe taak">
+        <button type="submit" aria-label="Taak toevoegen">+</button>
+      </form>
+
+      <ul class="task-list" id="taskList" aria-live="polite"></ul>
+      <p class="empty-state" id="emptyState">Nog geen taken voor vandaag.</p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
