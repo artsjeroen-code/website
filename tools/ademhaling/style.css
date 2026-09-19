@@ -45,45 +45,6 @@ body {
 }
 button, input, select { font: inherit; }
 
-/* De zijbalk komt uit ../utility-rail.css. Op desktop corrigeren we hier
-   uitsluitend de visuele schaal van /ademhaling/ naar de feitelijke /main-rail. */
-@media (min-width: 761px) {
-  body > .utility-rail {
-    top: 50px !important;
-    bottom: 30px !important;
-    left: 12px !important;
-    width: 38px !important;
-    min-width: 38px !important;
-    max-width: 38px !important;
-    padding: 6px 3px !important;
-    gap: 4px !important;
-  }
-
-  body > .utility-rail > .rail-button {
-    width: 30px !important;
-    min-width: 30px !important;
-    max-width: 30px !important;
-    height: 34px !important;
-    min-height: 34px !important;
-    max-height: 34px !important;
-    flex: 0 0 34px !important;
-  }
-
-  body > .utility-rail .rail-icon {
-    width: 16px !important;
-    min-width: 16px !important;
-    max-width: 16px !important;
-    height: 16px !important;
-    min-height: 16px !important;
-    max-height: 16px !important;
-    flex-basis: 16px !important;
-  }
-
-  body > .utility-rail > .rail-separator {
-    width: 22px !important;
-  }
-}
-
 .floating-edit {
   position: fixed;
   right: 16px;
