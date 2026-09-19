@@ -215,20 +215,26 @@ input:focus-visible {
 }
 
 .sound-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 20px !important;
+  height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
   display: block;
+  flex: 0 0 20px;
   fill: currentColor;
+  overflow: hidden;
 }
 
-.sound-icon-off { display: none !important; }
-
-.sound-toggle input:not(:checked) + .sound-icon .sound-icon-on {
+.sound-path-off {
   display: none;
 }
 
-.sound-toggle input:not(:checked) + .sound-icon .sound-icon-off {
-  display: block !important;
+.sound-toggle input:not(:checked) + .sound-icon .sound-path-on {
+  display: none;
+}
+
+.sound-toggle input:not(:checked) + .sound-icon .sound-path-off {
+  display: block;
 }
 
 .timer-ring {
@@ -595,8 +601,10 @@ input:focus-visible {
 
   .sound-icon,
   .sound-icon svg {
-    width: 18px;
-    height: 18px;
+    width: 18px !important;
+    height: 18px !important;
+    max-width: 18px !important;
+    max-height: 18px !important;
   }
 
   .timer-heading { padding-right: 40px; }
