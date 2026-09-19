@@ -53,17 +53,22 @@
   </a>
 
   <main class="focus-shell">
-    <section class="timer-card">
-      <header class="timer-header">
-        <div>
-          <p class="eyebrow" id="modeLabel">Focus</p>
-          <p class="subtle" id="modeDescription">Tijd voor ongestoord werken</p>
-        </div>
+    <section class="focus-card" aria-label="Focus Timer">
+      <header class="tool-header">
         <label class="sound-toggle" title="Geluid">
           <input id="soundEnabled" type="checkbox" checked>
           <span>Geluid</span>
         </label>
       </header>
+
+      <div class="focus-content">
+        <section class="timer-card">
+          <header class="timer-heading">
+            <div>
+              <p class="eyebrow" id="modeLabel">Focus</p>
+              <p class="subtle" id="modeDescription">Tijd voor ongestoord werken</p>
+            </div>
+          </header>
 
       <div class="timer-ring" id="timerRing" style="--progress: 0deg">
         <div class="timer-ring-inner">
@@ -101,9 +106,9 @@
         </div>
         <div><strong id="blockCount">0 / 4 focusblokken</strong><small>Daarna een lange pauze</small></div>
       </footer>
-    </section>
+        </section>
 
-    <section class="todo-card">
+        <section class="todo-card">
       <header class="todo-header">
         <div>
           <h1>Vandaag</h1>
@@ -117,7 +122,9 @@
       </form>
 
       <ul class="task-list" id="taskList" aria-live="polite"></ul>
-      <p class="empty-state" id="emptyState">Nog geen taken voor vandaag.</p>
+          <p class="empty-state" id="emptyState">Nog geen taken voor vandaag.</p>
+        </section>
+      </div>
     </section>
   </main>
 
