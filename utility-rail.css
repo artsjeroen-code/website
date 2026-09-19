@@ -80,7 +80,7 @@
   scrollbar-width: none;
   border: 1px solid var(--shared-rail-ring);
   border-radius: 12px;
-  background: color-mix(in srgb, var(--shared-rail-panel) 90%, var(--shared-rail-bg));
+  background: color-mix(in srgb, var(--shared-rail-panel) 55%, transparent);
   box-shadow: 0 5px 16px rgba(0, 0, 0, .18);
   backdrop-filter: blur(10px);
   transform: none !important;
@@ -223,7 +223,7 @@
 .icon-market { background-image: url("https://www.google.com/s2/favicons?domain=marktplaats.nl&sz=64"); }
 
 :root[data-theme="light"] .utility-rail {
-  background: rgba(255, 255, 255, .94);
+  background: rgba(255, 255, 255, .55);
   box-shadow: 0 5px 16px rgba(31, 41, 51, .08);
 }
 
