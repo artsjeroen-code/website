@@ -31,7 +31,7 @@
   const taskList = $('taskList');
   const emptyState = $('emptyState');
   const taskInput = $('taskInput');
-  const soundToggle = $('soundToggle');
+  const soundEnabledInput = $('soundEnabled');
 
   function loadTasks() {
     try {
@@ -77,9 +77,8 @@
   }
 
   function renderSound() {
-    soundToggle.setAttribute('aria-pressed', String(soundEnabled));
-    soundToggle.setAttribute('aria-label', soundEnabled ? 'Geluid uitschakelen' : 'Geluid inschakelen');
-    soundToggle.querySelector('span').textContent = soundEnabled ? '🔊' : '🔇';
+    soundEnabledInput.checked = soundEnabled;
+    soundEnabledInput.setAttribute('aria-label', soundEnabled ? 'Geluid uitschakelen' : 'Geluid inschakelen');
   }
 
   function renderTasks() {
@@ -294,8 +293,8 @@
     localStorage.setItem(THEME_KEY, next);
   });
 
-  soundToggle.addEventListener('click', () => {
-    soundEnabled = !soundEnabled;
+  soundEnabledInput.addEventListener('change', () => {
+    soundEnabled = soundEnabledInput.checked;
     localStorage.setItem(SOUND_KEY, String(soundEnabled));
     renderSound();
     if (soundEnabled) playTone(660, .08);
