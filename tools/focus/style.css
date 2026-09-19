@@ -509,7 +509,11 @@ input:focus-visible {
 
 @media (max-width: 760px) {
   html,
-  body { min-height: 100%; }
+  body {
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+  }
 
   body {
     padding: 0 0 52px;
@@ -519,19 +523,21 @@ input:focus-visible {
 
   .focus-shell {
     width: calc(100% - 12px);
-    height: auto;
-    min-height: calc(100dvh - 52px);
+    height: calc(100dvh - 52px);
+    min-height: 0;
     margin: 0 auto;
-    padding: 4px 0 12px;
+    padding: 4px 0;
     display: block;
   }
 
   .focus-card {
-    min-height: calc(100dvh - 60px);
-    max-height: none;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
     padding: 7px;
     border-radius: 12px;
-    overflow: visible;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .tool-header {
