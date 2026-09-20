@@ -770,6 +770,32 @@ input:focus-visible {
   font-size: 10px;
 }
 
+
+/* Desktop/browserversie: rustiger timer en alleen een verticale inhoudsscheiding. */
+@media (min-width: 761px) {
+  .tool-header {
+    border-bottom: 0;
+  }
+
+  .timer-time {
+    font-size: clamp(2rem, 4vw, 2.65rem);
+    font-weight: 500;
+    letter-spacing: -.02em;
+  }
+
+  .todo-card {
+    border-left-color: color-mix(in srgb, var(--border) 72%, transparent);
+  }
+
+  .extend-panel {
+    border-top: 0;
+  }
+
+  .task-item {
+    border-bottom: 0;
+  }
+}
+
 @media (max-width: 760px) {
   html,
   body {
