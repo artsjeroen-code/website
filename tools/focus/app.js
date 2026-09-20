@@ -60,8 +60,11 @@
   function renderTimer() {
     timerDisplay.textContent = formatTime(remainingSeconds);
     const elapsed = Math.max(0, totalSeconds - remainingSeconds);
-    const progress = totalSeconds > 0 ? (elapsed / totalSeconds) * 360 : 0;
-    timerRing.style.setProperty('--progress', `${Math.min(360, progress)}deg`);
+    const progressRatio = totalSeconds > 0 ? elapsed / totalSeconds : 0;
+    const progressDegrees = Math.min(360, progressRatio * 360);
+    const progressPercent = Math.min(100, progressRatio * 100);
+    timerRing.style.setProperty('--progress', progressDegrees + 'deg');
+    timerRing.style.setProperty('--progress-percent', progressPercent + '%');
     document.title = running ? `${formatTime(remainingSeconds)} · Focus Timer` : 'Focus Timer';
   }
 
