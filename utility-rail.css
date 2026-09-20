@@ -223,6 +223,25 @@
 .icon-bank { background-image: url("https://www.google.com/s2/favicons?domain=rabobank.nl&sz=64"); }
 .icon-market { background-image: url("https://www.google.com/s2/favicons?domain=marktplaats.nl&sz=64"); }
 
+/* Desktop: iets grotere iconen voor een gelijkmatiger optische vulling van de rail. */
+@media (min-width: 761px) {
+  .rail-icon {
+    width: 20px !important;
+    min-width: 20px !important;
+    max-width: 20px !important;
+    height: 20px !important;
+    min-height: 20px !important;
+    max-height: 20px !important;
+    flex-basis: 20px !important;
+  }
+
+  /* Favicons bevatten relatief veel interne witruimte; compenseer dat alleen visueel. */
+  .icon-bank,
+  .icon-market {
+    background-size: 112% 112%;
+  }
+}
+
 :root[data-theme="light"] .utility-rail {
   background: rgba(255, 255, 255, .55);
   box-shadow: 0 5px 16px rgba(31, 41, 51, .08);
