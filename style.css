@@ -8,6 +8,14 @@
   --rail-bottom: 50px;
 }
 
+/* De startpagina gebruikt op desktop body-zoom 90%. Hef die alleen voor de
+   gedeelde utility-rail op, zodat deze exact dezelfde maat houdt als in tools. */
+@media (min-width: 761px) {
+  body .utility-rail {
+    zoom: 1.1111111111 !important;
+  }
+}
+
 /* De bestaande site blijft intact. Alleen de zoekbalk en utility-rail worden
    bovenop de basisstijl geplaatst. */
 .topbar {
