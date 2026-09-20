@@ -692,6 +692,11 @@ input:focus-visible {
   box-shadow: 0 10px 28px rgba(0, 0, 0, .3);
 }
 
+.task-menu.task-menu-up {
+  top: auto;
+  bottom: calc(100% + 5px);
+}
+
 .task-menu > button {
   width: 100%;
   min-height: 30px;
@@ -793,6 +798,27 @@ input:focus-visible {
 
   .task-item {
     border-bottom: 0;
+  }
+}
+
+
+@media (min-width: 761px) and (any-pointer: coarse) {
+  .task-main {
+    grid-template-columns: 34px 28px minmax(0, 1fr) auto;
+  }
+
+  .task-drag {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  .task-drag::before {
+    top: 11px;
+    left: 10px;
   }
 }
 
