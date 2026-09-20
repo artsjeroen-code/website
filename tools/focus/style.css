@@ -240,8 +240,15 @@ input:focus-visible {
 
 .timer-ring {
   --progress: 0deg;
-  width: min(205px, 24vh);
-  aspect-ratio: 1;
+  --timer-size: min(205px, 24vh);
+  width: var(--timer-size);
+  height: var(--timer-size);
+  min-width: var(--timer-size);
+  min-height: var(--timer-size);
+  max-width: var(--timer-size);
+  max-height: var(--timer-size);
+  aspect-ratio: 1 / 1;
+  flex: 0 0 auto;
   margin: 8px auto 12px;
   border-radius: 50%;
   padding: 9px;
@@ -259,9 +266,11 @@ input:focus-visible {
 }
 
 .timer-time {
-  font-size: clamp(2.6rem, 6vw, 4rem);
+  font-size: clamp(2.35rem, 5vw, 3.35rem);
+  font-weight: 600;
   line-height: 1;
-  letter-spacing: -.05em;
+  letter-spacing: -.03em;
+  color: color-mix(in srgb, var(--text) 88%, var(--muted));
   font-variant-numeric: tabular-nums;
 }
 
@@ -582,11 +591,11 @@ input:focus-visible {
   }
 
   .timer-ring {
-    width: min(190px, 46vw);
+    --timer-size: min(190px, 46vw);
     margin: 4px auto 10px;
   }
 
-  .timer-time { font-size: 3rem; }
+  .timer-time { font-size: 2.55rem; }
 
   .mode-button,
   .extend-actions button,
@@ -614,6 +623,6 @@ input:focus-visible {
   }
 
   .timer-heading { padding-right: 40px; }
-  .timer-ring { width: min(165px, 42vw); }
+  .timer-ring { --timer-size: min(165px, 42vw); }
   .timer-card { padding-top: 5px; }
 }
