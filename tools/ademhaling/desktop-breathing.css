@@ -71,6 +71,7 @@
     max-height: none !important;
     margin: 0 !important;
     padding: 36px 24px !important;
+    border-left: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
     display: grid !important;
     place-items: center !important;
   }
