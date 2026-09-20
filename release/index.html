@@ -32,14 +32,17 @@
     .release-section { padding: 9px 10px; border: 1px solid var(--ring); border-radius: 11px; background: color-mix(in srgb, var(--panel) 88%, var(--bg)); }
     .release-section h3 { margin: 0 0 6px; font-size: 12px; }
     .release-section.start h3 { color: var(--green); }
+    .release-section.focus h3 { color: var(--orange); }
     .release-section.breath h3 { color: var(--purple); }
     .release-section.rides h3 { color: var(--blue); }
+    .release-sections-four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .release-section ul { margin: 0; padding-left: 18px; }
     .release-section li + li { margin-top: 4px; }
     .release-none { margin: 0; color: var(--muted); font-style: italic; }
     .release-footer { margin-top: 12px; color: var(--muted); text-align: center; }
     :root[data-theme="light"] .release-header, :root[data-theme="light"] .release-card, :root[data-theme="light"] .release-button { box-shadow: 0 4px 14px rgba(31,41,51,.08); }
-    @media (max-width: 900px) { .release-sections { grid-template-columns: 1fr; } }
+    @media (max-width: 1100px) { .release-sections-four { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 900px) { .release-sections, .release-sections-four { grid-template-columns: 1fr; } }
     @media (max-width: 760px) {
       .release-page { width: min(100% - 16px, 1180px); padding-top: 8px; }
       .release-topbar { position: sticky; top: 0; z-index: 5; padding: 6px 0; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(8px); }
@@ -55,10 +58,20 @@
 
     <header class="release-header">
       <h1>Releasenotes</h1>
-      <p>Wijzigingen worden per versie afzonderlijk bijgehouden voor Startpagina, Ademhalingstool en Rittenregistratie.</p>
+      <p>Wijzigingen worden per versie afzonderlijk bijgehouden voor Startpagina, Focus Timer, Ademhalingstool en Rittenregistratie.</p>
     </header>
 
     <div class="release-list">
+      <article class="release-card">
+        <div class="release-card-head"><h2>Versie 2026.09.20</h2><span class="release-date">20 september 2026</span></div>
+        <div class="release-sections release-sections-four">
+          <section class="release-section start"><h3>Startpagina</h3><p class="release-none">Geen functionele wijzigingen.</p></section>
+          <section class="release-section focus"><h3>Focus Timer</h3><ul><li>De timertekst in de browserversie is kleiner en minder vet gemaakt.</li><li>Horizontale scheidingslijnen in de desktop-card zijn verwijderd; de verticale scheiding tussen timer en takenlijst is subtieler gemaakt.</li><li>Het optiesmenu bij taken opent automatisch omhoog wanneer het onderaan de takenlijst anders zou worden afgeknipt.</li><li>Drag &amp; drop is voor iPad/touchbediening robuuster gemaakt met documentbrede pointer-events, soepelere autoscroll en een groter sleephandvat op touch-tablets.</li></ul></section>
+          <section class="release-section breath"><h3>Ademhalingstool</h3><ul><li>In de browserversie is een subtiele verticale scheidingslijn toegevoegd tussen de instellingen en de ademhalingsanimatie.</li></ul></section>
+          <section class="release-section rides"><h3>Rittenregistratie</h3><p class="release-none">Geen functionele wijzigingen.</p></section>
+        </div>
+      </article>
+
       <article class="release-card">
         <div class="release-card-head"><h2>Versie 2026.09.09</h2><span class="release-date">9 september 2026</span></div>
         <div class="release-sections">
