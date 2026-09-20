@@ -152,11 +152,7 @@ input:focus-visible {
 
 .timer-heading,
 .todo-header {
-  min-height: 42px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  display: none;
 }
 
 .eyebrow,
@@ -782,6 +778,39 @@ input:focus-visible {
     border-bottom: 0;
   }
 
+  .timer-card {
+    padding: 24px 0 18px;
+  }
+
+  .timer-ring {
+    margin: 0 auto 20px;
+  }
+
+  .focus-progress {
+    margin-bottom: 18px;
+  }
+
+  .mode-switcher {
+    gap: 8px;
+  }
+
+  .primary-button {
+    margin-top: 14px;
+  }
+
+  .extend-panel {
+    margin-top: 14px;
+  }
+
+  .extend-panel > span {
+    margin-bottom: 8px;
+  }
+
+  .task-done-button,
+  .secondary-actions {
+    margin-top: 10px;
+  }
+
   .timer-time {
     font-size: clamp(2rem, 4vw, 2.65rem);
     font-weight: 500;
@@ -789,7 +818,22 @@ input:focus-visible {
   }
 
   .todo-card {
+    padding: 24px 0 18px 24px;
     border-left-color: color-mix(in srgb, var(--border) 72%, transparent);
+  }
+
+  .task-form {
+    margin-top: 0;
+    gap: 8px;
+  }
+
+  .task-list {
+    margin-top: 16px;
+  }
+
+  .task-item,
+  .task-main {
+    min-height: 44px;
   }
 
   .extend-panel {
