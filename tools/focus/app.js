@@ -36,7 +36,11 @@
   function loadTasks() {
     try {
       const parsed = JSON.parse(localStorage.getItem(TASKS_KEY) || '[]');
-      return Array.isArray(parsed) ? parsed : [];
+      if (!Array.isArray(parsed)) return [];
+      return parsed.map(task => ({
+        ...task,
+        note: typeof task.note === 'string' ? task.note : ''
+      }));
     } catch {
       return [];
     }
@@ -81,6 +85,46 @@
     soundEnabledInput.setAttribute('aria-label', soundEnabled ? 'Geluid uitschakelen' : 'Geluid inschakelen');
   }
 
+  function closeTaskOverlays(exceptItem = null) {
+    document.querySelectorAll('.task-item').forEach(item => {
+      if (item === exceptItem) return;
+      item.querySelector('.task-menu')?.setAttribute('hidden', '');
+      item.querySelector('.task-info-wrap')?.classList.remove('show-note');
+    });
+  }
+
+  function setTaskCompletion(task, completed) {
+    task.completed = completed;
+    task.active = false;
+
+    if (completed && activeTaskId === task.id) {
+      activeTaskId = tasks.find(item => !item.completed && item.id !== task.id)?.id || null;
+    } else if (!completed) {
+      activeTaskId = task.id;
+    }
+
+    tasks.forEach(item => { item.active = item.id === activeTaskId; });
+    saveTasks();
+    renderTasks();
+  }
+
+  function moveTask(taskId, direction) {
+    const index = tasks.findIndex(item => item.id === taskId);
+    if (index < 0) return;
+
+    let target = index;
+    if (direction === 'up') target = Math.max(0, index - 1);
+    if (direction === 'down') target = Math.min(tasks.length - 1, index + 1);
+    if (direction === 'top') target = 0;
+    if (direction === 'bottom') target = tasks.length - 1;
+    if (target === index) return;
+
+    const [task] = tasks.splice(index, 1);
+    tasks.splice(target, 0, task);
+    saveTasks();
+    renderTasks();
+  }
+
   function renderTasks() {
     taskList.replaceChildren();
     emptyState.hidden = tasks.length > 0;
@@ -91,17 +135,16 @@
       if (task.completed) li.classList.add('completed');
       if (task.id === activeTaskId && !task.completed) li.classList.add('active');
 
+      const main = document.createElement('div');
+      main.className = 'task-main';
+
       const select = document.createElement('button');
       select.type = 'button';
       select.className = 'task-select';
-      select.setAttribute('aria-label', task.completed ? 'Taak opnieuw openen' : 'Taak selecteren');
+      select.setAttribute('aria-label', task.completed ? 'Afgeronde taak' : 'Taak selecteren');
       select.addEventListener('click', () => {
-        if (task.completed) {
-          task.completed = false;
-          activeTaskId = task.id;
-        } else {
-          activeTaskId = task.id;
-        }
+        if (task.completed) return;
+        activeTaskId = task.id;
         tasks.forEach(item => { item.active = item.id === activeTaskId; });
         saveTasks();
         renderTasks();
@@ -119,19 +162,155 @@
         }
       });
 
-      const remove = document.createElement('button');
-      remove.type = 'button';
-      remove.className = 'task-delete';
-      remove.textContent = '×';
-      remove.setAttribute('aria-label', `Verwijder ${task.text}`);
-      remove.addEventListener('click', () => {
-        tasks = tasks.filter(item => item.id !== task.id);
-        if (activeTaskId === task.id) activeTaskId = null;
+      const actions = document.createElement('div');
+      actions.className = 'task-actions';
+
+      const infoWrap = document.createElement('div');
+      infoWrap.className = 'task-info-wrap';
+
+      const info = document.createElement('button');
+      info.type = 'button';
+      info.className = 'task-info';
+      info.textContent = 'i';
+      info.setAttribute('aria-label', task.note ? `Notitie bij ${task.text}` : `Geen notitie bij ${task.text}`);
+      info.setAttribute('aria-expanded', 'false');
+      if (!task.note) info.classList.add('is-empty');
+
+      if (task.note) {
+        const bubble = document.createElement('div');
+        bubble.className = 'task-note-bubble';
+        bubble.setAttribute('role', 'tooltip');
+        bubble.textContent = task.note;
+        infoWrap.append(info, bubble);
+
+        info.addEventListener('click', event => {
+          event.stopPropagation();
+          const show = !infoWrap.classList.contains('show-note');
+          closeTaskOverlays(show ? li : null);
+          infoWrap.classList.toggle('show-note', show);
+          info.setAttribute('aria-expanded', String(show));
+        });
+      } else {
+        infoWrap.append(info);
+      }
+
+      const menuButton = document.createElement('button');
+      menuButton.type = 'button';
+      menuButton.className = 'task-more';
+      menuButton.textContent = '⋯';
+      menuButton.setAttribute('aria-label', `Opties voor ${task.text}`);
+      menuButton.setAttribute('aria-expanded', 'false');
+
+      const menu = document.createElement('div');
+      menu.className = 'task-menu';
+      menu.setAttribute('hidden', '');
+
+      const makeMenuButton = (label, action, className = '') => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = label;
+        if (className) button.className = className;
+        button.addEventListener('click', event => {
+          event.stopPropagation();
+          action();
+        });
+        return button;
+      };
+
+      menu.append(
+        makeMenuButton(task.completed ? 'Opnieuw openen' : 'Taak afronden', () => {
+          setTaskCompletion(task, !task.completed);
+        })
+      );
+
+      const moveLabel = document.createElement('span');
+      moveLabel.className = 'task-menu-label';
+      moveLabel.textContent = 'Verplaatsen';
+      menu.append(moveLabel);
+
+      const moveGrid = document.createElement('div');
+      moveGrid.className = 'task-move-grid';
+      moveGrid.append(
+        makeMenuButton('Omhoog', () => moveTask(task.id, 'up')),
+        makeMenuButton('Omlaag', () => moveTask(task.id, 'down')),
+        makeMenuButton('Bovenaan', () => moveTask(task.id, 'top')),
+        makeMenuButton('Onderaan', () => moveTask(task.id, 'bottom'))
+      );
+      menu.append(moveGrid);
+
+      const noteAction = makeMenuButton(task.note ? 'Notitie bewerken' : 'Notitie toevoegen', () => {
+        menu.setAttribute('hidden', '');
+        menuButton.setAttribute('aria-expanded', 'false');
+        editor.removeAttribute('hidden');
+        textarea.value = task.note || '';
+        textarea.focus();
+        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+      });
+      menu.append(noteAction);
+
+      menu.append(
+        makeMenuButton('Verwijderen', () => {
+          tasks = tasks.filter(item => item.id !== task.id);
+          if (activeTaskId === task.id) {
+            activeTaskId = tasks.find(item => !item.completed)?.id || null;
+            tasks.forEach(item => { item.active = item.id === activeTaskId; });
+          }
+          saveTasks();
+          renderTasks();
+        }, 'danger')
+      );
+
+      menuButton.addEventListener('click', event => {
+        event.stopPropagation();
+        const opening = menu.hasAttribute('hidden');
+        closeTaskOverlays(opening ? li : null);
+        if (opening) {
+          menu.removeAttribute('hidden');
+        } else {
+          menu.setAttribute('hidden', '');
+        }
+        menuButton.setAttribute('aria-expanded', String(opening));
+      });
+
+      menu.addEventListener('click', event => event.stopPropagation());
+
+      actions.append(infoWrap, menuButton, menu);
+      main.append(select, text, actions);
+
+      const editor = document.createElement('div');
+      editor.className = 'task-note-editor';
+      editor.setAttribute('hidden', '');
+
+      const textarea = document.createElement('textarea');
+      textarea.maxLength = 500;
+      textarea.rows = 3;
+      textarea.placeholder = 'Korte notitie bij deze taak…';
+      textarea.setAttribute('aria-label', `Notitie bij ${task.text}`);
+
+      const editorActions = document.createElement('div');
+      editorActions.className = 'task-note-editor-actions';
+
+      const cancelNote = document.createElement('button');
+      cancelNote.type = 'button';
+      cancelNote.textContent = 'Annuleren';
+      cancelNote.addEventListener('click', () => {
+        editor.setAttribute('hidden', '');
+      });
+
+      const saveNote = document.createElement('button');
+      saveNote.type = 'button';
+      saveNote.className = 'primary-small';
+      saveNote.textContent = 'Opslaan';
+      saveNote.addEventListener('click', () => {
+        task.note = textarea.value.trim();
         saveTasks();
         renderTasks();
       });
 
-      li.append(select, text, remove);
+      editorActions.append(cancelNote, saveNote);
+      editor.append(textarea, editorActions);
+
+      li.append(main, editor);
       taskList.appendChild(li);
     });
 
@@ -145,7 +324,8 @@
       id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
       text: clean,
       completed: false,
-      active: false
+      active: false,
+      note: ''
     };
     tasks.unshift(task);
     if (!activeTaskId) {
@@ -319,6 +499,8 @@
     taskInput.value = '';
     taskInput.focus();
   });
+
+  document.addEventListener('click', () => closeTaskOverlays());
 
   renderMode();
   renderTimer();
