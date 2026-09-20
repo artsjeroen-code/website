@@ -42,7 +42,7 @@ body {
   transition: background .2s ease, color .2s ease;
 }
 
-button, input { font: inherit; }
+button, input, textarea { font: inherit; }
 
 button:focus-visible,
 input:focus-visible {
@@ -456,12 +456,17 @@ input:focus-visible {
 }
 
 .task-item {
+  position: relative;
+  min-height: 38px;
+  border-bottom: 1px solid var(--border);
+}
+
+.task-main {
   display: grid;
-  grid-template-columns: 28px 1fr 30px;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
   align-items: center;
   gap: 6px;
   min-height: 38px;
-  border-bottom: 1px solid var(--border);
 }
 
 .task-item.active {
@@ -469,7 +474,8 @@ input:focus-visible {
 }
 
 .task-select,
-.task-delete {
+.task-info,
+.task-more {
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -479,6 +485,7 @@ input:focus-visible {
   width: 20px;
   height: 20px;
   margin: 0 auto;
+  padding: 0;
   border: 2px solid color-mix(in srgb, var(--muted) 70%, transparent);
   border-radius: 50%;
 }
@@ -486,6 +493,12 @@ input:focus-visible {
 .task-item.active .task-select {
   border-color: var(--accent);
   box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--panel) 94%, var(--bg)), inset 0 0 0 10px var(--accent);
+}
+
+.task-item.completed .task-select {
+  border-color: var(--google-green);
+  background: var(--google-green);
+  cursor: default;
 }
 
 .task-text {
@@ -500,15 +513,198 @@ input:focus-visible {
   text-decoration: line-through;
 }
 
-.task-item.completed .task-select {
-  border-color: var(--google-green);
-  background: var(--google-green);
+.task-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
-.task-delete {
+.task-info,
+.task-more {
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
   color: var(--muted);
-  font-size: 16px;
+  line-height: 1;
 }
+
+.task-info {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.task-info.is-empty {
+  opacity: .35;
+  cursor: default;
+}
+
+.task-info:not(.is-empty) {
+  color: var(--accent);
+}
+
+.task-more {
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+.task-info:hover:not(.is-empty),
+.task-info:focus-visible:not(.is-empty),
+.task-more:hover,
+.task-more:focus-visible {
+  background: color-mix(in srgb, var(--panel-2) 84%, var(--bg));
+}
+
+.task-info-wrap {
+  position: relative;
+}
+
+.task-note-bubble {
+  display: none;
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  z-index: 35;
+  width: max-content;
+  max-width: min(280px, 72vw);
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--panel) 97%, var(--bg));
+  color: var(--text);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .28);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.task-info-wrap:hover .task-note-bubble,
+.task-info-wrap:focus-within .task-note-bubble,
+.task-info-wrap.show-note .task-note-bubble {
+  display: block;
+}
+
+.task-menu {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  z-index: 30;
+  width: 178px;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 98%, var(--bg));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .3);
+}
+
+.task-menu > button,
+.task-move-grid button {
+  width: 100%;
+  min-height: 30px;
+  padding: 5px 7px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.task-menu > button:hover,
+.task-menu > button:focus-visible,
+.task-move-grid button:hover,
+.task-move-grid button:focus-visible {
+  background: color-mix(in srgb, var(--panel-2) 84%, var(--bg));
+}
+
+.task-menu-label {
+  display: block;
+  margin: 5px 2px 3px;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.task-move-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.task-move-grid button {
+  text-align: center;
+  padding-inline: 3px;
+}
+
+.task-menu .danger {
+  margin-top: 3px;
+  color: var(--google-red);
+}
+
+.task-note-editor {
+  padding: 7px 0 9px 34px;
+}
+
+.task-note-editor textarea {
+  width: 100%;
+  min-height: 64px;
+  resize: vertical;
+  padding: 7px 8px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--panel-2) 84%, var(--bg));
+  color: var(--text);
+  font-size: 10px;
+  line-height: 1.4;
+  outline: none;
+}
+
+.task-note-editor textarea:focus {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.task-note-editor-actions {
+  margin-top: 5px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.task-note-editor-actions button {
+  min-height: 30px;
+  padding: 4px 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel-2) 84%, var(--bg));
+  color: var(--text);
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.task-note-editor-actions .primary-small {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
 
 .empty-state {
   margin: 24px auto;
@@ -625,4 +821,43 @@ input:focus-visible {
   .timer-heading { padding-right: 40px; }
   .timer-ring { --timer-size: min(165px, 42vw); }
   .timer-card { padding-top: 5px; }
+}
+
+
+@media (max-width: 760px) {
+  .task-main {
+    grid-template-columns: 26px minmax(0, 1fr) auto;
+    min-height: 40px;
+  }
+
+  .task-actions {
+    gap: 1px;
+  }
+
+  .task-info,
+  .task-more {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+  }
+
+  .task-menu {
+    width: min(190px, 72vw);
+  }
+
+  .task-note-bubble {
+    position: fixed;
+    right: 12px;
+    bottom: 58px;
+    left: 12px;
+    width: auto;
+    max-width: none;
+    font-size: 10px;
+    pointer-events: auto;
+  }
+
+  .task-note-editor {
+    padding-left: 32px;
+  }
 }
