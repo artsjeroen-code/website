@@ -70,6 +70,7 @@ button, input, select { font: inherit; }
 .app-shell {
   width: min(calc(100% - 76px), 980px);
   height: 100vh;
+  height: 100dvh;
   margin-left: calc(var(--page-edge) + var(--utility-rail-width) + 10px);
   margin-right: auto;
   padding: 10px 0;
@@ -79,6 +80,7 @@ button, input, select { font: inherit; }
 .tool-card {
   width: 100%;
   max-height: calc(100vh - 20px);
+  max-height: calc(100dvh - 20px);
   overflow: hidden;
   background: color-mix(in srgb, var(--panel) 94%, var(--bg));
   border: 1px solid var(--border);
@@ -150,6 +152,7 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 @media (min-width: 761px) {
   .tool-card {
     min-height: min(620px, calc(100vh - 20px));
+    min-height: min(620px, calc(100dvh - 20px));
     display: grid;
     grid-template-columns: 300px minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
