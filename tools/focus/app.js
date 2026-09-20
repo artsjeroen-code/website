@@ -125,6 +125,7 @@
 
   function enableTaskDrag(handle, li) {
     handle.addEventListener('pointerdown', event => {
+      if (event.isPrimary === false) return;
       if (event.pointerType === 'mouse' && event.button !== 0) return;
 
       event.preventDefault();
@@ -134,13 +135,13 @@
       const startY = event.clientY;
       let dragging = false;
 
-      handle.setPointerCapture?.(pointerId);
       li.classList.add('drag-ready');
 
       const move = moveEvent => {
         if (moveEvent.pointerId !== pointerId) return;
 
-        if (!dragging && Math.abs(moveEvent.clientY - startY) < 5) return;
+        const deltaY = moveEvent.clientY - startY;
+        if (!dragging && Math.abs(deltaY) < 7) return;
 
         if (!dragging) {
           dragging = true;
@@ -152,8 +153,16 @@
         moveEvent.preventDefault();
 
         const listRect = taskList.getBoundingClientRect();
-        if (moveEvent.clientY < listRect.top + 32) taskList.scrollTop -= 10;
-        if (moveEvent.clientY > listRect.bottom - 32) taskList.scrollTop += 10;
+        const edgeZone = 44;
+        const maxScrollStep = 18;
+
+        if (moveEvent.clientY < listRect.top + edgeZone) {
+          const strength = Math.min(1, (listRect.top + edgeZone - moveEvent.clientY) / edgeZone);
+          taskList.scrollTop -= Math.max(6, Math.round(maxScrollStep * strength));
+        } else if (moveEvent.clientY > listRect.bottom - edgeZone) {
+          const strength = Math.min(1, (moveEvent.clientY - (listRect.bottom - edgeZone)) / edgeZone);
+          taskList.scrollTop += Math.max(6, Math.round(maxScrollStep * strength));
+        }
 
         const siblings = Array.from(taskList.querySelectorAll('.task-item:not(.dragging)'));
         const before = siblings.find(item => {
@@ -168,23 +177,25 @@
         }
       };
 
-      const end = endEvent => {
-        if (endEvent.pointerId !== pointerId) return;
-
-        handle.removeEventListener('pointermove', move);
-        handle.removeEventListener('pointerup', end);
-        handle.removeEventListener('pointercancel', end);
-        handle.releasePointerCapture?.(pointerId);
+      const cleanup = () => {
+        document.removeEventListener('pointermove', move);
+        document.removeEventListener('pointerup', end);
+        document.removeEventListener('pointercancel', end);
 
         li.classList.remove('drag-ready', 'dragging');
         document.body.classList.remove('task-dragging');
+      };
 
+      const end = endEvent => {
+        if (endEvent.pointerId !== pointerId) return;
+
+        cleanup();
         if (dragging) persistTaskOrderFromDom();
       };
 
-      handle.addEventListener('pointermove', move);
-      handle.addEventListener('pointerup', end);
-      handle.addEventListener('pointercancel', end);
+      document.addEventListener('pointermove', move, { passive: false });
+      document.addEventListener('pointerup', end);
+      document.addEventListener('pointercancel', end);
     });
 
     handle.addEventListener('click', event => event.preventDefault());
@@ -329,11 +340,24 @@
         event.stopPropagation();
         const opening = menu.hasAttribute('hidden');
         closeTaskOverlays(opening ? li : null);
+
         if (opening) {
+          menu.classList.remove('task-menu-up');
           menu.removeAttribute('hidden');
+
+          const listRect = taskList.getBoundingClientRect();
+          const menuRect = menu.getBoundingClientRect();
+          const itemRect = li.getBoundingClientRect();
+          const fitsAbove = itemRect.top - menuRect.height - 5 >= listRect.top + 4;
+
+          if (menuRect.bottom > listRect.bottom - 4 && fitsAbove) {
+            menu.classList.add('task-menu-up');
+          }
         } else {
           menu.setAttribute('hidden', '');
+          menu.classList.remove('task-menu-up');
         }
+
         menuButton.setAttribute('aria-expanded', String(opening));
       });
 
