@@ -31,6 +31,7 @@
   const taskList = $('taskList');
   const emptyState = $('emptyState');
   const taskInput = $('taskInput');
+  const taskEstimateInput = $('taskEstimateInput');
   const soundEnabledInput = $('soundEnabled');
 
   function loadTasks() {
@@ -39,7 +40,9 @@
       if (!Array.isArray(parsed)) return [];
       return parsed.map(task => ({
         ...task,
-        note: typeof task.note === 'string' ? task.note : ''
+        note: typeof task.note === 'string' ? task.note : '',
+        estimatedBlocks: Math.max(1, Math.min(99, Number(task.estimatedBlocks) || 1)),
+        focusBlocksDone: Math.max(0, Number(task.focusBlocksDone) || 0)
       }));
     } catch {
       return [];
@@ -235,6 +238,12 @@
       const actions = document.createElement('div');
       actions.className = 'task-actions';
 
+      const blockCount = document.createElement('span');
+      blockCount.className = 'task-block-count';
+      blockCount.textContent = `${task.focusBlocksDone}/${task.estimatedBlocks}`;
+      blockCount.setAttribute('aria-label', `${task.focusBlocksDone} van ${task.estimatedBlocks} focusblokken uitgevoerd`);
+      blockCount.title = `${task.focusBlocksDone} van ${task.estimatedBlocks} focusblokken uitgevoerd`;
+
       const infoWrap = document.createElement('div');
       infoWrap.className = 'task-info-wrap';
 
@@ -330,7 +339,7 @@
 
       menu.addEventListener('click', event => event.stopPropagation());
 
-      actions.append(infoWrap, menuButton, menu);
+      actions.append(blockCount, infoWrap, menuButton, menu);
       main.append(drag, select, text, actions);
 
       const editor = document.createElement('div');
@@ -373,15 +382,18 @@
     taskDoneButton.disabled = !activeTaskId;
   }
 
-  function addTask(text) {
+  function addTask(text, estimatedBlocks) {
     const clean = text.trim();
     if (!clean) return;
+    const estimate = Math.max(1, Math.min(99, Number(estimatedBlocks) || 1));
     const task = {
       id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
       text: clean,
       completed: false,
       active: false,
-      note: ''
+      note: '',
+      estimatedBlocks: estimate,
+      focusBlocksDone: 0
     };
     tasks.unshift(task);
     if (!activeTaskId) {
@@ -459,6 +471,13 @@
     playTone(784, .18);
 
     if (mode === 'focus') {
+      const activeTask = tasks.find(item => item.id === activeTaskId && !item.completed);
+      if (activeTask) {
+        activeTask.focusBlocksDone = Math.max(0, Number(activeTask.focusBlocksDone) || 0) + 1;
+        saveTasks();
+        renderTasks();
+      }
+
       blocks += 1;
       if (blocks >= 4) {
         blocks = 0;
@@ -551,8 +570,9 @@
 
   $('taskForm').addEventListener('submit', event => {
     event.preventDefault();
-    addTask(taskInput.value);
+    addTask(taskInput.value, taskEstimateInput.value);
     taskInput.value = '';
+    taskEstimateInput.value = '1';
     taskInput.focus();
   });
 
