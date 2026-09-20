@@ -1,5 +1,12 @@
 :root {
+  color-scheme: dark;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
+  --bg: #1f1f1f;
+  --panel: #2c2c2c;
+  --panel-2: #262626;
+  --text: #e6e6e6;
+  --muted: #bdbdbd;
+  --border: #ffffff22;
 }
 
 * { box-sizing: border-box; }
@@ -7,8 +14,11 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--page-bg, #111315);
-  color: var(--text-primary, #f4f5f6);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--panel) 70%, transparent), transparent),
+    radial-gradient(1200px 600px at 110% 0%, color-mix(in srgb, var(--panel-2) 70%, transparent), transparent),
+    var(--bg);
+  color: var(--text);
   font-size: 13px;
   line-height: 1.4;
 }
@@ -86,7 +96,7 @@ h2 {
   gap: 4px;
   border: 1px solid color-mix(in srgb, var(--google-blue, #4285f4) 38%, transparent);
   border-radius: 10px;
-  background: rgba(24,26,29,.92);
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
   color: var(--google-blue, #4285f4);
   backdrop-filter: blur(12px);
 }
@@ -108,8 +118,8 @@ h2 {
   padding: 68px 16px 18px;
   display: flex;
   flex-direction: column;
-  background: #17191c;
-  border-right: 1px solid rgba(255,255,255,.1);
+  background: var(--panel);
+  border-right: 1px solid var(--border);
   transform: translateX(-102%);
   transition: transform .2s ease;
   box-shadow: 18px 0 50px rgba(0,0,0,.28);
@@ -141,8 +151,8 @@ body.menu-open { overflow: hidden; }
 }
 
 .summary-card, .panel, .notice {
-  border: 1px solid rgba(255,255,255,.1);
-  background: rgba(255,255,255,.045);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--panel) 94%, var(--bg));
   border-radius: 13px;
 }
 
@@ -172,10 +182,10 @@ input, select {
   width: 100%;
   min-height: 40px;
   padding: 8px 10px;
-  border: 1px solid rgba(255,255,255,.13);
+  border: 1px solid var(--border);
   border-radius: 9px;
   outline: none;
-  background: rgba(0,0,0,.18);
+  background: color-mix(in srgb, var(--panel-2) 84%, var(--bg));
   color: inherit;
 }
 input:focus, select:focus, button:focus-visible {
@@ -203,9 +213,9 @@ input:focus, select:focus, button:focus-visible {
 .location-button, .secondary-button, .primary-button, .danger-button, .icon-button {
   min-height: 38px;
   border-radius: 9px;
-  border: 1px solid rgba(255,255,255,.12);
+  border: 1px solid var(--border);
 }
-.location-button, .secondary-button { padding: 7px 10px; background: rgba(255,255,255,.06); color: inherit; }
+.location-button, .secondary-button { padding: 7px 10px; background: color-mix(in srgb, var(--panel-2) 84%, var(--bg)); color: inherit; }
 .location-button { flex: 0 0 auto; white-space: nowrap; }
 .primary-button {
   padding: 8px 15px;
@@ -288,8 +298,8 @@ td.numeric { white-space: nowrap; }
   margin: 8px 0 9px;
   padding: 8px 10px;
   border-radius: 10px;
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.08);
+  background: color-mix(in srgb, var(--panel-2) 68%, var(--bg));
+  border: 1px solid var(--border);
 }
 .route-status-icon {
   width: 28px;
