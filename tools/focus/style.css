@@ -918,12 +918,7 @@ input:focus-visible {
   }
 
   .timer-card {
-    padding: 8px 0 10px;
-  }
-
-  .timer-heading {
-    min-height: 40px;
-    padding-right: 44px;
+    padding: 44px 0 14px;
   }
 
   .todo-card {
@@ -1017,7 +1012,6 @@ input:focus-visible {
     height: 18px;
   }
 
-  .timer-heading { padding-right: 40px; }
   .timer-ring { margin-bottom: 8px; }
   .timer-time { font-size: 1.8rem; }
   .timer-card { padding-top: 5px; }
