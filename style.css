@@ -404,8 +404,8 @@
   .topbar-inner,
   #blocks {
     width: auto !important;
-    margin-left: 12px !important;
-    margin-right: 12px !important;
+    margin-left: 6px !important;
+    margin-right: 6px !important;
   }
 
   .norm-link {
