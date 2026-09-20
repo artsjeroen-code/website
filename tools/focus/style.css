@@ -81,6 +81,7 @@ input:focus-visible {
 .focus-shell {
   width: min(calc(100% - 76px), 980px);
   height: 100vh;
+  height: 100dvh;
   margin-left: calc(var(--page-edge) + var(--utility-rail-width) + 10px);
   margin-right: auto;
   padding: 10px 0;
@@ -92,7 +93,9 @@ input:focus-visible {
   position: relative;
   width: 100%;
   min-height: min(620px, calc(100vh - 20px));
+  min-height: min(620px, calc(100dvh - 20px));
   max-height: calc(100vh - 20px);
+  max-height: calc(100dvh - 20px);
   overflow: hidden;
   background: color-mix(in srgb, var(--panel) 94%, var(--bg));
   border: 1px solid var(--border);
