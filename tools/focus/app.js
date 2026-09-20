@@ -111,21 +111,80 @@
     renderTasks();
   }
 
-  function moveTask(taskId, direction) {
-    const index = tasks.findIndex(item => item.id === taskId);
-    if (index < 0) return;
+  function persistTaskOrderFromDom() {
+    const order = Array.from(taskList.querySelectorAll('.task-item'))
+      .map(item => item.dataset.taskId);
 
-    let target = index;
-    if (direction === 'up') target = Math.max(0, index - 1);
-    if (direction === 'down') target = Math.min(tasks.length - 1, index + 1);
-    if (direction === 'top') target = 0;
-    if (direction === 'bottom') target = tasks.length - 1;
-    if (target === index) return;
-
-    const [task] = tasks.splice(index, 1);
-    tasks.splice(target, 0, task);
+    const byId = new Map(tasks.map(task => [task.id, task]));
+    tasks = order.map(id => byId.get(id)).filter(Boolean);
     saveTasks();
-    renderTasks();
+  }
+
+  function enableTaskDrag(handle, li) {
+    handle.addEventListener('pointerdown', event => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+
+      event.preventDefault();
+      closeTaskOverlays();
+
+      const pointerId = event.pointerId;
+      const startY = event.clientY;
+      let dragging = false;
+
+      handle.setPointerCapture?.(pointerId);
+      li.classList.add('drag-ready');
+
+      const move = moveEvent => {
+        if (moveEvent.pointerId !== pointerId) return;
+
+        if (!dragging && Math.abs(moveEvent.clientY - startY) < 5) return;
+
+        if (!dragging) {
+          dragging = true;
+          li.classList.remove('drag-ready');
+          li.classList.add('dragging');
+          document.body.classList.add('task-dragging');
+        }
+
+        moveEvent.preventDefault();
+
+        const listRect = taskList.getBoundingClientRect();
+        if (moveEvent.clientY < listRect.top + 32) taskList.scrollTop -= 10;
+        if (moveEvent.clientY > listRect.bottom - 32) taskList.scrollTop += 10;
+
+        const siblings = Array.from(taskList.querySelectorAll('.task-item:not(.dragging)'));
+        const before = siblings.find(item => {
+          const rect = item.getBoundingClientRect();
+          return moveEvent.clientY < rect.top + rect.height / 2;
+        });
+
+        if (before) {
+          taskList.insertBefore(li, before);
+        } else {
+          taskList.appendChild(li);
+        }
+      };
+
+      const end = endEvent => {
+        if (endEvent.pointerId !== pointerId) return;
+
+        handle.removeEventListener('pointermove', move);
+        handle.removeEventListener('pointerup', end);
+        handle.removeEventListener('pointercancel', end);
+        handle.releasePointerCapture?.(pointerId);
+
+        li.classList.remove('drag-ready', 'dragging');
+        document.body.classList.remove('task-dragging');
+
+        if (dragging) persistTaskOrderFromDom();
+      };
+
+      handle.addEventListener('pointermove', move);
+      handle.addEventListener('pointerup', end);
+      handle.addEventListener('pointercancel', end);
+    });
+
+    handle.addEventListener('click', event => event.preventDefault());
   }
 
   function renderTasks() {
@@ -135,11 +194,19 @@
     tasks.forEach(task => {
       const li = document.createElement('li');
       li.className = 'task-item';
+      li.dataset.taskId = task.id;
       if (task.completed) li.classList.add('completed');
       if (task.id === activeTaskId && !task.completed) li.classList.add('active');
 
       const main = document.createElement('div');
       main.className = 'task-main';
+
+      const drag = document.createElement('button');
+      drag.type = 'button';
+      drag.className = 'task-drag';
+      drag.setAttribute('aria-label', `Versleep ${task.text}`);
+      drag.setAttribute('title', 'Verslepen');
+      enableTaskDrag(drag, li);
 
       const select = document.createElement('button');
       select.type = 'button';
@@ -226,20 +293,6 @@
         })
       );
 
-      const moveLabel = document.createElement('span');
-      moveLabel.className = 'task-menu-label';
-      moveLabel.textContent = 'Verplaatsen';
-      menu.append(moveLabel);
-
-      const moveGrid = document.createElement('div');
-      moveGrid.className = 'task-move-grid';
-      moveGrid.append(
-        makeMenuButton('Omhoog', () => moveTask(task.id, 'up')),
-        makeMenuButton('Omlaag', () => moveTask(task.id, 'down')),
-        makeMenuButton('Bovenaan', () => moveTask(task.id, 'top')),
-        makeMenuButton('Onderaan', () => moveTask(task.id, 'bottom'))
-      );
-      menu.append(moveGrid);
 
       const noteAction = makeMenuButton(task.note ? 'Notitie bewerken' : 'Notitie toevoegen', () => {
         menu.setAttribute('hidden', '');
@@ -278,7 +331,7 @@
       menu.addEventListener('click', event => event.stopPropagation());
 
       actions.append(infoWrap, menuButton, menu);
-      main.append(select, text, actions);
+      main.append(drag, select, text, actions);
 
       const editor = document.createElement('div');
       editor.className = 'task-note-editor';
