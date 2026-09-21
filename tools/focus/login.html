@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Focus Timer · Inloggen</title>
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('startpagina-theme') || 'dark';
+      document.documentElement.dataset.theme = savedTheme;
+    })();
+  </script>
+  <link rel="stylesheet" href="../../google_palette.css">
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-card" aria-labelledby="authTitle">
+      <p class="eyebrow">Focus Timer</p>
+      <h1 id="authTitle">Synchronisatie ontgrendelen</h1>
+      <p class="auth-copy">Log in om je taken veilig tussen je apparaten te synchroniseren.</p>
+
+      <form id="loginForm" class="auth-form">
+        <label for="password">Wachtwoord</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
+        <button id="loginButton" type="submit">Inloggen</button>
+      </form>
+
+      <p id="authMessage" class="auth-message" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script src="login.js"></script>
+</body>
+</html>
