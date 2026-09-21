@@ -30,8 +30,8 @@ Deze branch is bedoeld als release-overzicht. De functionele websitecode is afko
 ### Deploymentstatus
 
 - Staging draait op poort `8768` met de stagingdatabase.
-- Productieconfiguratie is voorbereid op poort `8769` met een aparte productiedatabase.
-- Productiedeployment is op 21 september 2026 nog niet uitgevoerd.
+- Productie draait op poort `8769` met een aparte productiedatabase.
+- Productiedeployment is op 21 september 2026 uitgevoerd en functioneel getest op iPad en telefoon.
 
 ## Startpagina
 
