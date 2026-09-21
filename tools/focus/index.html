@@ -6,6 +6,19 @@
   <meta name="color-scheme" content="dark light">
   <title>Focus Timer</title>
   <script>
+    document.documentElement.classList.add('auth-pending');
+    fetch('./api/auth/status', { cache: 'no-store', credentials: 'same-origin' })
+      .then(response => response.ok ? response.json() : Promise.reject(new Error('auth-status')))
+      .then(status => {
+        if (status.authenticated) {
+          document.documentElement.classList.remove('auth-pending');
+          return;
+        }
+        window.location.replace('./login.html');
+      })
+      .catch(() => window.location.replace('./login.html?error=connection'));
+  </script>
+  <script>
     (function () {
       const savedTheme = localStorage.getItem('startpagina-theme') || 'dark';
       document.documentElement.dataset.theme = savedTheme;
@@ -14,6 +27,7 @@
   <link rel="stylesheet" href="../../google_palette.css">
   <link rel="stylesheet" href="../../utility-rail.css">
   <link rel="stylesheet" href="style.css">
+  <style>html.auth-pending body { visibility: hidden; }</style>
 </head>
 <body>
   <aside class="utility-rail" aria-label="Snelkoppelingen">
