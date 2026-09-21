@@ -61,11 +61,6 @@ server {
     }
 
     location / {
-        # Maak de testomgeving visueel direct herkenbaar, zonder productiecode
-        # aan te passen. De injectie geldt alleen voor HTML op dit testdomein.
-        sub_filter_once on;
-        sub_filter '</head>' '<style id="staging-environment-style">:root{--staging-bg:#fff0b3}:root[data-theme="dark"]{--staging-bg:#3a2d0b}html,body{background:var(--staging-bg)!important}</style></head>';
-
         try_files $uri $uri/ =404;
     }
 
