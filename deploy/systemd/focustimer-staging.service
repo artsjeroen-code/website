@@ -1,0 +1,23 @@
+[Unit]
+Description=Focus Timer sync API (staging)
+After=network.target
+
+[Service]
+Type=simple
+User=focustimer
+Group=focustimer
+WorkingDirectory=/var/www/staging/tools/focus
+Environment=FOCUS_HOST=127.0.0.1
+Environment=FOCUS_PORT=8768
+Environment=FOCUS_DB=/var/lib/focustimer/focus.db
+ExecStart=/usr/bin/python3 /var/www/staging/tools/focus/server.py
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/focustimer
+
+[Install]
+WantedBy=multi-user.target
