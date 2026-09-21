@@ -41,6 +41,11 @@ CREATE TABLE IF NOT EXISTS tasks (
 );
 CREATE INDEX IF NOT EXISTS idx_tasks_sort_order ON tasks(sort_order, updated_at);
 
+CREATE TABLE IF NOT EXISTS sync_meta (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    initialized INTEGER NOT NULL DEFAULT 0 CHECK (initialized IN (0, 1))
+);
+
 CREATE TABLE IF NOT EXISTS sessions (
     token_hash TEXT PRIMARY KEY,
     created_at INTEGER NOT NULL,
@@ -58,6 +63,15 @@ def init_db():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     with db_connect() as db:
         db.executescript(SCHEMA)
+        db.execute("INSERT OR IGNORE INTO sync_meta (id, initialized) VALUES (1, 0)")
+        db.execute(
+            """
+            UPDATE sync_meta
+            SET initialized = 1
+            WHERE id = 1
+              AND EXISTS (SELECT 1 FROM tasks)
+            """
+        )
         db.commit()
 
 def token_hash(token):
@@ -207,7 +221,7 @@ def validate_task_payload(task_id, payload):
     }
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "FocusSync/0.3"
+    server_version = "FocusSync/0.4"
 
     def send_json(self, status, payload, session_token=None, clear_session=False):
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -266,8 +280,12 @@ class Handler(BaseHTTPRequestHandler):
                 rows = db.execute(
                     "SELECT * FROM tasks ORDER BY sort_order ASC, updated_at ASC"
                 ).fetchall()
+                meta = db.execute(
+                    "SELECT initialized FROM sync_meta WHERE id = 1"
+                ).fetchone()
 
             self.send_json(200, {
+                "initialized": bool(meta["initialized"]) if meta else False,
                 "tasks": [task_json(row) for row in rows if row["deleted_at"] is None],
                 "deletedIds": [row["id"] for row in rows if row["deleted_at"] is not None],
                 "serverTime": utc_now(),
@@ -313,6 +331,17 @@ class Handler(BaseHTTPRequestHandler):
                         )
                         db.commit()
                 self.send_json(200, {"ok": True}, clear_session=True)
+                return
+
+            if path == "/tasks/initialize":
+                if not valid_session(self.headers):
+                    self.send_json(401, {"error": "Niet ingelogd"})
+                    return
+
+                with db_connect() as db:
+                    db.execute("UPDATE sync_meta SET initialized = 1 WHERE id = 1")
+                    db.commit()
+                self.send_json(200, {"ok": True, "initialized": True})
                 return
 
             if path == "/tasks/order":
@@ -387,6 +416,7 @@ class Handler(BaseHTTPRequestHandler):
                         task["sort_order"], now,
                     ),
                 )
+                db.execute("UPDATE sync_meta SET initialized = 1 WHERE id = 1")
                 row = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
                 db.commit()
 
