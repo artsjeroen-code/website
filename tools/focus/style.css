@@ -569,17 +569,44 @@ input:focus-visible {
 
 .task-block-count {
   min-width: 31px;
+  min-height: 26px;
   margin-right: 2px;
+  padding: 3px 4px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
   color: var(--muted);
   text-align: right;
   font-size: 9px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  cursor: pointer;
+}
+
+.task-block-count:hover,
+.task-block-count:focus-visible {
+  background: color-mix(in srgb, var(--panel-2) 84%, var(--bg));
 }
 
 .task-item.active .task-block-count {
   color: var(--accent);
+}
+
+.task-block-input {
+  width: 42px;
+  height: 26px;
+  margin-right: 2px;
+  padding: 2px 3px;
+  border: 1px solid var(--accent);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--panel-2) 90%, var(--bg));
+  color: var(--text);
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  outline: none;
 }
 
 .task-info,
@@ -629,13 +656,10 @@ input:focus-visible {
 }
 
 .task-note-bubble {
-  display: none;
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 6px);
-  z-index: 35;
+  position: fixed;
+  z-index: 220;
   width: max-content;
-  max-width: min(280px, 72vw);
+  max-width: min(280px, calc(100vw - 24px));
   padding: 7px 9px;
   border: 1px solid var(--border);
   border-radius: 9px;
@@ -650,12 +674,6 @@ input:focus-visible {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   pointer-events: none;
-}
-
-.task-info-wrap:hover .task-note-bubble,
-.task-info-wrap:focus-within .task-note-bubble,
-.task-info-wrap.show-note .task-note-bubble {
-  display: block;
 }
 
 .task-item.dragging {
@@ -676,21 +694,16 @@ input:focus-visible {
 }
 
 .task-menu {
-  position: absolute;
-  top: calc(100% + 5px);
-  right: 0;
-  z-index: 30;
+  position: fixed;
+  top: auto;
+  right: auto;
+  z-index: 220;
   width: 178px;
   padding: 5px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: color-mix(in srgb, var(--panel) 98%, var(--bg));
   box-shadow: 0 10px 28px rgba(0, 0, 0, .3);
-}
-
-.task-menu.task-menu-up {
-  top: auto;
-  bottom: calc(100% + 5px);
 }
 
 .task-menu > button {
@@ -1047,11 +1060,7 @@ input:focus-visible {
   }
 
   .task-note-bubble {
-    position: fixed;
-    right: 12px;
-    bottom: 58px;
-    left: 12px;
-    width: auto;
+    width: min(340px, calc(100vw - 24px));
     max-width: none;
     font-size: 10px;
     pointer-events: auto;
