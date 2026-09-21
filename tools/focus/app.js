@@ -78,9 +78,9 @@
     queueTaskSync();
   }
 
-  function saveTasks() {
+  function saveTasks(options = {}) {
     persistLocalTasks();
-    queueTaskSync();
+    queueTaskSync(options);
   }
 
   async function apiRequest(path, options = {}) {
@@ -136,10 +136,16 @@
     }));
   }
 
-  function queueTaskSync() {
+  function queueTaskSync({ immediate = false } = {}) {
     if (!syncReady) return;
     syncQueued = true;
     window.clearTimeout(syncTimerId);
+
+    if (immediate) {
+      void flushTaskSync();
+      return;
+    }
+
     syncTimerId = window.setTimeout(flushTaskSync, 180);
   }
 
@@ -249,7 +255,11 @@
 
       window.setInterval(pullRemoteTasks, 5000);
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') pullRemoteTasks();
+        if (document.visibilityState === 'visible') {
+          pullRemoteTasks();
+        } else if (syncQueued) {
+          void flushTaskSync();
+        }
       });
       window.addEventListener('focus', pullRemoteTasks);
     } catch (error) {
@@ -670,11 +680,19 @@
       saveNote.type = 'button';
       saveNote.className = 'primary-small';
       saveNote.textContent = 'Opslaan';
-      saveNote.addEventListener('click', () => {
+      let noteCommitted = false;
+      const commitNote = () => {
+        if (noteCommitted) return;
+        noteCommitted = true;
         task.note = textarea.value.trim();
-        saveTasks();
+        saveTasks({ immediate: true });
         renderTasks();
+      };
+
+      saveNote.addEventListener('pointerup', event => {
+        if (event.pointerType === 'touch') commitNote();
       });
+      saveNote.addEventListener('click', commitNote);
 
       editorActions.append(cancelNote, saveNote);
       editor.append(textarea, editorActions);
