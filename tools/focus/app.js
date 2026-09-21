@@ -6,10 +6,7 @@
   const BLOCKS_KEY = 'focus-blocks-v1';
   const SOUND_KEY = 'focus-sound-v1';
 
-  const testMode = new URLSearchParams(window.location.search).get('test') === '1';
-  const durations = testMode
-    ? { focus: 5, short: 3, long: 3 }
-    : { focus: 25 * 60, short: 5 * 60, long: 15 * 60 };
+  const durations = { focus: 25 * 60, short: 5 * 60, long: 15 * 60 };
   const labels = {
     focus: ['Focus', 'Tijd voor ongestoord werken'],
     short: ['Korte pauze', 'Even opladen'],
