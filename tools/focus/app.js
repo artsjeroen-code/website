@@ -26,6 +26,7 @@
   let syncInFlight = false;
   let syncQueued = false;
   let syncTimerId = null;
+  let openTaskOverlay = null;
 
   const $ = id => document.getElementById(id);
   const timerDisplay = $('timerDisplay');
@@ -294,12 +295,63 @@
     soundEnabledInput.setAttribute('aria-label', soundEnabled ? 'Geluid uitschakelen' : 'Geluid inschakelen');
   }
 
-  function closeTaskOverlays(exceptItem = null) {
-    document.querySelectorAll('.task-item').forEach(item => {
-      if (item === exceptItem) return;
-      item.querySelector('.task-menu')?.setAttribute('hidden', '');
-      item.querySelector('.task-info-wrap')?.classList.remove('show-note');
-    });
+  function closeTaskOverlays() {
+    if (!openTaskOverlay) return;
+
+    const { element, home, trigger } = openTaskOverlay;
+    element.setAttribute('hidden', '');
+    element.style.removeProperty('position');
+    element.style.removeProperty('left');
+    element.style.removeProperty('top');
+    element.style.removeProperty('visibility');
+    home.appendChild(element);
+    trigger?.setAttribute('aria-expanded', 'false');
+    openTaskOverlay = null;
+  }
+
+  function showTaskOverlay(element, home, trigger, ownerItem, prefer = 'below') {
+    if (openTaskOverlay?.element === element) {
+      closeTaskOverlays();
+      return;
+    }
+
+    closeTaskOverlays();
+    document.body.appendChild(element);
+    element.style.position = 'fixed';
+    element.style.visibility = 'hidden';
+    element.removeAttribute('hidden');
+
+    const anchorRect = trigger.getBoundingClientRect();
+    const overlayRect = element.getBoundingClientRect();
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = document.documentElement.clientHeight;
+    const gap = 6;
+    const margin = 8;
+
+    let left = anchorRect.right - overlayRect.width;
+    left = Math.max(margin, Math.min(left, viewportWidth - overlayRect.width - margin));
+
+    const below = anchorRect.bottom + gap;
+    const above = anchorRect.top - overlayRect.height - gap;
+    const fitsBelow = below + overlayRect.height <= viewportHeight - margin;
+    const fitsAbove = above >= margin;
+
+    let top;
+    if (prefer === 'above' && fitsAbove) {
+      top = above;
+    } else if (fitsBelow) {
+      top = below;
+    } else if (fitsAbove) {
+      top = above;
+    } else {
+      top = Math.max(margin, Math.min(below, viewportHeight - overlayRect.height - margin));
+    }
+
+    element.style.left = `${Math.round(left)}px`;
+    element.style.top = `${Math.round(top)}px`;
+    element.style.visibility = '';
+    trigger.setAttribute('aria-expanded', 'true');
+    openTaskOverlay = { element, home, trigger, ownerItem };
   }
 
   function setTaskCompletion(task, completed) {
@@ -405,6 +457,7 @@
   }
 
   function renderTasks() {
+    closeTaskOverlays();
     taskList.replaceChildren();
     emptyState.hidden = tasks.length > 0;
 
@@ -452,11 +505,56 @@
       const actions = document.createElement('div');
       actions.className = 'task-actions';
 
-      const blockCount = document.createElement('span');
+      const blockCount = document.createElement('button');
+      blockCount.type = 'button';
       blockCount.className = 'task-block-count';
       blockCount.textContent = `${task.focusBlocksDone}/${task.estimatedBlocks}`;
-      blockCount.setAttribute('aria-label', `${task.focusBlocksDone} van ${task.estimatedBlocks} focusblokken uitgevoerd`);
-      blockCount.title = `${task.focusBlocksDone} van ${task.estimatedBlocks} focusblokken uitgevoerd`;
+      blockCount.setAttribute('aria-label', `Geschatte focusblokken aanpassen. ${task.focusBlocksDone} van ${task.estimatedBlocks} uitgevoerd`);
+      blockCount.title = 'Geschatte focusblokken aanpassen';
+      blockCount.addEventListener('click', event => {
+        event.stopPropagation();
+        closeTaskOverlays();
+
+        const minimum = Math.max(1, Number(task.focusBlocksDone) || 0);
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.className = 'task-block-input';
+        input.min = String(minimum);
+        input.max = '99';
+        input.step = '1';
+        input.inputMode = 'numeric';
+        input.value = String(task.estimatedBlocks);
+        input.setAttribute('aria-label', `Geschatte focusblokken voor ${task.text}`);
+
+        let finished = false;
+        const finishEditing = save => {
+          if (finished) return;
+          finished = true;
+          if (save) {
+            task.estimatedBlocks = Math.max(minimum, Math.min(99, Number(input.value) || minimum));
+            saveTasks();
+          }
+          renderTasks();
+        };
+
+        input.addEventListener('click', inputEvent => inputEvent.stopPropagation());
+        input.addEventListener('keydown', inputEvent => {
+          if (inputEvent.key === 'Enter') {
+            inputEvent.preventDefault();
+            finishEditing(true);
+          } else if (inputEvent.key === 'Escape') {
+            inputEvent.preventDefault();
+            finishEditing(false);
+          }
+        });
+        input.addEventListener('blur', () => finishEditing(true));
+
+        blockCount.replaceWith(input);
+        window.requestAnimationFrame(() => {
+          input.focus();
+          input.select();
+        });
+      });
 
       const infoWrap = document.createElement('div');
       infoWrap.className = 'task-info-wrap';
@@ -473,15 +571,13 @@
         const bubble = document.createElement('div');
         bubble.className = 'task-note-bubble';
         bubble.setAttribute('role', 'tooltip');
+        bubble.setAttribute('hidden', '');
         bubble.textContent = task.note;
         infoWrap.append(info, bubble);
 
         info.addEventListener('click', event => {
           event.stopPropagation();
-          const show = !infoWrap.classList.contains('show-note');
-          closeTaskOverlays(show ? li : null);
-          infoWrap.classList.toggle('show-note', show);
-          info.setAttribute('aria-expanded', String(show));
+          showTaskOverlay(bubble, infoWrap, info, li, 'above');
         });
       } else {
         infoWrap.append(info);
@@ -518,8 +614,7 @@
 
 
       const noteAction = makeMenuButton(task.note ? 'Notitie bewerken' : 'Notitie toevoegen', () => {
-        menu.setAttribute('hidden', '');
-        menuButton.setAttribute('aria-expanded', 'false');
+        closeTaskOverlays();
         editor.removeAttribute('hidden');
         textarea.value = task.note || '';
         textarea.focus();
@@ -543,27 +638,7 @@
 
       menuButton.addEventListener('click', event => {
         event.stopPropagation();
-        const opening = menu.hasAttribute('hidden');
-        closeTaskOverlays(opening ? li : null);
-
-        if (opening) {
-          menu.classList.remove('task-menu-up');
-          menu.removeAttribute('hidden');
-
-          const listRect = taskList.getBoundingClientRect();
-          const menuRect = menu.getBoundingClientRect();
-          const itemRect = li.getBoundingClientRect();
-          const fitsAbove = itemRect.top - menuRect.height - 5 >= listRect.top + 4;
-
-          if (menuRect.bottom > listRect.bottom - 4 && fitsAbove) {
-            menu.classList.add('task-menu-up');
-          }
-        } else {
-          menu.setAttribute('hidden', '');
-          menu.classList.remove('task-menu-up');
-        }
-
-        menuButton.setAttribute('aria-expanded', String(opening));
+        showTaskOverlay(menu, actions, menuButton, li, 'below');
       });
 
       menu.addEventListener('click', event => event.stopPropagation());
@@ -806,6 +881,8 @@
   });
 
   document.addEventListener('click', () => closeTaskOverlays());
+  taskList.addEventListener('scroll', () => closeTaskOverlays(), { passive: true });
+  window.addEventListener('resize', () => closeTaskOverlays());
 
   renderMode();
   renderTimer();
