@@ -2,6 +2,7 @@
   const THEME_KEY = 'startpagina-theme';
   const TASKS_KEY = 'focus-tasks-v1';
   const MIGRATION_KEY = 'focus-tasks-migrated-v2';
+  const PENDING_DELETES_KEY = 'focus-pending-deletes-v1';
   const BLOCKS_KEY = 'focus-blocks-v1';
   const SOUND_KEY = 'focus-sound-v1';
 
@@ -22,6 +23,10 @@
   let tasks = loadTasks();
   let activeTaskId = tasks.find(t => t.active && !t.completed)?.id || null;
   let soundEnabled = localStorage.getItem(SOUND_KEY) !== 'false';
+  let syncReady = false;
+  let syncInFlight = false;
+  let syncQueued = false;
+  let syncTimerId = null;
 
   const $ = id => document.getElementById(id);
   const timerDisplay = $('timerDisplay');
@@ -50,8 +55,32 @@
     }
   }
 
-  function saveTasks() {
+  function persistLocalTasks() {
     localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+  }
+
+  function loadPendingDeletes() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(PENDING_DELETES_KEY) || '[]');
+      return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function setPendingDeletes(ids) {
+    const unique = Array.from(new Set(ids.filter(Boolean)));
+    localStorage.setItem(PENDING_DELETES_KEY, JSON.stringify(unique));
+  }
+
+  function queueTaskDelete(taskId) {
+    setPendingDeletes([...loadPendingDeletes(), taskId]);
+    queueTaskSync();
+  }
+
+  function saveTasks() {
+    persistLocalTasks();
+    queueTaskSync();
   }
 
   async function apiRequest(path, options = {}) {
@@ -74,9 +103,104 @@
     }
 
     if (!response.ok) {
+      if (response.status === 401) {
+        window.location.replace('./login.html');
+      }
       throw new Error(payload.error || `API-fout HTTP ${response.status}`);
     }
     return payload;
+  }
+
+  function taskPayload(task, index) {
+    return {
+      text: task.text,
+      completed: Boolean(task.completed),
+      active: Boolean(task.active),
+      note: task.note || '',
+      estimatedBlocks: Math.max(1, Math.min(99, Number(task.estimatedBlocks) || 1)),
+      focusBlocksDone: Math.max(0, Number(task.focusBlocksDone) || 0),
+      sortOrder: index
+    };
+  }
+
+  function normalizeRemoteTasks(remoteTasks) {
+    if (!Array.isArray(remoteTasks)) return [];
+    return remoteTasks.map(task => ({
+      id: String(task.id),
+      text: String(task.text || ''),
+      completed: Boolean(task.completed),
+      active: Boolean(task.active),
+      note: typeof task.note === 'string' ? task.note : '',
+      estimatedBlocks: Math.max(1, Math.min(99, Number(task.estimatedBlocks) || 1)),
+      focusBlocksDone: Math.max(0, Number(task.focusBlocksDone) || 0)
+    }));
+  }
+
+  function queueTaskSync() {
+    if (!syncReady) return;
+    syncQueued = true;
+    window.clearTimeout(syncTimerId);
+    syncTimerId = window.setTimeout(flushTaskSync, 180);
+  }
+
+  async function flushTaskSync() {
+    if (!syncReady || syncInFlight || !syncQueued) return;
+
+    syncInFlight = true;
+    try {
+      while (syncQueued) {
+        syncQueued = false;
+
+        const pendingDeletes = loadPendingDeletes();
+        for (const taskId of pendingDeletes) {
+          try {
+            await apiRequest(`/tasks/${encodeURIComponent(taskId)}`, { method: 'DELETE' });
+          } catch (error) {
+            if (!String(error.message || '').includes('Taak niet gevonden')) throw error;
+          }
+          setPendingDeletes(loadPendingDeletes().filter(id => id !== taskId));
+        }
+
+        const snapshot = tasks.map(task => ({ ...task }));
+        for (let index = 0; index < snapshot.length; index += 1) {
+          const task = snapshot[index];
+          await apiRequest(`/tasks/${encodeURIComponent(task.id)}`, {
+            method: 'PUT',
+            body: JSON.stringify(taskPayload(task, index))
+          });
+        }
+
+        await apiRequest('/tasks/order', {
+          method: 'POST',
+          body: JSON.stringify({ ids: snapshot.map(task => task.id) })
+        });
+      }
+    } catch (error) {
+      syncQueued = true;
+      console.warn('Focus sync: upload mislukt; wordt opnieuw geprobeerd.', error);
+    } finally {
+      syncInFlight = false;
+    }
+  }
+
+  async function pullRemoteTasks() {
+    if (!syncReady || syncInFlight || syncQueued || loadPendingDeletes().length) return;
+
+    try {
+      const remote = await apiRequest('/tasks');
+      const nextTasks = normalizeRemoteTasks(remote.tasks);
+      const before = JSON.stringify(tasks);
+      const after = JSON.stringify(nextTasks);
+
+      if (before !== after) {
+        tasks = nextTasks;
+        activeTaskId = tasks.find(task => task.active && !task.completed)?.id || null;
+        persistLocalTasks();
+        renderTasks();
+      }
+    } catch (error) {
+      console.warn('Focus sync: ophalen mislukt.', error);
+    }
   }
 
   async function migrateLocalTasksOnce() {
@@ -96,15 +220,7 @@
         const task = tasks[index];
         await apiRequest(`/tasks/${encodeURIComponent(task.id)}`, {
           method: 'PUT',
-          body: JSON.stringify({
-            text: task.text,
-            completed: Boolean(task.completed),
-            active: Boolean(task.active),
-            note: task.note || '',
-            estimatedBlocks: Math.max(1, Math.min(99, Number(task.estimatedBlocks) || 1)),
-            focusBlocksDone: Math.max(0, Number(task.focusBlocksDone) || 0),
-            sortOrder: index
-          })
+          body: JSON.stringify(taskPayload(task, index))
         });
       }
 
@@ -117,6 +233,30 @@
       console.info(`Focus sync: ${tasks.length} lokale taken naar de RPi gemigreerd.`);
     } catch (error) {
       console.warn('Focus sync: lokale taken nog niet gemigreerd.', error);
+    }
+  }
+
+  async function initializeTaskSync() {
+    await migrateLocalTasksOnce();
+
+    try {
+      const remote = await apiRequest('/tasks');
+      tasks = normalizeRemoteTasks(remote.tasks);
+      activeTaskId = tasks.find(task => task.active && !task.completed)?.id || null;
+      persistLocalTasks();
+      renderTasks();
+
+      syncReady = true;
+      syncQueued = loadPendingDeletes().length > 0;
+      if (syncQueued) flushTaskSync();
+
+      window.setInterval(pullRemoteTasks, 5000);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') pullRemoteTasks();
+      });
+      window.addEventListener('focus', pullRemoteTasks);
+    } catch (error) {
+      console.warn('Focus sync: initialiseren mislukt; lokale taken blijven beschikbaar.', error);
     }
   }
 
@@ -393,12 +533,14 @@
 
       menu.append(
         makeMenuButton('Verwijderen', () => {
-          tasks = tasks.filter(item => item.id !== task.id);
-          if (activeTaskId === task.id) {
+          const deletedTaskId = task.id;
+          tasks = tasks.filter(item => item.id !== deletedTaskId);
+          if (activeTaskId === deletedTaskId) {
             activeTaskId = tasks.find(item => !item.completed)?.id || null;
             tasks.forEach(item => { item.active = item.id === activeTaskId; });
           }
-          saveTasks();
+          persistLocalTasks();
+          queueTaskDelete(deletedTaskId);
           renderTasks();
         }, 'danger')
       );
@@ -674,5 +816,5 @@
   renderBlocks();
   renderTasks();
   renderSound();
-  migrateLocalTasksOnce();
+  initializeTaskSync();
 })();
