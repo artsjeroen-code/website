@@ -1,6 +1,7 @@
 (() => {
   const THEME_KEY = 'startpagina-theme';
   const TASKS_KEY = 'focus-tasks-v1';
+  const MIGRATION_KEY = 'focus-tasks-migrated-v1';
   const BLOCKS_KEY = 'focus-blocks-v1';
   const SOUND_KEY = 'focus-sound-v1';
 
@@ -51,6 +52,72 @@
 
   function saveTasks() {
     localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+  }
+
+  async function apiRequest(path, options = {}) {
+    const response = await fetch(`./api${path}`, {
+      cache: 'no-store',
+      credentials: 'same-origin',
+      headers: {
+        Accept: 'application/json',
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(options.headers || {})
+      },
+      ...options
+    });
+
+    let payload = {};
+    try {
+      payload = await response.json();
+    } catch {
+      throw new Error(`API gaf geen geldige JSON (HTTP ${response.status})`);
+    }
+
+    if (!response.ok) {
+      throw new Error(payload.error || `API-fout HTTP ${response.status}`);
+    }
+    return payload;
+  }
+
+  async function migrateLocalTasksOnce() {
+    if (localStorage.getItem(MIGRATION_KEY) === 'done') return;
+
+    try {
+      const remote = await apiRequest('/tasks');
+
+      if (Array.isArray(remote.tasks) && remote.tasks.length > 0) {
+        localStorage.setItem(MIGRATION_KEY, 'done');
+        return;
+      }
+
+      if (!tasks.length) return;
+
+      for (let index = 0; index < tasks.length; index += 1) {
+        const task = tasks[index];
+        await apiRequest(`/tasks/${encodeURIComponent(task.id)}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            text: task.text,
+            completed: Boolean(task.completed),
+            active: Boolean(task.active),
+            note: task.note || '',
+            estimatedBlocks: Math.max(1, Math.min(99, Number(task.estimatedBlocks) || 1)),
+            focusBlocksDone: Math.max(0, Number(task.focusBlocksDone) || 0),
+            sortOrder: index
+          })
+        });
+      }
+
+      await apiRequest('/tasks/order', {
+        method: 'POST',
+        body: JSON.stringify({ ids: tasks.map(task => task.id) })
+      });
+
+      localStorage.setItem(MIGRATION_KEY, 'done');
+      console.info(`Focus sync: ${tasks.length} lokale taken naar de RPi gemigreerd.`);
+    } catch (error) {
+      console.warn('Focus sync: lokale taken nog niet gemigreerd.', error);
+    }
   }
 
   function formatTime(seconds) {
@@ -607,4 +674,5 @@
   renderBlocks();
   renderTasks();
   renderSound();
+  migrateLocalTasksOnce();
 })();
