@@ -1,0 +1,24 @@
+[Unit]
+Description=Focus Timer sync API (production)
+After=network.target
+
+[Service]
+Type=simple
+User=focustimer
+Group=focustimer
+WorkingDirectory=/var/www/html/tools/focus
+Environment=FOCUS_HOST=127.0.0.1
+Environment=FOCUS_PORT=8769
+Environment=FOCUS_DB=/var/lib/focustimer/focus-production.db
+EnvironmentFile=-/etc/focustimer.env
+ExecStart=/usr/bin/python3 /var/www/html/tools/focus/server.py
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/focustimer
+
+[Install]
+WantedBy=multi-user.target
