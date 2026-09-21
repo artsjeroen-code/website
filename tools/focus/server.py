@@ -7,6 +7,7 @@ import secrets
 import sqlite3
 import threading
 import time
+from datetime import datetime, timezone
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
@@ -152,8 +153,61 @@ def clear_password_failures(ip):
     with PASSWORD_LOCK:
         PASSWORD_FAILURES.pop(ip, None)
 
+def utc_now():
+    return datetime.now(timezone.utc).isoformat()
+
+def task_json(row):
+    return {
+        "id": row["id"],
+        "text": row["text"],
+        "completed": bool(row["completed"]),
+        "active": bool(row["active"]),
+        "note": row["note"],
+        "estimatedBlocks": row["estimated_blocks"],
+        "focusBlocksDone": row["focus_blocks_done"],
+        "sortOrder": row["sort_order"],
+        "updatedAt": row["updated_at"],
+    }
+
+def validate_task_payload(task_id, payload):
+    if not task_id or len(task_id) > 128:
+        raise ValueError("Ongeldig taak-id")
+
+    text = str(payload.get("text") or "").strip()
+    if not text or len(text) > 120:
+        raise ValueError("Taaktekst moet 1 t/m 120 tekens bevatten")
+
+    note = str(payload.get("note") or "")
+    if len(note) > 500:
+        raise ValueError("Notitie mag maximaal 500 tekens bevatten")
+
+    try:
+        estimated_blocks = int(payload.get("estimatedBlocks", 1))
+        focus_blocks_done = int(payload.get("focusBlocksDone", 0))
+        sort_order = int(payload.get("sortOrder", 0))
+    except (TypeError, ValueError):
+        raise ValueError("Ongeldige numerieke taakgegevens")
+
+    if not 1 <= estimated_blocks <= 99:
+        raise ValueError("Geschatte focusblokken moet tussen 1 en 99 liggen")
+    if focus_blocks_done < 0:
+        raise ValueError("Uitgevoerde focusblokken mag niet negatief zijn")
+    if sort_order < 0:
+        raise ValueError("Sorteervolgorde mag niet negatief zijn")
+
+    return {
+        "id": task_id,
+        "text": text,
+        "completed": 1 if bool(payload.get("completed", False)) else 0,
+        "active": 1 if bool(payload.get("active", False)) else 0,
+        "note": note,
+        "estimated_blocks": estimated_blocks,
+        "focus_blocks_done": focus_blocks_done,
+        "sort_order": sort_order,
+    }
+
 class Handler(BaseHTTPRequestHandler):
-    server_version = "FocusSync/0.2"
+    server_version = "FocusSync/0.3"
 
     def send_json(self, status, payload, session_token=None, clear_session=False):
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -203,6 +257,23 @@ class Handler(BaseHTTPRequestHandler):
             })
             return
 
+        if path == "/tasks":
+            if not valid_session(self.headers):
+                self.send_json(401, {"error": "Niet ingelogd"})
+                return
+
+            with db_connect() as db:
+                rows = db.execute(
+                    "SELECT * FROM tasks ORDER BY sort_order ASC, updated_at ASC"
+                ).fetchall()
+
+            self.send_json(200, {
+                "tasks": [task_json(row) for row in rows if row["deleted_at"] is None],
+                "deletedIds": [row["id"] for row in rows if row["deleted_at"] is not None],
+                "serverTime": utc_now(),
+            })
+            return
+
         self.send_json(404, {"error": "Not found"})
 
     def do_POST(self):
@@ -244,9 +315,115 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(200, {"ok": True}, clear_session=True)
                 return
 
+            if path == "/tasks/order":
+                if not valid_session(self.headers):
+                    self.send_json(401, {"error": "Niet ingelogd"})
+                    return
+
+                payload = self.read_json()
+                ids = payload.get("ids")
+                if not isinstance(ids, list) or len(ids) > 500:
+                    raise ValueError("Ongeldige sorteervolgorde")
+                ids = [str(item) for item in ids]
+                if len(ids) != len(set(ids)) or any(not item or len(item) > 128 for item in ids):
+                    raise ValueError("Ongeldige sorteervolgorde")
+
+                now = utc_now()
+                with db_connect() as db:
+                    for index, task_id in enumerate(ids):
+                        db.execute(
+                            """
+                            UPDATE tasks
+                            SET sort_order = ?, updated_at = ?
+                            WHERE id = ? AND deleted_at IS NULL
+                            """,
+                            (index, now, task_id),
+                        )
+                    db.commit()
+                self.send_json(200, {"ok": True, "updatedAt": now})
+                return
+
             self.send_json(404, {"error": "Not found"})
         except ValueError as error:
             self.send_json(400, {"error": str(error)})
+
+    def do_PUT(self):
+        path = urlparse(self.path).path
+        if not path.startswith("/tasks/") or path == "/tasks/order":
+            self.send_json(404, {"error": "Not found"})
+            return
+        if not valid_session(self.headers):
+            self.send_json(401, {"error": "Niet ingelogd"})
+            return
+
+        try:
+            task_id = path[len("/tasks/"):]
+            payload = self.read_json()
+            task = validate_task_payload(task_id, payload)
+            now = utc_now()
+
+            with db_connect() as db:
+                db.execute(
+                    """
+                    INSERT INTO tasks (
+                        id, text, completed, active, note, estimated_blocks,
+                        focus_blocks_done, sort_order, updated_at, deleted_at
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+                    ON CONFLICT(id) DO UPDATE SET
+                        text = excluded.text,
+                        completed = excluded.completed,
+                        active = excluded.active,
+                        note = excluded.note,
+                        estimated_blocks = excluded.estimated_blocks,
+                        focus_blocks_done = excluded.focus_blocks_done,
+                        sort_order = excluded.sort_order,
+                        updated_at = excluded.updated_at,
+                        deleted_at = NULL
+                    """,
+                    (
+                        task["id"], task["text"], task["completed"], task["active"],
+                        task["note"], task["estimated_blocks"], task["focus_blocks_done"],
+                        task["sort_order"], now,
+                    ),
+                )
+                row = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
+                db.commit()
+
+            self.send_json(200, {"task": task_json(row)})
+        except ValueError as error:
+            self.send_json(400, {"error": str(error)})
+
+    def do_DELETE(self):
+        path = urlparse(self.path).path
+        if not path.startswith("/tasks/"):
+            self.send_json(404, {"error": "Not found"})
+            return
+        if not valid_session(self.headers):
+            self.send_json(401, {"error": "Niet ingelogd"})
+            return
+
+        task_id = path[len("/tasks/"):]
+        if not task_id or len(task_id) > 128:
+            self.send_json(400, {"error": "Ongeldig taak-id"})
+            return
+
+        now = utc_now()
+        with db_connect() as db:
+            cursor = db.execute(
+                """
+                UPDATE tasks
+                SET deleted_at = ?, updated_at = ?, active = 0
+                WHERE id = ? AND deleted_at IS NULL
+                """,
+                (now, now, task_id),
+            )
+            db.commit()
+
+        if cursor.rowcount == 0:
+            self.send_json(404, {"error": "Taak niet gevonden"})
+            return
+        self.send_json(200, {"ok": True, "id": task_id, "deletedAt": now})
 
     def log_message(self, fmt, *args):
         print("%s - - [%s] %s" % (
