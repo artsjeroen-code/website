@@ -5,7 +5,7 @@ import sqlite3
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HOST = os.environ.get("FOCUS_HOST", "127.0.0.1")
-PORT = int(os.environ.get("FOCUS_PORT", "8766"))
+PORT = int(os.environ.get("FOCUS_PORT", "8768"))
 DB_PATH = os.environ.get("FOCUS_DB", "/var/lib/focustimer/focus.db")
 
 SCHEMA = """
