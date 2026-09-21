@@ -1,10 +1,37 @@
 # Release notes
 
-Datum: 5 september 2026  
+Datum: 21 september 2026  
 Branch: `release`  
 Bron: `main`
 
 Deze branch is bedoeld als release-overzicht. De functionele websitecode is afkomstig van `main`; in deze releasebranch is alleen dit release-notesbestand toegevoegd.
+
+## Focus Timer
+
+### Synchronisatie tussen apparaten
+
+- Centrale takenopslag op de Raspberry Pi toegevoegd met SQLite.
+- Aparte Focus-authenticatie toegevoegd met een gehashte wachtwoordcontrole en een `HttpOnly`, `Secure`, `SameSite=Strict` sessiecookie.
+- De Focus API luistert alleen lokaal op de RPi en wordt uitsluitend via geselecteerde nginx-routes ontsloten.
+- Taken synchroniseren tussen apparaten, inclusief toevoegen, afvinken, heropenen, verwijderen, notities, volgorde, actieve taak en focusblok-tellers.
+- Lokale browserdata blijft beschikbaar als tijdelijke fallback wanneer de syncservice niet bereikbaar is.
+- De eerste migratie naar een lege centrale opslag is expliciet gemaakt: alleen een bewust geopende `?migrate=1`-sessie mag de centrale lijst initialiseren.
+- Staging en productie krijgen gescheiden backendpoorten en databasebestanden, zodat testdata niet automatisch in productie terechtkomt.
+- Synchronisatie is op staging getest met iPad en telefoon, inclusief wijzigingen in beide richtingen en vrijwel gelijktijdige wijzigingen.
+
+### Relevante paden
+
+- `tools/focus/`
+- `deploy/systemd/focustimer-staging.service`
+- `deploy/systemd/focustimer.service`
+- `deploy/nginx/staging`
+- `deploy/nginx/focus-production.conf`
+
+### Deploymentstatus
+
+- Staging draait op poort `8768` met de stagingdatabase.
+- Productieconfiguratie is voorbereid op poort `8769` met een aparte productiedatabase.
+- Productiedeployment is op 21 september 2026 nog niet uitgevoerd.
 
 ## Startpagina
 
