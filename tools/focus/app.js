@@ -1,7 +1,6 @@
 (() => {
   const THEME_KEY = 'startpagina-theme';
   const TASKS_KEY = 'focus-tasks-v1';
-  const MIGRATION_KEY = 'focus-tasks-migrated-v2';
   const PENDING_DELETES_KEY = 'focus-pending-deletes-v1';
   const BLOCKS_KEY = 'focus-blocks-v1';
   const SOUND_KEY = 'focus-sound-v1';
@@ -203,44 +202,41 @@
     }
   }
 
-  async function migrateLocalTasksOnce() {
-    if (localStorage.getItem(MIGRATION_KEY) === 'done') return;
-
-    try {
-      const remote = await apiRequest('/tasks');
-
-      if (Array.isArray(remote.tasks) && remote.tasks.length > 0) {
-        localStorage.setItem(MIGRATION_KEY, 'done');
-        return;
-      }
-
-      if (!tasks.length) return;
-
-      for (let index = 0; index < tasks.length; index += 1) {
-        const task = tasks[index];
-        await apiRequest(`/tasks/${encodeURIComponent(task.id)}`, {
-          method: 'PUT',
-          body: JSON.stringify(taskPayload(task, index))
-        });
-      }
-
-      await apiRequest('/tasks/order', {
-        method: 'POST',
-        body: JSON.stringify({ ids: tasks.map(task => task.id) })
-      });
-
-      localStorage.setItem(MIGRATION_KEY, 'done');
-      console.info(`Focus sync: ${tasks.length} lokale taken naar de RPi gemigreerd.`);
-    } catch (error) {
-      console.warn('Focus sync: lokale taken nog niet gemigreerd.', error);
-    }
-  }
-
   async function initializeTaskSync() {
-    await migrateLocalTasksOnce();
-
     try {
-      const remote = await apiRequest('/tasks');
+      let remote = await apiRequest('/tasks');
+
+      if (!remote.initialized) {
+        const migrationRequested = new URLSearchParams(window.location.search).get('migrate') === '1';
+
+        if (!migrationRequested) {
+          console.warn('Focus sync: centrale opslag is nog niet geïnitialiseerd; lokale taken blijven onaangeraakt.');
+          return;
+        }
+
+        for (let index = 0; index < tasks.length; index += 1) {
+          const task = tasks[index];
+          await apiRequest(`/tasks/${encodeURIComponent(task.id)}`, {
+            method: 'PUT',
+            body: JSON.stringify(taskPayload(task, index))
+          });
+        }
+
+        if (tasks.length) {
+          await apiRequest('/tasks/order', {
+            method: 'POST',
+            body: JSON.stringify({ ids: tasks.map(task => task.id) })
+          });
+        }
+
+        await apiRequest('/tasks/initialize', { method: 'POST', body: '{}' });
+        remote = await apiRequest('/tasks');
+
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete('migrate');
+        window.history.replaceState({}, '', cleanUrl);
+      }
+
       tasks = normalizeRemoteTasks(remote.tasks);
       activeTaskId = tasks.find(task => task.active && !task.completed)?.id || null;
       persistLocalTasks();
