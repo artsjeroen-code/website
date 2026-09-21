@@ -1,7 +1,7 @@
 (() => {
   const THEME_KEY = 'startpagina-theme';
   const TASKS_KEY = 'focus-tasks-v1';
-  const MIGRATION_KEY = 'focus-tasks-migrated-v1';
+  const MIGRATION_KEY = 'focus-tasks-migrated-v2';
   const BLOCKS_KEY = 'focus-blocks-v1';
   const SOUND_KEY = 'focus-sound-v1';
 
