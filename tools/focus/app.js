@@ -78,9 +78,9 @@
     queueTaskSync();
   }
 
-  function saveTasks() {
+  function saveTasks(options = {}) {
     persistLocalTasks();
-    queueTaskSync();
+    queueTaskSync(options);
   }
 
   async function apiRequest(path, options = {}) {
@@ -136,10 +136,16 @@
     }));
   }
 
-  function queueTaskSync() {
+  function queueTaskSync({ immediate = false } = {}) {
     if (!syncReady) return;
     syncQueued = true;
     window.clearTimeout(syncTimerId);
+
+    if (immediate) {
+      void flushTaskSync();
+      return;
+    }
+
     syncTimerId = window.setTimeout(flushTaskSync, 180);
   }
 
@@ -249,7 +255,11 @@
 
       window.setInterval(pullRemoteTasks, 5000);
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') pullRemoteTasks();
+        if (document.visibilityState === 'visible') {
+          pullRemoteTasks();
+        } else if (syncQueued) {
+          void flushTaskSync();
+        }
       });
       window.addEventListener('focus', pullRemoteTasks);
     } catch (error) {
@@ -612,6 +622,15 @@
         })
       );
 
+      const editTaskAction = makeMenuButton('Taak bewerken', () => {
+        closeTaskOverlays();
+        editor.setAttribute('hidden', '');
+        textEditor.removeAttribute('hidden');
+        textEditorInput.value = task.text;
+        textEditorInput.focus();
+        textEditorInput.setSelectionRange(textEditorInput.value.length, textEditorInput.value.length);
+      });
+      menu.append(editTaskAction);
 
       const noteAction = makeMenuButton(task.note ? 'Notitie bewerken' : 'Notitie toevoegen', () => {
         closeTaskOverlays();
@@ -646,6 +665,67 @@
       actions.append(blockCount, infoWrap, menuButton, menu);
       main.append(drag, select, text, actions);
 
+      const textEditor = document.createElement('div');
+      textEditor.className = 'task-text-editor';
+      textEditor.setAttribute('hidden', '');
+
+      const textEditorInput = document.createElement('input');
+      textEditorInput.type = 'text';
+      textEditorInput.maxLength = 120;
+      textEditorInput.value = task.text;
+      textEditorInput.setAttribute('aria-label', `Taaktekst voor ${task.text}`);
+
+      const textEditorActions = document.createElement('div');
+      textEditorActions.className = 'task-note-editor-actions';
+
+      const cancelTextEdit = document.createElement('button');
+      cancelTextEdit.type = 'button';
+      cancelTextEdit.textContent = 'Annuleren';
+      cancelTextEdit.addEventListener('click', () => {
+        textEditor.setAttribute('hidden', '');
+      });
+
+      const saveTextEdit = document.createElement('button');
+      saveTextEdit.type = 'button';
+      saveTextEdit.className = 'primary-small';
+      saveTextEdit.textContent = 'Opslaan';
+
+      let textCommitted = false;
+      const commitTaskText = () => {
+        if (textCommitted) return;
+        const clean = textEditorInput.value.trim();
+        if (!clean) {
+          textEditorInput.setAttribute('aria-invalid', 'true');
+          textEditorInput.focus();
+          return;
+        }
+
+        textCommitted = true;
+        task.text = clean;
+        saveTasks({ immediate: true });
+        renderTasks();
+      };
+
+      textEditorInput.addEventListener('input', () => {
+        textEditorInput.removeAttribute('aria-invalid');
+      });
+      textEditorInput.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          commitTaskText();
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          textEditor.setAttribute('hidden', '');
+        }
+      });
+      saveTextEdit.addEventListener('pointerup', event => {
+        if (event.pointerType === 'touch') commitTaskText();
+      });
+      saveTextEdit.addEventListener('click', commitTaskText);
+
+      textEditorActions.append(cancelTextEdit, saveTextEdit);
+      textEditor.append(textEditorInput, textEditorActions);
+
       const editor = document.createElement('div');
       editor.className = 'task-note-editor';
       editor.setAttribute('hidden', '');
@@ -670,16 +750,24 @@
       saveNote.type = 'button';
       saveNote.className = 'primary-small';
       saveNote.textContent = 'Opslaan';
-      saveNote.addEventListener('click', () => {
+      let noteCommitted = false;
+      const commitNote = () => {
+        if (noteCommitted) return;
+        noteCommitted = true;
         task.note = textarea.value.trim();
-        saveTasks();
+        saveTasks({ immediate: true });
         renderTasks();
+      };
+
+      saveNote.addEventListener('pointerup', event => {
+        if (event.pointerType === 'touch') commitNote();
       });
+      saveNote.addEventListener('click', commitNote);
 
       editorActions.append(cancelNote, saveNote);
       editor.append(textarea, editorActions);
 
-      li.append(main, editor);
+      li.append(main, textEditor, editor);
       taskList.appendChild(li);
     });
 
