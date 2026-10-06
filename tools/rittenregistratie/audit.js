@@ -70,8 +70,12 @@
   }
 
   function normalizeTimeField(input) {
-    const raw = input.value.trim();
-    if (/^\d{4}$/.test(raw)) input.value = `${raw.slice(0, 2)}:${raw.slice(2)}`;
+    let raw = input.value.trim();
+    if (/^\d{3,4}$/.test(raw)) {
+      raw = `${raw.slice(0, -2)}:${raw.slice(-2)}`;
+    }
+    const match = raw.match(/^(\d{1,2}):(\d{2})$/);
+    if (match) input.value = `${match[1].padStart(2, '0')}:${match[2]}`;
   }
 
   function rideLabel(ride) {
@@ -228,7 +232,7 @@
     normalizeTimeField(correctionDepartureTime);
     normalizeTimeField(correctionArrivalTime);
     if (!correctionForm.reportValidity()) {
-      setMessage('Gebruik voor tijden het 24-uurs formaat UU:MM, bijvoorbeeld 08:30 of 17:45.');
+      setMessage('Gebruik voor tijden het 24-uurs formaat U:MM of UU:MM, bijvoorbeeld 8:30 of 17:45.');
       return;
     }
 

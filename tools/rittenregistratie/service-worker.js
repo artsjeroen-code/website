@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rittenregistratie-shell-v19';
+const CACHE_NAME = 'rittenregistratie-shell-v20';
 const APP_SHELL = [
   './',
   './index.html',
