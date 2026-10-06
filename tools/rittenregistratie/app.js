@@ -43,6 +43,7 @@
   const arrivalMeta = document.getElementById('arrivalMeta');
   const yearFilter = document.getElementById('yearFilter');
   const monthFilter = document.getElementById('monthFilter');
+  const overviewSortButtons = [...document.querySelectorAll('#ridesTable .sort-button')];
   const submitButton = form.querySelector('button[type="submit"]');
 
   const menuButton = document.getElementById('menuButton');
@@ -56,6 +57,9 @@
   let apiAvailable = false;
   let selectedYear = String(new Date().getFullYear());
   let selectedMonth = 'all';
+  let overviewSortKey = null;
+  let overviewSortDirection = 'asc';
+  const overviewCollator = new Intl.Collator('nl-NL', { numeric: true, sensitivity: 'base' });
 
   function localDateValue(date = new Date()) {
     const year = date.getFullYear();
@@ -303,8 +307,71 @@
     return cell;
   }
 
-  function renderTable() {
+  function overviewSortValue(ride, key) {
+    switch (key) {
+      case 'date': return String(ride.date || '');
+      case 'vehicle': return String(ride.vehiclePlate || '');
+      case 'type': return ride.type === 'private' ? 'Privé' : 'Zakelijk';
+      case 'from': return `${ride.departureTime || ''} ${ride.departureAddress || ''}`.trim();
+      case 'to': return `${ride.arrivalTime || ''} ${ride.arrivalAddress || ''}`.trim();
+      case 'start': return Number(ride.startOdometer);
+      case 'end': return Number(ride.endOdometer);
+      case 'distance': return Number(ride.distance);
+      case 'notes': return String(ride.notes || '');
+      default: return '';
+    }
+  }
+
+  function sortedOverviewRides() {
     const visibleRides = overviewRides();
+    if (!overviewSortKey) return visibleRides;
+
+    const numericKeys = new Set(['start', 'end', 'distance']);
+    const direction = overviewSortDirection === 'desc' ? -1 : 1;
+
+    return visibleRides
+      .map((ride, index) => ({ ride, index }))
+      .sort((left, right) => {
+        const a = overviewSortValue(left.ride, overviewSortKey);
+        const b = overviewSortValue(right.ride, overviewSortKey);
+        let comparison;
+
+        if (numericKeys.has(overviewSortKey)) {
+          const aNumber = Number.isFinite(a) ? a : Number.NEGATIVE_INFINITY;
+          const bNumber = Number.isFinite(b) ? b : Number.NEGATIVE_INFINITY;
+          comparison = aNumber - bNumber;
+        } else {
+          comparison = overviewCollator.compare(String(a), String(b));
+        }
+
+        return comparison === 0 ? left.index - right.index : comparison * direction;
+      })
+      .map(({ ride }) => ride);
+  }
+
+  function updateOverviewSortIndicators() {
+    overviewSortButtons.forEach((button) => {
+      const active = button.dataset.sortKey === overviewSortKey;
+      const header = button.closest('th');
+      header.setAttribute(
+        'aria-sort',
+        active ? (overviewSortDirection === 'asc' ? 'ascending' : 'descending') : 'none'
+      );
+    });
+  }
+
+  function setOverviewSort(key) {
+    if (overviewSortKey === key) {
+      overviewSortDirection = overviewSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      overviewSortKey = key;
+      overviewSortDirection = 'asc';
+    }
+    renderTable();
+  }
+
+  function renderTable() {
+    const visibleRides = sortedOverviewRides();
     ridesBody.replaceChildren();
     emptyState.hidden = visibleRides.length > 0;
     const period = selectedMonth === 'all' ? selectedYear : `${monthFilter.options[monthFilter.selectedIndex].text} ${selectedYear}`;
@@ -341,6 +408,7 @@
 
       ridesBody.appendChild(row);
     });
+    updateOverviewSortIndicators();
   }
 
   function totals(list) {
@@ -617,6 +685,9 @@
   document.getElementById('fillFromPrevious').addEventListener('click', fillPreviousOdometer);
   document.getElementById('resetForm').addEventListener('click', () => resetForm());
   document.getElementById('exportCsv').addEventListener('click', exportCsv);
+  overviewSortButtons.forEach((button) => {
+    button.addEventListener('click', () => setOverviewSort(button.dataset.sortKey));
+  });
   yearFilter.addEventListener('change', () => { selectedYear = yearFilter.value; render(); });
   monthFilter.addEventListener('change', () => { selectedMonth = monthFilter.value; render(); });
   menuButton.addEventListener('click', () => openMenu(!appMenu.classList.contains('open')));

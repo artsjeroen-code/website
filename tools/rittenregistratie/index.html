@@ -198,7 +198,25 @@
           <article class="summary-card"><span>Zakelijk</span><strong id="overviewBusinessKm">0 km</strong></article>
           <article class="summary-card"><span>Privé</span><strong id="overviewPrivateKm">0 km</strong></article>
         </div>
-        <div class="table-wrap"><table><thead><tr><th>Datum</th><th>Kenteken</th><th>Type</th><th>Van</th><th>Naar</th><th>Begin</th><th>Eind</th><th>Km</th><th>Toelichting</th><th>Actie</th></tr></thead><tbody id="ridesBody"></tbody></table></div>
+        <div class="table-wrap">
+          <table id="ridesTable">
+            <thead>
+              <tr>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="date">Datum</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="vehicle">Kenteken</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="type">Type</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="from">Van</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="to">Naar</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="start">Begin</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="end">Eind</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="distance">Km</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="notes">Toelichting</button></th>
+                <th scope="col">Actie</th>
+              </tr>
+            </thead>
+            <tbody id="ridesBody"></tbody>
+          </table>
+        </div>
         <p id="emptyState" class="empty-state">Nog geen ritten opgeslagen.</p>
       </section>
     </section>
