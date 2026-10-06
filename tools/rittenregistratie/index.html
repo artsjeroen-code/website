@@ -65,7 +65,6 @@
     <nav>
       <button class="menu-item active" type="button" data-view="dashboard">Dashboard</button>
       <button class="menu-item" type="button" data-view="vehicles">Voertuigen</button>
-      <button class="menu-item" type="button" data-view="vehicle">Voertuig toevoegen</button>
       <button class="menu-item" type="button" data-view="corrections">Ritcorrectie & auditlog</button>
       <button class="menu-item" type="button" data-view="overview">Overzicht</button>
     </nav>
@@ -124,7 +123,7 @@
 
     <section class="app-view" data-view-panel="vehicles" hidden>
       <section class="panel first-panel">
-        <div class="panel-heading"><div><p class="eyebrow">Voertuigen</p><h2>Geregistreerde auto's</h2></div></div>
+        <div class="panel-heading"><div><p class="eyebrow">Voertuigen</p><h2>Geregistreerde auto's</h2></div><button class="primary-button" id="addVehicleButton" type="button">Voertuig toevoegen</button></div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Kenteken</th><th>Merk / model</th><th>In gebruik vanaf</th><th>Beginstand</th><th>In gebruik tot</th><th>Ritten</th><th>Laatste stand</th></tr></thead>
@@ -164,8 +163,8 @@
             <label><span>Type rit</span><select id="correctionType" required><option value="business">Zakelijk</option><option value="private">Privé</option></select></label>
             <label><span>Begin km-stand</span><input id="correctionStart" type="number" min="0" step="1" required></label>
             <label><span>Eind km-stand</span><input id="correctionEnd" type="number" min="0" step="1" required></label>
-            <label><span>Vertrektijd <em>(24 uur, optioneel)</em></span><input id="correctionDepartureTime" type="text" inputmode="numeric" maxlength="5" pattern="(?:[01][0-9]|2[0-3]):[0-5][0-9]" placeholder="08:30" aria-label="Vertrektijd in 24-uurs formaat UU:MM"></label>
-            <label><span>Aankomsttijd <em>(24 uur, optioneel)</em></span><input id="correctionArrivalTime" type="text" inputmode="numeric" maxlength="5" pattern="(?:[01][0-9]|2[0-3]):[0-5][0-9]" placeholder="17:45" aria-label="Aankomsttijd in 24-uurs formaat UU:MM"></label>
+            <label><span>Vertrektijd <em>(24 uur, optioneel)</em></span><input id="correctionDepartureTime" type="text" inputmode="numeric" maxlength="5" pattern="(?:[01]?[0-9]|2[0-3]):[0-5][0-9]" placeholder="8:30" aria-label="Vertrektijd in 24-uurs formaat U:MM of UU:MM"></label>
+            <label><span>Aankomsttijd <em>(24 uur, optioneel)</em></span><input id="correctionArrivalTime" type="text" inputmode="numeric" maxlength="5" pattern="(?:[01]?[0-9]|2[0-3]):[0-5][0-9]" placeholder="17:45" aria-label="Aankomsttijd in 24-uurs formaat U:MM of UU:MM"></label>
           </div>
           <div class="address-grid">
             <div class="address-block"><label for="correctionDeparture">Vertrekadres</label><input id="correctionDeparture" type="text" required></div>
@@ -198,7 +197,25 @@
           <article class="summary-card"><span>Zakelijk</span><strong id="overviewBusinessKm">0 km</strong></article>
           <article class="summary-card"><span>Privé</span><strong id="overviewPrivateKm">0 km</strong></article>
         </div>
-        <div class="table-wrap"><table><thead><tr><th>Datum</th><th>Kenteken</th><th>Type</th><th>Van</th><th>Naar</th><th>Begin</th><th>Eind</th><th>Km</th><th>Toelichting</th><th>Actie</th></tr></thead><tbody id="ridesBody"></tbody></table></div>
+        <div class="table-wrap">
+          <table id="ridesTable">
+            <thead>
+              <tr>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="date">Datum</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="vehicle">Kenteken</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="type">Type</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="from">Van</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="to">Naar</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="start">Begin</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="end">Eind</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="distance">Km</button></th>
+                <th scope="col" aria-sort="none"><button class="sort-button" type="button" data-sort-key="notes">Toelichting</button></th>
+                <th scope="col">Actie</th>
+              </tr>
+            </thead>
+            <tbody id="ridesBody"></tbody>
+          </table>
+        </div>
         <p id="emptyState" class="empty-state">Nog geen ritten opgeslagen.</p>
       </section>
     </section>
