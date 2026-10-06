@@ -683,6 +683,7 @@
     if (normalizePlate(vehiclePlate.value) && !vehicleMake.value) lookupRdwVehicle();
   });
   document.getElementById('fillFromPrevious').addEventListener('click', fillPreviousOdometer);
+  document.getElementById('addVehicleButton').addEventListener('click', () => switchView('vehicle'));
   document.getElementById('resetForm').addEventListener('click', () => resetForm());
   document.getElementById('exportCsv').addEventListener('click', exportCsv);
   overviewSortButtons.forEach((button) => {
