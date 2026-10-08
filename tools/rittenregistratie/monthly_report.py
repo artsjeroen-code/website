@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
+import csv
+import io
 import os
-import re
 import smtplib
 import sqlite3
 from datetime import date, timedelta
 from email.message import EmailMessage
-
-from employer_report import build_workbook, cumulative_totals
 
 DB_PATH = os.environ.get("RITTEN_DB", "/var/lib/rittenregistratie/ritten.db")
 SMTP_HOST = os.environ.get("RITTEN_SMTP_HOST", "smtp.gmail.com")
@@ -29,146 +28,123 @@ def previous_month(today=None):
     return last_previous_month.year, last_previous_month.month
 
 
-def first_day_after(year, month):
+def period_bounds(year, month):
+    start = date(year, month, 1)
     if month == 12:
-        return date(year + 1, 1, 1).isoformat()
-    return date(year, month + 1, 1).isoformat()
+        end = date(year + 1, 1, 1)
+    else:
+        end = date(year, month + 1, 1)
+    return start.isoformat(), end.isoformat()
 
 
-def load_data(cutoff):
+def load_rides(year, month):
+    start, end = period_bounds(year, month)
     db = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
     db.row_factory = sqlite3.Row
     try:
-        vehicles = [
-            {
-                "id": row["id"],
-                "make": row["make"],
-                "model": row["model"],
-                "plate": row["plate"],
-                "useFrom": row["use_from"],
-                "useTo": row["use_to"],
-                "initialOdometer": row["initial_odometer"],
-            }
-            for row in db.execute(
-                "SELECT * FROM vehicles ORDER BY use_from ASC, id ASC"
-            ).fetchall()
-        ]
-        rides = [
-            {
-                "id": row["id"],
-                "vehicleId": row["vehicle_id"],
-                "date": row["ride_date"],
-                "type": row["ride_type"],
-                "startOdometer": row["start_odometer"],
-                "endOdometer": row["end_odometer"],
-                "distance": row["distance"],
-                "departureTime": row["departure_time"],
-                "departureAddress": row["departure_address"],
-                "arrivalTime": row["arrival_time"],
-                "arrivalAddress": row["arrival_address"],
-                "notes": row["notes"],
-            }
-            for row in db.execute(
-                """
-                SELECT id, vehicle_id, ride_date, ride_type, start_odometer, end_odometer,
-                       distance, departure_time, departure_address, arrival_time,
-                       arrival_address, notes
-                FROM rides
-                WHERE ride_date < ?
-                ORDER BY ride_date ASC, id ASC
-                """,
-                (cutoff,),
-            ).fetchall()
-        ]
-        return vehicles, rides
+        return db.execute(
+            """
+            SELECT
+                r.ride_date,
+                v.plate AS vehicle_plate,
+                r.ride_type,
+                r.departure_time,
+                r.departure_address,
+                r.arrival_time,
+                r.arrival_address,
+                r.start_odometer,
+                r.end_odometer,
+                r.distance,
+                r.notes
+            FROM rides r
+            LEFT JOIN vehicles v ON v.id = r.vehicle_id
+            WHERE r.ride_date >= ? AND r.ride_date < ?
+            ORDER BY r.ride_date ASC, r.id ASC
+            """,
+            (start, end),
+        ).fetchall()
     finally:
         db.close()
 
 
-def vehicles_for_year(vehicles, year):
-    start = f"{year}-01-01"
-    end = f"{year + 1}-01-01"
-    return [
-        vehicle for vehicle in vehicles
-        if str(vehicle.get("useFrom") or "") < end
-        and (not vehicle.get("useTo") or str(vehicle["useTo"]) >= start)
-    ]
+def totals(rows):
+    business = sum(row["distance"] for row in rows if row["ride_type"] == "business")
+    private = sum(row["distance"] for row in rows if row["ride_type"] == "private")
+    return business, private
 
 
-def safe_plate(value):
-    return re.sub(r"[^A-Za-z0-9-]", "", str(value or "voertuig")) or "voertuig"
+def build_csv(rows):
+    output = io.StringIO(newline="")
+    writer = csv.writer(output, delimiter=";", quoting=csv.QUOTE_MINIMAL)
+    writer.writerow([
+        "Datum", "Kenteken", "Type", "Vertrektijd", "Vertrekadres",
+        "Aankomsttijd", "Aankomstadres", "Begin km-stand", "Eind km-stand",
+        "Kilometers", "Toelichting",
+    ])
+    for row in rows:
+        writer.writerow([
+            row["ride_date"],
+            row["vehicle_plate"] or "",
+            "Privé" if row["ride_type"] == "private" else "Zakelijk",
+            row["departure_time"] or "",
+            row["departure_address"],
+            row["arrival_time"] or "",
+            row["arrival_address"],
+            row["start_odometer"],
+            row["end_odometer"],
+            row["distance"],
+            row["notes"] or "",
+        ])
+    return "\ufeff" + output.getvalue()
 
 
-def send_report(year, through_month, vehicles, rides):
+def send_report(year, month, rows):
     if not SMTP_USER or not SMTP_PASSWORD or not MAIL_TO or not MAIL_FROM:
         raise RuntimeError(
             "Mailconfiguratie ontbreekt: stel RITTEN_SMTP_USER, RITTEN_SMTP_PASSWORD, "
             "RITTEN_MAIL_TO en eventueel RITTEN_MAIL_FROM in"
         )
 
-    report_vehicles = vehicles_for_year(vehicles, year)
-    month_name = MONTHS_NL[through_month - 1]
-    subject = f"Rittenregistratie {year} t/m {month_name}"
-    total_rides = 0
-    total_business = 0
-    total_private = 0
-    attachments = []
-
-    for vehicle in report_vehicles:
-        vehicle_rides = [
-            ride for ride in rides
-            if int(ride.get("vehicleId") or 0) == int(vehicle["id"])
-        ]
-        ride_count, business_km, private_km = cumulative_totals(
-            vehicle, vehicle_rides, year, through_month
-        )
-        total_rides += ride_count
-        total_business += business_km
-        total_private += private_km
-        attachments.append((
-            f"Rittenregistratie-{year}-{safe_plate(vehicle.get('plate'))}.xlsx",
-            build_workbook(vehicle, vehicle_rides, year),
-        ))
+    business_km, private_km = totals(rows)
+    total_km = business_km + private_km
+    month_name = MONTHS_NL[month - 1]
+    subject = f"Rittenregistratie {month_name} {year}"
+    filename = f"rittenregistratie-{year}-{month:02d}.csv"
 
     message = EmailMessage()
     message["Subject"] = subject
     message["From"] = MAIL_FROM
     message["To"] = MAIL_TO
     message.set_content(
-        f"Cumulatieve rittenregistratie {year} t/m {month_name}.\n\n"
-        f"Aantal ritten: {total_rides}\n"
-        f"Zakelijke kilometers: "
-        f"{int(total_business) if float(total_business).is_integer() else total_business} km\n"
-        f"Privékilometers: "
-        f"{int(total_private) if float(total_private).is_integer() else total_private} km\n\n"
-        f"De bijlage(n) volgen het werkgeversformat en bevatten twaalf maandtabbladen. "
-        f"Alle geregistreerde gegevens tot en met {month_name} zijn opgenomen; "
-        f"latere maanden blijven leeg.\n"
+        f"Maandoverzicht rittenregistratie – {month_name} {year}\n\n"
+        f"Aantal ritten: {len(rows)}\n"
+        f"Zakelijke kilometers: {business_km} km\n"
+        f"Privékilometers: {private_km} km\n"
+        f"Totaal: {total_km} km\n\n"
+        f"De volledige rittenlijst staat als CSV in de bijlage.\n"
     )
-
-    for filename, workbook in attachments:
-        message.add_attachment(
-            workbook,
-            maintype="application",
-            subtype="vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            filename=filename,
-        )
+    csv_bytes = build_csv(rows).encode("utf-8")
+    message.add_attachment(
+        csv_bytes,
+        maintype="text",
+        subtype="csv",
+        filename=filename,
+    )
 
     with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
         smtp.login(SMTP_USER, SMTP_PASSWORD)
         smtp.send_message(message)
 
     print(
-        f"Cumulatief werkgeversrapport verzonden: {year} t/m {month_name}, "
-        f"{total_rides} ritten, {len(attachments)} Excel-bijlage(n) -> {MAIL_TO}"
+        f"Maandrapport verzonden: {month_name} {year}, {len(rows)} ritten, "
+        f"{business_km} zakelijke km, {private_km} privé km -> {MAIL_TO}"
     )
 
 
 def main():
-    year, through_month = previous_month()
-    cutoff = first_day_after(year, through_month)
-    vehicles, rides = load_data(cutoff)
-    send_report(year, through_month, vehicles, rides)
+    year, month = previous_month()
+    rows = load_rides(year, month)
+    send_report(year, month, rows)
 
 
 if __name__ == "__main__":

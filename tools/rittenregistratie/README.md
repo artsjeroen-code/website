@@ -168,18 +168,17 @@ Back-ups staan in `/var/backups/rittenregistratie/`. Standaard worden back-ups o
 
 ## Maandelijkse e-mailrapportage
 
-`monthly_report.py` leest de SQLite-database alleen-lezen en verstuurt op de eerste dag van iedere maand een cumulatieve Excel-uitdraai in hetzelfde werkgeversformat als de knop **Download Rittenregistratie**.
+`monthly_report.py` leest de SQLite-database alleen-lezen en maakt op de eerste dag van iedere maand een rapport van de volledige vorige kalendermaand.
 
-De rapportage gebruikt het kalenderjaar van de vorige maand. Voorbeelden:
+De e-mail bevat:
 
-- op 1 november 2026 bevat het bestand januari t/m oktober 2026;
-- op 1 januari 2027 bevat het bestand het complete kalenderjaar 2026.
+- aantal ritten;
+- zakelijke kilometers;
+- privékilometers;
+- totaal aantal kilometers;
+- een CSV-bijlage met alle ritten, inclusief vertrek-/aankomsttijd en kenteken.
 
-De Excel-werkmap bevat altijd twaalf maandtabbladen. Maanden na de rapportageperiode blijven leeg. De maandtabbladen behouden de werkgeversindeling met voertuiggegevens, maandtotalen en de zakelijke rittenlijst. Personeelsnummer, naam en teammanager blijven net als bij de handmatige werkgeversdownload invulbaar in Excel.
-
-Bij meerdere voertuigen die in het rapportagejaar in gebruik waren, wordt per voertuig een afzonderlijk Excelbestand als bijlage meegestuurd. De e-mailtekst bevat daarnaast de cumulatieve aantallen en kilometer-totalen t/m de vorige maand.
-
-De Excelgenerator in `employer_report.py` gebruikt alleen de Python-standaardbibliotheek; er is op de RPi geen extra Excel-package nodig.
+Ook een maand zonder ritten wordt verzonden, met een CSV die alleen de kolomkoppen bevat.
 
 Systemd gebruikt:
 
