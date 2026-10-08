@@ -168,17 +168,20 @@ Back-ups staan in `/var/backups/rittenregistratie/`. Standaard worden back-ups o
 
 ## Maandelijkse e-mailrapportage
 
-`monthly_report.py` leest de SQLite-database alleen-lezen en maakt op de eerste dag van iedere maand een rapport van de volledige vorige kalendermaand.
+`monthly_report.py` leest de SQLite-database alleen-lezen en maakt op de eerste dag van iedere maand een cumulatief rapport van het lopende rapportagejaar t/m de volledige vorige kalendermaand.
+
+Voorbeelden:
+
+- op 1 oktober 2026 bevat de CSV alle ritten van 1 januari t/m 30 september 2026;
+- op 1 januari 2027 bevat de CSV het volledige kalenderjaar 2026.
 
 De e-mail bevat:
 
-- aantal ritten;
+- aantal ritten over de cumulatieve periode;
 - zakelijke kilometers;
 - privékilometers;
 - totaal aantal kilometers;
-- een CSV-bijlage met alle ritten, inclusief vertrek-/aankomsttijd en kenteken.
-
-Ook een maand zonder ritten wordt verzonden, met een CSV die alleen de kolomkoppen bevat.
+- een CSV-bijlage met alle ritten in die periode, inclusief vertrek-/aankomsttijd en kenteken.
 
 Systemd gebruikt:
 

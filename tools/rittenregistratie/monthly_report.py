@@ -29,7 +29,7 @@ def previous_month(today=None):
 
 
 def period_bounds(year, month):
-    start = date(year, month, 1)
+    start = date(year, 1, 1)
     if month == 12:
         end = date(year + 1, 1, 1)
     else:
@@ -108,20 +108,20 @@ def send_report(year, month, rows):
     business_km, private_km = totals(rows)
     total_km = business_km + private_km
     month_name = MONTHS_NL[month - 1]
-    subject = f"Rittenregistratie {month_name} {year}"
-    filename = f"rittenregistratie-{year}-{month:02d}.csv"
+    subject = f"Rittenregistratie {year} t/m {month_name}"
+    filename = f"rittenregistratie-{year}-tm-{month:02d}.csv"
 
     message = EmailMessage()
     message["Subject"] = subject
     message["From"] = MAIL_FROM
     message["To"] = MAIL_TO
     message.set_content(
-        f"Maandoverzicht rittenregistratie – {month_name} {year}\n\n"
+        f"Cumulatief overzicht rittenregistratie – januari t/m {month_name} {year}\n\n"
         f"Aantal ritten: {len(rows)}\n"
         f"Zakelijke kilometers: {business_km} km\n"
         f"Privékilometers: {private_km} km\n"
         f"Totaal: {total_km} km\n\n"
-        f"De volledige rittenlijst staat als CSV in de bijlage.\n"
+        f"De CSV-bijlage bevat alle ritten vanaf 1 januari t/m de laatste dag van {month_name}.\n"
     )
     csv_bytes = build_csv(rows).encode("utf-8")
     message.add_attachment(
@@ -136,7 +136,7 @@ def send_report(year, month, rows):
         smtp.send_message(message)
 
     print(
-        f"Maandrapport verzonden: {month_name} {year}, {len(rows)} ritten, "
+        f"Cumulatief rapport verzonden: januari t/m {month_name} {year}, {len(rows)} ritten, "
         f"{business_km} zakelijke km, {private_km} privé km -> {MAIL_TO}"
     )
 
