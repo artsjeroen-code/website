@@ -64,6 +64,10 @@
              aria-label="Zoek in je links of druk Enter voor Google" />
       <button class="clear" type="button" id="clearBtn" aria-label="Zoekveld wissen">&times</button>
     </form>
+    <div class="calendar-status" role="status" aria-live="polite"
+         title="Laatste wijziging van het gehoste ICS-bestand op de Raspberry Pi">
+      <span id="calendarStatusText">Werkagenda · datum wordt geladen…</span>
+    </div>
   </div>
 </header>
 
@@ -368,6 +372,35 @@ if (searchInput && wideCardSearch) {
   button.addEventListener('click', () => {
     applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
   });
+})();
+</script>
+
+<script>
+(async function showCalendarLastModified() {
+  const label = document.getElementById('calendarStatusText');
+  if (!label) return;
+
+  try {
+    // Alleen een openbare tijdstempel; geen ICS-URL of geheime mapnaam.
+    const response = await fetch('./calendar-status.json', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Geen agendastatus beschikbaar');
+
+    const data = await response.json();
+    const modified = new Date(data.last_modified);
+    if (!Number.isFinite(modified.getTime())) throw new Error('Ongeldige datum');
+
+    const formatted = new Intl.DateTimeFormat('nl-NL', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/Amsterdam'
+    }).format(modified);
+    label.textContent = 'Werkagenda bijgewerkt · ' + formatted;
+  } catch (_) {
+    label.textContent = 'Werkagenda · datum niet beschikbaar';
+  }
 })();
 </script>
 </body>
