@@ -41,7 +41,7 @@
     <a class="rail-button" href="https://chatgpt.com/" target="_blank" rel="noopener" aria-label="ChatGPT" title="ChatGPT"><span class="rail-icon icon-chatgpt" aria-hidden="true"></span></a>
     <a class="rail-button" href="https://web.whatsapp.com/" target="_blank" rel="noopener" aria-label="WhatsApp Web" title="WhatsApp Web"><span class="rail-icon icon-whatsapp" aria-hidden="true"></span></a>
     <a class="rail-button" href="https://mail.google.com/" target="_blank" rel="noopener" aria-label="Gmail" title="Gmail"><span class="rail-icon icon-mail" aria-hidden="true"></span></a>
-    <a class="rail-button" href="https://calendar.google.com/" target="_blank" rel="noopener" aria-label="Google Calendar" title="Google Calendar"><span class="rail-icon icon-calendar" aria-hidden="true"></span></a>
+    <a class="rail-button" id="railGoogleCalendar" href="https://calendar.google.com/" target="_blank" rel="noopener" aria-label="Google Calendar" title="Google Calendar · agendastatus laden"><span class="rail-icon icon-calendar" aria-hidden="true"></span></a>
     <a class="rail-button" href="https://drive.google.com/" target="_blank" rel="noopener" aria-label="Google Drive" title="Google Drive"><span class="rail-icon icon-drive" aria-hidden="true"></span></a>
     <a class="rail-button" href="https://photos.google.com/" target="_blank" rel="noopener" aria-label="Google Foto's" title="Google Foto's"><span class="rail-icon icon-photos" aria-hidden="true"></span></a>
     <a class="rail-button" href="https://www.google.com/maps" target="_blank" rel="noopener" aria-label="Google Maps" title="Google Maps"><span class="rail-icon icon-map" aria-hidden="true"></span></a>
@@ -64,10 +64,6 @@
              aria-label="Zoek in je links of druk Enter voor Google" />
       <button class="clear" type="button" id="clearBtn" aria-label="Zoekveld wissen">&times</button>
     </form>
-    <div class="calendar-status" role="status" aria-live="polite"
-         title="Laatste wijziging van het gehoste ICS-bestand op de Raspberry Pi">
-      <span id="calendarStatusText">Werkagenda · datum wordt geladen…</span>
-    </div>
   </div>
 </header>
 
@@ -377,13 +373,19 @@ if (searchInput && wideCardSearch) {
 
 <script>
 (async function showCalendarLastModified() {
-  const label = document.getElementById('calendarStatusText');
-  if (!label) return;
+  const calendarLink = document.getElementById('railGoogleCalendar');
+  if (!calendarLink) return;
+
+  function setCalendarTooltip(status) {
+    const description = 'Google Calendar · ' + status;
+    calendarLink.title = description;
+    calendarLink.setAttribute('aria-label', description);
+  }
 
   try {
-    // Alleen een openbare tijdstempel; geen ICS-URL of geheime mapnaam.
+    // Geen agenda-URL of geheime mapnaam nodig; alleen openbare metadata.
     const response = await fetch('./calendar-status.json', { cache: 'no-store' });
-    if (!response.ok) throw new Error('Geen agendastatus beschikbaar');
+    if (!response.ok) throw new Error('Agendastatus niet beschikbaar');
 
     const data = await response.json();
     const modified = new Date(data.last_modified);
@@ -391,15 +393,15 @@ if (searchInput && wideCardSearch) {
 
     const formatted = new Intl.DateTimeFormat('nl-NL', {
       day: 'numeric',
-      month: 'short',
+      month: 'long',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
       timeZone: 'Europe/Amsterdam'
     }).format(modified);
-    label.textContent = 'Werkagenda bijgewerkt · ' + formatted;
+    setCalendarTooltip('werkagenda bijgewerkt: ' + formatted);
   } catch (_) {
-    label.textContent = 'Werkagenda · datum niet beschikbaar';
+    setCalendarTooltip('werkagenda: wijzigingsdatum niet beschikbaar');
   }
 })();
 </script>
