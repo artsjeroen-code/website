@@ -24,14 +24,12 @@
 }
 .search:hover {
   border-color: var(--google-blue) !important;
-  box-shadow:
-    0 0 1px var(--google-blue),
-    0 0 3px var(--google-blue),
-    0 0 5px var(--google-blue),
-    0 0 10px rgba(66, 133, 244, .35) !important;
+  box-shadow: 0 0 0 2px rgba(66, 133, 244, .12) !important;
 }
 .search:focus {
   border-color: var(--google-blue) !important;
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, .20) !important;
+  outline: none;
 }
 
 .rail-button {
