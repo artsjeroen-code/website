@@ -431,3 +431,18 @@
     padding-bottom: 54px;
   }
 }
+
+/* Compacte Calendar-importstatus, ook leesbaar zonder hover op mobiel. */
+.calendar-status-footer {
+  margin: 12px var(--page-edge) 12px calc(var(--page-edge) + var(--utility-rail-width) + var(--utility-gap));
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .calendar-status-footer {
+    margin: 12px 8px 8px;
+  }
+}
