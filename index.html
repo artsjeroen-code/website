@@ -274,6 +274,10 @@
     </div>
   </main>
 
+  <footer class="calendar-status-footer" aria-live="polite">
+    <span id="calendarImportStatus">Werkagenda · importstatus laden…</span>
+  </footer>
+
 <script>
 const wideCard = document.querySelector('.card.wide');
 if (wideCard) {
@@ -374,12 +378,14 @@ if (searchInput && wideCardSearch) {
 <script>
 (async function showCalendarLastModified() {
   const calendarLink = document.getElementById('railGoogleCalendar');
+  const footerStatus = document.getElementById('calendarImportStatus');
   if (!calendarLink) return;
 
   function setCalendarTooltip(status) {
     const description = 'Google Calendar · ' + status;
     calendarLink.title = description;
     calendarLink.setAttribute('aria-label', description);
+    if (footerStatus) footerStatus.textContent = status;
   }
 
   try {
