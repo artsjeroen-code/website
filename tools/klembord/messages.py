@@ -53,20 +53,31 @@ def save_message(db, direction, content):
 
 def get_messages(db, direction):
     """Haal actieve berichten op."""
-    if direction not in VALID_DIRECTIONS:
+    if direction is not None and direction not in VALID_DIRECTIONS:
         raise ValueError("Invalid direction")
 
     cleanup_expired(db)
 
-    rows = db.execute(
-        """
-        SELECT id, direction, content, created_at, expires_at
-        FROM messages
-        WHERE direction = ? AND expires_at > ?
-        ORDER BY created_at DESC, id DESC
-        """,
-        (direction, int(time.time()))
-    ).fetchall()
+    if direction is None:
+        rows = db.execute(
+            """
+            SELECT id, direction, content, created_at, expires_at
+            FROM messages
+            WHERE expires_at > ?
+            ORDER BY created_at DESC, id DESC
+            """,
+            (int(time.time()),)
+        ).fetchall()
+    else:
+        rows = db.execute(
+            """
+            SELECT id, direction, content, created_at, expires_at
+            FROM messages
+            WHERE direction = ? AND expires_at > ?
+            ORDER BY created_at DESC, id DESC
+            """,
+            (direction, int(time.time()))
+        ).fetchall()
 
     return [dict(row) for row in rows]
 
