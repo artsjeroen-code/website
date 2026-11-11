@@ -295,16 +295,19 @@ class Handler(BaseHTTPRequestHandler):
 
                 directions = params.get("direction", [])
 
-                if len(directions) != 1 or directions[0] not in (
-                    "incoming", "outgoing"
+                if len(directions) > 1 or (
+                    directions and directions[0] not in (
+                        "incoming", "outgoing"
+                    )
                 ):
                     self.send_json(400, {
                         "error": "Invalid direction"
                     })
                     return
 
+                # Zonder richting: gecombineerde lijst voor alle apparaten.
                 messages = get_messages(
-                    db, directions[0]
+                    db, directions[0] if directions else None
                 )
 
             self.send_json(200, {
@@ -339,7 +342,7 @@ class Handler(BaseHTTPRequestHandler):
 
                     message_id = save_message(
                         db,
-                        payload.get("direction"),
+                        payload.get("direction", "outgoing"),
                         payload.get("content")
                     )
 
