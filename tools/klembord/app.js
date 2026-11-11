@@ -11,7 +11,6 @@ const logoutBtn = $("logoutBtn");
 const messagesList = $("messagesList");
 const statusMessage = $("statusMessage");
 
-let activeDirection = "incoming";
 let authenticated = false;
 
 function setStatus(message) {
@@ -117,7 +116,6 @@ async function logout() {
 async function sendMessage(event) {
   event.preventDefault();
 
-  const direction = $("direction").value;
   const content = $("message").value;
 
   if (!content.trim()) {
@@ -134,16 +132,10 @@ async function sendMessage(event) {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        direction,
-        content
-      })
+      body: JSON.stringify({ content })
     });
 
     $("message").value = "";
-    activeDirection = direction;
-
-    updateTabs();
     await loadMessages();
 
     setStatus("Bericht opgeslagen.");
@@ -151,18 +143,6 @@ async function sendMessage(event) {
     setStatus("Versturen mislukt: " + error.message);
   } finally {
     button.disabled = false;
-  }
-}
-
-function updateTabs() {
-  for (const button of document.querySelectorAll(
-    ".tabs button"
-  )) {
-    const selected =
-      button.dataset.direction === activeDirection;
-
-    button.classList.toggle("active", selected);
-    button.setAttribute("aria-pressed", String(selected));
   }
 }
 
@@ -242,10 +222,7 @@ async function loadMessages() {
   if (!authenticated) return;
 
   try {
-    const result = await apiRequest(
-      "/messages?direction=" +
-      encodeURIComponent(activeDirection)
-    );
+    const result = await apiRequest("/messages");
 
     messagesList.replaceChildren();
 
@@ -270,13 +247,11 @@ $("messageForm").addEventListener("submit", sendMessage);
 logoutBtn.addEventListener("click", logout);
 $("refreshBtn").addEventListener("click", loadMessages);
 
-for (const button of document.querySelectorAll(".tabs button")) {
-  button.addEventListener("click", () => {
-    activeDirection = button.dataset.direction;
-    updateTabs();
-    loadMessages();
-  });
-}
+$("railTheme").addEventListener("click", () => {
+  const root = document.documentElement;
+  const next = root.dataset.theme === "dark" ? "light" : "dark";
+  root.dataset.theme = next;
+  localStorage.setItem("startpagina-theme", next);
+});
 
-updateTabs();
 checkSession();
