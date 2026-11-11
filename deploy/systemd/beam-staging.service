@@ -1,0 +1,32 @@
+[Unit]
+Description=Beam Me Up Clipboard API (staging)
+After=network.target
+
+[Service]
+Type=simple
+User=beam
+Group=beam
+
+WorkingDirectory=/var/www/staging/tools/klembord
+
+Environment=PYTHONUNBUFFERED=1
+Environment=BEAM_HOST=127.0.0.1
+Environment=BEAM_PORT=8770
+Environment=BEAM_DB=/var/lib/klembord/staging/klembord.db
+Environment=BEAM_ALLOWED_ORIGIN=https://test-artsjeroen.ddns.net
+
+EnvironmentFile=/etc/beam-staging.env
+
+ExecStart=/usr/bin/python3 /var/www/staging/tools/klembord/server.py
+
+Restart=on-failure
+RestartSec=3
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/klembord/staging
+
+[Install]
+WantedBy=multi-user.target

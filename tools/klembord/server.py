@@ -30,7 +30,12 @@ from sessions import (
     revoke_session,
 )
 
-from messages import get_messages, save_message
+from messages import (
+    get_messages,
+    save_message,
+    delete_message,
+    cleanup_expired,
+)
 
 # Alleen deze herkomst mag browseracties uitvoeren.
 # Voor staging later instellen via een environmentvariabele.
@@ -133,6 +138,29 @@ def record_login_failure(client):
 def clear_login_failures(client):
     with LOGIN_LOCK:
         LOGIN_FAILURES.pop(client, None)
+
+
+CLEANUP_INTERVAL_SECONDS = 60
+
+
+def cleanup_worker(stop_event):
+    """Verwijder periodiek verlopen berichten en sessies."""
+    while not stop_event.is_set():
+        try:
+            with connect_db() as db:
+                cleanup_expired(db)
+
+                db.execute(
+                    "DELETE FROM sessions WHERE expires_at <= ?",
+                    (int(time.time()),)
+                )
+                db.commit()
+
+        except sqlite3.Error:
+            # Meld een databasefout zonder berichtinhoud te loggen.
+            print("Beam Me Up: database cleanup failed", flush=True)
+
+        stop_event.wait(CLEANUP_INTERVAL_SECONDS)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -422,14 +450,74 @@ class Handler(BaseHTTPRequestHandler):
             cookie=clear_session_cookie()
         )
 
+   
     def do_DELETE(self):
-        self.send_json(403, {
-            "error": "Access denied"
+        path = urlsplit(self.path).path
+
+        if not path.startswith("/messages/"):
+            self.send_json(404, {
+                "error": "Not found"
+            })
+            return
+
+        if not self.origin_allowed():
+            self.send_json(403, {
+                "error": "Origin not allowed"
+            })
+            return
+
+        with connect_db() as db:
+            if not valid_session(db, self.headers):
+                self.send_json(401, {
+                    "error": "Not authenticated"
+                })
+                return
+
+            message_id_text = path.removeprefix("/messages/")
+
+            if (
+                not message_id_text.isascii()
+                or not message_id_text.isdecimal()
+            ):
+                self.send_json(400, {
+                    "error": "Invalid message ID"
+                })
+                return
+
+            message_id = int(message_id_text)
+
+            try:
+                deleted = delete_message(db, message_id)
+            except ValueError:
+                self.send_json(400, {
+                    "error": "Invalid message ID"
+                })
+                return
+
+        if not deleted:
+            self.send_json(404, {
+                "error": "Message not found"
+            })
+            return
+
+        self.send_json(200, {
+            "ok": True,
+            "deleted": message_id
         })
 
 
 if __name__ == "__main__":
     init_db()
+
+    stop_event = threading.Event()
+
+    cleanup_thread = threading.Thread(
+        target=cleanup_worker,
+        args=(stop_event,),
+        name="beam-cleanup",
+        daemon=True,
+    )
+    cleanup_thread.start()
 
     server = ThreadingHTTPServer(
         (HOST, PORT), Handler
@@ -440,4 +528,10 @@ if __name__ == "__main__":
         flush=True
     )
 
-    server.serve_forever()
+    try:
+        server.serve_forever()
+    finally:
+        stop_event.set()
+        server.server_close()
+        cleanup_thread.join(timeout=2)
+

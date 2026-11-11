@@ -198,8 +198,42 @@ function createMessageCard(message) {
     }
   });
 
-  actions.append(copyButton);
+
+  const deleteButton = document.createElement("button");
+  deleteButton.type = "button";
+  deleteButton.textContent = "Verwijderen";
+
+  deleteButton.addEventListener("click", async () => {
+    const confirmed = window.confirm(
+      "Weet je zeker dat je dit bericht wilt verwijderen?"
+    );
+
+    if (!confirmed) return;
+
+    deleteButton.disabled = true;
+
+    try {
+      await apiRequest(
+        "/messages/" + encodeURIComponent(message.id),
+        {
+          method: "DELETE"
+        }
+      );
+
+      await loadMessages();
+      setStatus("Bericht verwijderd.");
+    } catch (error) {
+      setStatus(
+        "Verwijderen mislukt: " + error.message
+      );
+
+      deleteButton.disabled = false;
+    }
+  });
+
+  actions.append(copyButton, deleteButton);
   card.append(meta, content, actions);
+
 
   return card;
 }
