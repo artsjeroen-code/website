@@ -60,19 +60,23 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 }
 
 .beam-shell {
-  width: min(calc(100% - 76px), 980px);
-  min-height: 100vh;
-  min-height: 100dvh;
+  width: min(calc(100% - 76px), 1100px);
+  height: 100vh;
+  height: 100dvh;
+  min-height: 550px;
   margin-left: calc(var(--page-edge) + var(--utility-rail-width) + 10px);
   margin-right: auto;
-  padding: 10px 0;
+  padding: 58px 0 50px;
   display: grid;
-  place-items: center;
+  place-items: stretch;
 }
 
 .beam-card {
   width: 100%;
-  min-height: min(620px, calc(100dvh - 20px));
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   background: color-mix(in srgb, var(--panel) 94%, var(--bg));
   border: 1px solid var(--border);
   border-radius: 15px;
@@ -94,11 +98,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .beam-content {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  min-height: 500px;
+  flex: 1;
+  min-height: 0;
 }
 .composer, .feed {
   min-width: 0;
+  min-height: 0;
   padding: 24px 18px 16px;
+  overflow-y: auto;
 }
 .feed {
   border-left: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
@@ -121,6 +128,7 @@ textarea, input {
 }
 textarea {
   min-height: 260px;
+  height: clamp(260px, 38vh, 470px);
   resize: vertical;
   overflow-wrap: anywhere;
 }
@@ -169,11 +177,11 @@ textarea {
 #loginForm .primary-button { width: 100%; }
 
 @media (max-width: 760px) {
-  .beam-shell { width: calc(100% - 12px); min-height: calc(100dvh - 52px); margin: 0 auto; padding: 4px 0 56px; display: block; }
-  .beam-card { min-height: calc(100dvh - 60px); padding: 10px; border-radius: 12px; }
-  .beam-content { grid-template-columns: 1fr; min-height: 0; }
-  .composer, .feed { padding: 18px 6px; }
+  .beam-shell { width: calc(100% - 12px); height: auto; min-height: calc(100dvh - 52px); margin: 0 auto; padding: 4px 0 56px; display: block; }
+  .beam-card { height: auto; min-height: calc(100dvh - 60px); padding: 10px; border-radius: 12px; }
+  .beam-content { grid-template-columns: 1fr; flex: none; min-height: 0; }
+  .composer, .feed { overflow: visible; padding: 18px 6px; }
   .feed { border-left: 0; border-top: 1px solid var(--border); }
-  textarea { min-height: 180px; }
+  textarea { min-height: 180px; height: 180px; }
   .login-panel { margin-top: 35px; }
 }
