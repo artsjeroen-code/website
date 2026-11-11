@@ -37,6 +37,14 @@
     <a class="rail-button" href="tools/rittenregistratie/" aria-label="Rittenregistratie" title="Rittenregistratie"><span class="rail-icon" aria-hidden="true" style="background-image:url('icons/rittenregistratie.svg')"></span></a>
 
     <div class="rail-separator" aria-hidden="true"></div>
+    <button class="rail-button" id="railClipboardSend" type="button" aria-label="Systeemklembord naar Beam Me Up versturen" title="Klembordtekst versturen">
+      <span class="rail-icon icon-clipboard-send" aria-hidden="true"></span>
+    </button>
+    <button class="rail-button" id="railClipboardCopy" type="button" aria-label="Nieuwste Beam Me Up-bericht naar systeemklembord kopiëren" title="Nieuwste bericht kopiëren">
+      <span class="rail-icon icon-clipboard-copy" aria-hidden="true"></span>
+    </button>
+
+    <div class="rail-separator" aria-hidden="true"></div>
 
     <a class="rail-button" href="https://chatgpt.com/" target="_blank" rel="noopener" aria-label="ChatGPT" title="ChatGPT"><span class="rail-icon icon-chatgpt" aria-hidden="true"></span></a>
     <a class="rail-button" href="https://web.whatsapp.com/" target="_blank" rel="noopener" aria-label="WhatsApp Web" title="WhatsApp Web"><span class="rail-icon icon-whatsapp" aria-hidden="true"></span></a>
@@ -51,6 +59,8 @@
     <a class="rail-button" href="https://www.rabobank.nl/" target="_blank" rel="noopener" aria-label="Rabobank" title="Rabobank"><span class="rail-icon icon-bank" aria-hidden="true"></span></a>
     <a class="rail-button" href="https://www.marktplaats.nl/" target="_blank" rel="noopener" aria-label="Marktplaats" title="Marktplaats"><span class="rail-icon icon-market" aria-hidden="true"></span></a>
   </aside>
+
+  <p class="rail-clipboard-status" id="railClipboardStatus" role="status" aria-live="polite"></p>
 
   <a class="floating-edit" href="https://github.com/artsjeroen-code/website/blob/main/index.html" target="_blank" rel="noopener" aria-label="Website bewerken op GitHub" title="GitHub bewerken">
     <span class="rail-icon icon-edit" aria-hidden="true"></span>
@@ -407,5 +417,6 @@ if (searchInput && wideCardSearch) {
   }
 })();
 </script>
+<script src="clipboard-rail.js" defer></script>
 </body>
 </html>
