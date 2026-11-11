@@ -1,0 +1,92 @@
+
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Beam Me Up</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="brand">
+        <span class="brand-icon">↥</span>
+        <span>Beam Me Up</span>
+      </div>
+      <button id="logoutBtn" type="button" hidden>
+        Uitloggen
+      </button>
+    </header>
+
+    <section id="loginPanel" class="panel" hidden>
+      <h1>Inloggen</h1>
+      <form id="loginForm">
+        <label for="password">Wachtwoord</label>
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          required>
+        <button type="submit">Inloggen</button>
+      </form>
+    </section>
+
+    <section id="clipboardPanel" hidden>
+      <div class="layout">
+        <section class="panel">
+          <h2>Bericht versturen</h2>
+          <form id="messageForm">
+            <label for="direction">Richting</label>
+            <select id="direction">
+              <option value="incoming">
+                Privé → website
+              </option>
+              <option value="outgoing">
+                Website → privé
+              </option>
+            </select>
+
+            <label for="message">Tekst</label>
+            <textarea
+              id="message"
+              rows="8"
+              maxlength="16000"
+              placeholder="Plak of typ hier je tekst..."
+              required></textarea>
+
+            <button type="submit">Versturen</button>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h2>Berichten</h2>
+          <div class="tabs">
+            <button id="incomingTab"
+                    type="button"
+                    data-direction="incoming">
+              Ontvangen
+            </button>
+            <button id="outgoingTab"
+                    type="button"
+                    data-direction="outgoing">
+              Verzonden
+            </button>
+          </div>
+
+          <div id="messagesList"
+               aria-live="polite"></div>
+          <button id="refreshBtn" type="button">
+            Vernieuwen
+          </button>
+        </section>
+      </div>
+    </section>
+
+    <p id="statusMessage" role="status"></p>
+  </main>
+</body>
+</html>
