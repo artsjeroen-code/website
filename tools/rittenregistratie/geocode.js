@@ -115,6 +115,7 @@
       },
       (error) => {
         delete target.dataset.capturedTime;
+        document.dispatchEvent(new CustomEvent('rittenregistratie:location-failed', { detail: { targetId } }));
         const messages = {
           1: 'Locatietoegang is geweigerd. Geef de website locatietoestemming of vul het adres handmatig in.',
           2: 'De telefoon kon de huidige locatie niet bepalen.',
