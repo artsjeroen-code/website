@@ -106,8 +106,8 @@
           </div>
           <div class="distance-preview compact-distance" aria-live="polite"><span>Afstand</span><strong id="distancePreview">— km</strong></div>
           <div class="address-grid">
-            <div class="address-block"><label for="departureAddress">Vertrekadres</label><div class="address-row"><input id="departureAddress" name="departureAddress" type="text" autocomplete="street-address" placeholder="Straat, huisnummer, plaats" required><button class="location-button" type="button" data-location-target="departureAddress">Gebruik locatie</button></div><small id="departureMeta" class="field-meta"></small><label class="ride-time-field"><span>Vertrektijd <em>(optioneel)</em></span><input id="departureTime" name="departureTime" type="time" step="60"></label></div>
-            <div class="address-block"><label for="arrivalAddress">Aankomstadres</label><div class="address-row"><input id="arrivalAddress" name="arrivalAddress" type="text" autocomplete="street-address" placeholder="Straat, huisnummer, plaats" required><button class="location-button" type="button" data-location-target="arrivalAddress">Gebruik locatie</button></div><small id="arrivalMeta" class="field-meta"></small><label class="ride-time-field"><span>Aankomsttijd <em>(optioneel)</em></span><input id="arrivalTime" name="arrivalTime" type="time" step="60"></label></div>
+            <div class="address-block"><label for="departureAddress">Vertrekadres</label><div class="address-row"><input id="departureAddress" name="departureAddress" type="text" autocomplete="street-address" placeholder="Straat, huisnummer, plaats" required><button class="location-button" type="button" data-location-target="departureAddress">Gebruik locatie</button></div><small id="departureMeta" class="field-meta"></small><label class="ride-time-field"><span>Vertrektijd <em>(optioneel)</em></span><input id="departureTime" name="departureTime" type="text" inputmode="numeric" maxlength="5" pattern="(?:[01]?[0-9]|2[0-3]):[0-5][0-9]" placeholder="8:00" title="24-uurs tijd: bijvoorbeeld 8, 830 of 17:45" autocomplete="off"></label></div>
+            <div class="address-block"><label for="arrivalAddress">Aankomstadres</label><div class="address-row"><input id="arrivalAddress" name="arrivalAddress" type="text" autocomplete="street-address" placeholder="Straat, huisnummer, plaats" required><button class="location-button" type="button" data-location-target="arrivalAddress">Gebruik locatie</button></div><small id="arrivalMeta" class="field-meta"></small><label class="ride-time-field"><span>Aankomsttijd <em>(optioneel)</em></span><input id="arrivalTime" name="arrivalTime" type="text" inputmode="numeric" maxlength="5" pattern="(?:[01]?[0-9]|2[0-3]):[0-5][0-9]" placeholder="17:00" title="24-uurs tijd: bijvoorbeeld 8, 830 of 17:45" autocomplete="off"></label></div>
           </div>
           <div class="route-check" aria-live="polite">
             <span class="route-status-icon" id="routeStatusIcon" data-status="idle" aria-hidden="true">?</span>
@@ -221,11 +221,11 @@
     </section>
   </main>
 
-  <script src="app.js"></script>
+  <script src="app.js?v2"></script>
   <script src="vehicles-overview.js"></script>
   <script src="geocode.js"></script>
   <script src="routecheck.js"></script>
-  <script src="audit.js?v2"></script>
+  <script src="audit.js?v3"></script>
   <script src="pwa.js?v19"></script>
   <script>
   (function () {

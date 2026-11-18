@@ -71,12 +71,31 @@
   }
 
   function normalizeTimeField(input) {
-    let raw = input.value.trim();
-    if (/^\d{3,4}$/.test(raw)) {
-      raw = `${raw.slice(0, -2)}:${raw.slice(-2)}`;
+    const value = input.value.trim();
+    if (!value) {
+      input.value = '';
+      return;
     }
-    const match = raw.match(/^(\d{1,2}):(\d{2})$/);
-    if (match) input.value = `${match[1].padStart(2, '0')}:${match[2]}`;
+
+    // Ook alleen het uur of een compacte tijd zoals 830 wordt ondersteund.
+    let hours;
+    let minutes;
+    if (/^\d{1,2}$/.test(value)) {
+      hours = Number(value);
+      minutes = '00';
+    } else if (/^\d{3,4}$/.test(value)) {
+      hours = Number(value.slice(0, -2));
+      minutes = value.slice(-2);
+    } else {
+      const match = value.match(/^(\d{1,2}):(\d{1,2})$/);
+      if (!match) return;
+      hours = Number(match[1]);
+      minutes = match[2].padStart(2, '0');
+    }
+
+    if (hours >= 0 && hours <= 23 && Number(minutes) <= 59) {
+      input.value = `${hours}:${minutes}`;
+    }
   }
 
   function rideLabel(ride) {
@@ -251,7 +270,7 @@
     normalizeTimeField(correctionDepartureTime);
     normalizeTimeField(correctionArrivalTime);
     if (!correctionForm.reportValidity()) {
-      setMessage('Gebruik voor tijden het 24-uurs formaat U:MM of UU:MM, bijvoorbeeld 8:30 of 17:45.');
+      setMessage('Gebruik voor tijden 0:00 t/m 23:59, bijvoorbeeld 8, 830 of 17:45.');
       return;
     }
 
