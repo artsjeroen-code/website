@@ -71,12 +71,11 @@
 
 .ride-meta-grid {
   display: grid;
-  grid-template-columns: minmax(155px, .82fr) minmax(140px, .85fr) minmax(140px, .85fr) minmax(150px, 1.2fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 10px;
   align-items: start;
 }
-.ride-meta-grid > .ride-time-field { margin-top: 0; }
 .ride-meta-grid > label {
   min-width: 0;
   display: grid;
@@ -104,6 +103,7 @@
   gap: 10px;
   align-content: start;
 }
+.ride-point > .ride-time-field { margin-top: 0; min-width: 0; }
 
 @media (max-width: 760px) {
   .quick-capture-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
@@ -112,10 +112,7 @@
   .quick-ride-actions { width: 100%; }
   .quick-ride-actions button { flex: 1 1 0; }
   .ride-meta-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
-  .ride-meta-grid > .ride-meta-date,
-  .ride-meta-grid > .ride-meta-type { grid-column: 1 / -1; }
   .ride-meta-grid input[type="date"],
-  .ride-meta-grid input[type="time"],
   .ride-meta-grid select {
     box-sizing: border-box;
     display: block;
