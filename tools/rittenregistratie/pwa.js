@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const ASSET_VERSION = 'v17';
+  const ASSET_VERSION = 'v18';
   const versioned = (path) => `${path}?${ASSET_VERSION}`;
 
   function simplifyPageHeader() {
@@ -49,16 +49,20 @@
     const addressGrid = form.querySelector('.address-grid');
     const dateLabel = document.getElementById('rideDate')?.closest('label');
     const typeLabel = document.getElementById('rideType')?.closest('label');
+    const departureTimeLabel = document.getElementById('departureTime')?.closest('label');
+    const arrivalTimeLabel = document.getElementById('arrivalTime')?.closest('label');
     const startLabel = document.getElementById('startOdometer')?.closest('label');
     const endLabel = document.getElementById('endOdometer')?.closest('label');
     const departureBlock = document.getElementById('departureAddress')?.closest('.address-block');
     const arrivalBlock = document.getElementById('arrivalAddress')?.closest('.address-block');
 
-    if (!formGrid || !addressGrid || !dateLabel || !typeLabel || !startLabel || !endLabel || !departureBlock || !arrivalBlock) return;
+    if (!formGrid || !addressGrid || !dateLabel || !typeLabel || !departureTimeLabel || !arrivalTimeLabel || !startLabel || !endLabel || !departureBlock || !arrivalBlock) return;
 
+    dateLabel.classList.add('ride-meta-date');
+    typeLabel.classList.add('ride-meta-type');
     const metaGrid = document.createElement('div');
     metaGrid.className = 'ride-meta-grid';
-    metaGrid.append(dateLabel, typeLabel);
+    metaGrid.append(dateLabel, departureTimeLabel, arrivalTimeLabel, typeLabel);
 
     const pointGrid = document.createElement('div');
     pointGrid.className = 'ride-point-grid';
