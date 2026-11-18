@@ -21,6 +21,7 @@
 
   let rides = [];
   let audit = [];
+  let latestLoadRequest = 0;
 
   async function api(path, options = {}) {
     const response = await fetch(`${API_BASE}${path}`, {
@@ -159,15 +160,33 @@
   }
 
   async function load(selectedRideId = '') {
+    const requestId = ++latestLoadRequest;
+    if (selectedRideId) {
+      saveCorrection.disabled = true;
+      setMessage('Ritgegevens laden…');
+    }
     try {
       const [ridesPayload, auditPayload] = await Promise.all([api('/rides'), api('/audit')]);
+      // Een oudere reactie mag een later gekozen rit niet overschrijven.
+      if (requestId !== latestLoadRequest) return;
       rides = ridesPayload.rides || [];
       audit = auditPayload.audit || [];
       populateRideSelect(selectedRideId);
       renderAudit();
-      if (selectedRideId) fillCorrectionForm();
+      if (selectedRideId) {
+        if (rides.some((ride) => String(ride.id) === String(selectedRideId))) {
+          fillCorrectionForm();
+        } else {
+          correctionForm.reset();
+          setMessage('Deze rit is niet meer beschikbaar. Open het overzicht opnieuw.');
+        }
+      }
     } catch (error) {
-      setMessage(`Correcties konden niet worden geladen: ${error.message}`);
+      if (requestId === latestLoadRequest) {
+        setMessage(`Correcties konden niet worden geladen: ${error.message}`);
+      }
+    } finally {
+      if (requestId === latestLoadRequest && selectedRideId) saveCorrection.disabled = false;
     }
   }
 
@@ -277,8 +296,10 @@
   document.addEventListener('rittenregistratie:edit-ride', (event) => {
     const rideId = event.detail && event.detail.rideId;
     if (!rideId) return;
-    rideSelect.value = String(rideId);
-    fillCorrectionForm();
+    correctionForm.reset();
+    rideSelect.value = '';
+    // Haal de net opgeslagen rit op zonder de volledige pagina te vernieuwen.
+    load(rideId);
   });
 
   rideSelect.addEventListener('change', fillCorrectionForm);
