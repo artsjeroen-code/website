@@ -27,6 +27,8 @@
   const endOdometer = document.getElementById('endOdometer');
   const departureAddress = document.getElementById('departureAddress');
   const arrivalAddress = document.getElementById('arrivalAddress');
+  const departureTime = document.getElementById('departureTime');
+  const arrivalTime = document.getElementById('arrivalTime');
   const notes = document.getElementById('notes');
   const distancePreview = document.getElementById('distancePreview');
   const formMessage = document.getElementById('formMessage');
@@ -145,6 +147,15 @@
     delete input.dataset.capturedTime;
   }
 
+  function syncCapturedTime(targetId) {
+    if (targetId !== 'departureAddress' && targetId !== 'arrivalAddress') return;
+    const input = targetId === 'departureAddress' ? departureTime : arrivalTime;
+    const address = targetId === 'departureAddress' ? departureAddress : arrivalAddress;
+    // Handmatig ingevoerde tijden hebben voorrang op GPS en snelle registratie.
+    if (input.dataset.manualTime === 'true') return;
+    input.value = (address.dataset.capturedTime || '').slice(0, 5);
+  }
+
   function coordsFromInput(input) {
     const lat = Number(input.dataset.latitude);
     const lon = Number(input.dataset.longitude);
@@ -155,6 +166,8 @@
   function resetForm({ keepDate = true } = {}) {
     const currentDate = rideDate.value || localDateValue();
     form.reset();
+    delete departureTime.dataset.manualTime;
+    delete arrivalTime.dataset.manualTime;
     rideType.value = 'business';
     rideDate.value = keepDate ? currentDate : localDateValue();
     departureMeta.textContent = '';
@@ -495,8 +508,8 @@
       endOdometer: end,
       departureAddress: departureAddress.value.trim(),
       arrivalAddress: arrivalAddress.value.trim(),
-      departureTime: departureAddress.dataset.capturedTime || null,
-      arrivalTime: arrivalAddress.dataset.capturedTime || null,
+      departureTime: departureTime.value || null,
+      arrivalTime: arrivalTime.value || null,
       departureCoords: coordsFromInput(departureAddress),
       arrivalCoords: coordsFromInput(arrivalAddress),
       notes: notes.value.trim()
@@ -670,6 +683,11 @@
   startOdometer.addEventListener('input', calculateDistance);
   endOdometer.addEventListener('input', calculateDistance);
   form.addEventListener('submit', handleSubmit);
+  [departureTime, arrivalTime].forEach((input) => {
+    input.addEventListener('input', () => { input.dataset.manualTime = input.value ? 'true' : 'false'; });
+  });
+  document.addEventListener('rittenregistratie:location-filled', (event) => syncCapturedTime(event.detail?.targetId));
+  document.addEventListener('rittenregistratie:location-failed', (event) => syncCapturedTime(event.detail?.targetId));
   vehicleForm.addEventListener('submit', handleVehicleSubmit);
   vehicleSelect.addEventListener('change', () => {
     selectedVehicleId = vehicleSelect.value ? Number(vehicleSelect.value) : null;
