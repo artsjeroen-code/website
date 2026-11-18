@@ -126,13 +126,15 @@ Daarnaast kies je hier het actieve kenteken en voeg je een nieuwe rit toe. De la
 
 ## Tijdregistratie
 
-Bij gebruik van de knop **Gebruik locatie** wordt naast de GPS-locatie ook het lokale tijdstip van de telefoon/browser vastgelegd.
+In het dashboard onder **Rit toevoegen** kunnen vertrek- en aankomsttijd afzonderlijk en optioneel worden ingevuld via een 24-uurs tijdkiezer (`UU:MM`). Bij gebruik van de knop **Gebruik locatie** wordt naast de GPS-locatie ook het lokale tijdstip van de telefoon/browser vastgelegd en ingevuld in het betreffende tijdveld. Handmatig ingevoerde tijden hebben voorrang op GPS en snelle registratie.
 
 - bij het vertrekadres wordt `departureTime` opgeslagen;
 - bij het aankomstadres wordt `arrivalTime` opgeslagen;
 - de tijd wordt vastgelegd op het moment dat de locatie-opvraag wordt gestart;
 - bij een nieuwe locatie-opvraag wordt het tijdstip vervangen door het nieuwe tijdstip;
-- als locatiebepaling mislukt, wordt het bij die poging vastgelegde tijdstip niet gebruikt.
+- als locatiebepaling mislukt, wordt het bij die poging vastgelegde tijdstip niet gebruikt;
+- ook bij het overnemen van een snelle registratie worden de tijdvelden ingevuld, tenzij ze handmatig zijn gewijzigd;
+- een leeg tijdveld wordt als `null` opgeslagen.
 
 De velden worden als `HH:MM:SS` in SQLite opgeslagen. Bestaande ritten van vóór deze wijziging houden lege tijdvelden. Het overzicht toont de tijd bij het vertrek- en aankomstadres en de CSV-export bevat aparte kolommen `Vertrektijd` en `Aankomsttijd`.
 
