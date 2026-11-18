@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const ASSET_VERSION = 'v18';
+  const ASSET_VERSION = 'v19';
   const versioned = (path) => `${path}?${ASSET_VERSION}`;
 
   function simplifyPageHeader() {
@@ -58,22 +58,20 @@
 
     if (!formGrid || !addressGrid || !dateLabel || !typeLabel || !departureTimeLabel || !arrivalTimeLabel || !startLabel || !endLabel || !departureBlock || !arrivalBlock) return;
 
-    dateLabel.classList.add('ride-meta-date');
-    typeLabel.classList.add('ride-meta-type');
     const metaGrid = document.createElement('div');
     metaGrid.className = 'ride-meta-grid';
-    metaGrid.append(dateLabel, departureTimeLabel, arrivalTimeLabel, typeLabel);
+    metaGrid.append(dateLabel, typeLabel);
 
     const pointGrid = document.createElement('div');
     pointGrid.className = 'ride-point-grid';
 
     const departurePoint = document.createElement('div');
     departurePoint.className = 'ride-point';
-    departurePoint.append(startLabel, departureBlock);
+    departurePoint.append(startLabel, departureTimeLabel, departureBlock);
 
     const arrivalPoint = document.createElement('div');
     arrivalPoint.className = 'ride-point';
-    arrivalPoint.append(endLabel, arrivalBlock);
+    arrivalPoint.append(endLabel, arrivalTimeLabel, arrivalBlock);
 
     pointGrid.append(departurePoint, arrivalPoint);
     formGrid.replaceWith(metaGrid, pointGrid);
