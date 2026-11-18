@@ -84,6 +84,38 @@
     return Number.isFinite(value) ? value : null;
   }
 
+  function normalizeTimeField(input) {
+    const value = input.value.trim();
+    if (!value) {
+      input.value = '';
+      return;
+    }
+
+    // Ook alleen het uur of een compacte tijd zoals 830 wordt ondersteund.
+    let hours;
+    let minutes;
+    if (/^\d{1,2}$/.test(value)) {
+      hours = Number(value);
+      minutes = '00';
+    } else if (/^\d{3,4}$/.test(value)) {
+      hours = Number(value.slice(0, -2));
+      minutes = value.slice(-2);
+    } else {
+      const match = value.match(/^(\d{1,2}):(\d{1,2})$/);
+      if (!match) return;
+      hours = Number(match[1]);
+      minutes = match[2].padStart(2, '0');
+    }
+
+    if (hours >= 0 && hours <= 23 && Number(minutes) <= 59) {
+      input.value = `${hours}:${minutes}`;
+    }
+  }
+
+  function displayTime(value) {
+    return value ? String(value).slice(0, 5) : '';
+  }
+
   function setMessage(message, success = false) {
     formMessage.textContent = message;
     formMessage.classList.toggle('success', success);
@@ -399,8 +431,8 @@
       pill.textContent = ride.type === 'private' ? 'Privé' : 'Zakelijk';
       typeCell.appendChild(pill);
       row.appendChild(typeCell);
-      row.appendChild(createCell(ride.departureTime ? `${ride.departureTime} · ${ride.departureAddress}` : ride.departureAddress));
-      row.appendChild(createCell(ride.arrivalTime ? `${ride.arrivalTime} · ${ride.arrivalAddress}` : ride.arrivalAddress));
+      row.appendChild(createCell(ride.departureTime ? `${displayTime(ride.departureTime)} · ${ride.departureAddress}` : ride.departureAddress));
+      row.appendChild(createCell(ride.arrivalTime ? `${displayTime(ride.arrivalTime)} · ${ride.arrivalAddress}` : ride.arrivalAddress));
       row.appendChild(createCell(formatNumber(ride.startOdometer), 'numeric'));
       row.appendChild(createCell(formatNumber(ride.endOdometer), 'numeric'));
       row.appendChild(createCell(formatNumber(ride.distance), 'numeric'));
@@ -484,7 +516,12 @@
   }
 
   function validateRide() {
-    if (!form.reportValidity()) return null;
+    normalizeTimeField(departureTime);
+    normalizeTimeField(arrivalTime);
+    if (!form.reportValidity()) {
+      setMessage('Gebruik voor tijden 0:00 t/m 23:59, bijvoorbeeld 8, 830 of 17:45.');
+      return null;
+    }
     const vehicle = selectedVehicle();
     if (!vehicle) { setMessage('Kies eerst een kenteken.'); return null; }
     const start = numberValue(startOdometer);
@@ -606,7 +643,7 @@
       ['Totaal kilometers', selectionTotals.business + selectionTotals.private],
       [],
       ['Datum', 'Kenteken', 'Type', 'Vertrektijd', 'Vertrekadres', 'Aankomsttijd', 'Aankomstadres', 'Begin km-stand', 'Eind km-stand', 'Kilometers', 'Toelichting'],
-      ...visibleRides.map((ride) => [ride.date, ride.vehiclePlate || '', ride.type === 'private' ? 'Privé' : 'Zakelijk', ride.departureTime || '', ride.departureAddress, ride.arrivalTime || '', ride.arrivalAddress, ride.startOdometer, ride.endOdometer, ride.distance, ride.notes])
+      ...visibleRides.map((ride) => [ride.date, ride.vehiclePlate || '', ride.type === 'private' ? 'Privé' : 'Zakelijk', displayTime(ride.departureTime), ride.departureAddress, displayTime(ride.arrivalTime), ride.arrivalAddress, ride.startOdometer, ride.endOdometer, ride.distance, ride.notes])
     ];
     const content = rows.map((row) => row.map(csvEscape).join(';')).join('\r\n');
     const blob = new Blob([`\uFEFF${content}`], { type: 'text/csv;charset=utf-8' });
@@ -685,6 +722,7 @@
   form.addEventListener('submit', handleSubmit);
   [departureTime, arrivalTime].forEach((input) => {
     input.addEventListener('input', () => { input.dataset.manualTime = input.value ? 'true' : 'false'; });
+    input.addEventListener('blur', () => normalizeTimeField(input));
   });
   document.addEventListener('rittenregistratie:location-filled', (event) => syncCapturedTime(event.detail?.targetId));
   document.addEventListener('rittenregistratie:location-failed', (event) => syncCapturedTime(event.detail?.targetId));
